@@ -1,1 +1,1 @@
-![version](https://img.shields.io/github/v/tag/PolyLela/CS1.6-Jailbreak-Mod-API)
+![version](https://img.shields.io/badge/PolyLela/CS1.6-Jailbreak-Mod-API)
