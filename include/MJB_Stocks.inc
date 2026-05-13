@@ -68,6 +68,16 @@ stock GetTeam(id)
     return get_member(id, m_iTeam);
 }
 
+stock GetTeamCount(TeamName:iTeam, bool:bAliveOnly = true) {
+	new iTeamNum = 0;
+	for (new id = 1; id <= MAX_PLAYERS; id++) {
+		if (!mjb_is_player_valid(id) || GetTeam(id) != iTeam || (bAliveOnly && !is_user_alive(id)))
+			continue;
+		iTeamNum++;
+	}
+	return iTeamNum;
+}
+
 stock GetStateStr(id, output[], len)
 {
 	copy(output, len, StateNames[mjb_get_state(id)]);

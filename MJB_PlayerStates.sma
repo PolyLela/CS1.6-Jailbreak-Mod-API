@@ -1,3 +1,7 @@
+/* TODO
+	Make SetPlayerWanted + Check on Killed because maybe player killed player without touching like when throwing grenades
+	Add Phase Check on SetPlayerWanted for GAMEDAY IMPORTANTTTTTTTTTTTTTTTTT
+*/
 #include <amxmodx>
 #include <reapi>
 #include <cstrike>
@@ -34,7 +38,7 @@ public plugin_init()
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 
 	/* Events */
-	register_event("HLTV", "Event_NewRound", "a", "1=0", "2=0");
+	RegisterHookChain(RG_CSGameRules_RestartRound, "OnRoundStart", true);
 
 	/* Hooks */
 	RegisterHookChain(RG_CBasePlayer_TraceAttack, "OnPlayerTraceAttack_Pre", false);
@@ -153,7 +157,7 @@ public client_disconnected(id)
 	set_task(0.1, "ChoosePrisonerLast");
 }
 
-public Event_NewRound()
+public OnRoundStart()
 {
 	for (new id = 1; id <= MAX_PLAYERS; id++)
 	{
@@ -173,9 +177,9 @@ public mjb_phase_changed(iOldPhase, iNewPhase)
 	set_task(1.0, "ProcessFreedayNextday", 50);
 }
 
-public OnPlayerTraceAttack_Pre(pevVictim, pevAttacker)
+public OnPlayerTraceAttack_Pre(pevVictim, pevAttacker, Float:flDamage, Float:vecDir[3], tracehandle, bitsDamageType)
 {
-	if (!mjb_is_valid_player(pevVictim) || !mjb_is_valid_player(pevAttacker) || pevVictim == pevAttacker)
+	if (!mjb_is_valid_player(pevAttacker) || pevVictim == pevAttacker)
 		return HAM_IGNORED;
 
 	SetPlayerWanted(pevVictim, pevAttacker);
@@ -183,7 +187,7 @@ public OnPlayerTraceAttack_Pre(pevVictim, pevAttacker)
 	return HAM_IGNORED;
 }
 
-public OnPlayerKilled_Post(pevVictim, pevAttacker)
+public OnPlayerKilled_Post(pevVictim, pevAttacker, iGib)
 {
 	SetPlayerState(pevVictim, NORMAL);
 	set_task(0.1, "ChoosePrisonerLast");
@@ -207,9 +211,9 @@ public ProcessFreedayNextday()
 	//if (mjb_get_phase() == PHASE_GAMEDAY_ACTIVE || mjb_get_phase() == PHASE_GAMEDAY_VOTE)
 	//	return;
 
-	for (new id = 1; id < sizeof(g_bNextdayFreeday); id++)
+	for (new id = 1; id < MAX_PLAYERS; id++)
 	{
-		if (!mjb_is_valid_player(id) || !IsPlayerAlive(id) || GetPlayerTeam(id) != PRISONER || !g_bNextdayFreeday[id])
+		if (!mjb_is_valid_player(id) || !is_user_alive(id) || GetTeam(id) != TEAM_TERRORIST || !g_bNextdayFreeday[id])
 			continue;
 		g_bNextdayFreeday[id] = MJB_False;
 		SetPlayerState(id, PRISONER_FREEDAY);
@@ -224,7 +228,7 @@ public ChoosePrisonerLast()
 	for (new i = 0; i < plnum; i++)
 	{
 		tempid = pl[i];
-		if (!mjb_is_valid_player(tempid) || !IsPlayerAlive(tempid) || GetPlayerTeam(tempid) != PRISONER || g_bNextdayFreeday[tempid])
+		if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != TEAM_TERRORIST || g_bNextdayFreeday[tempid])
 			continue;
 
 		lastPn = tempid;
@@ -241,7 +245,7 @@ public FindPrisonerLast()
 	for (new i = 0; i < plnum; i++)
 	{
 		tempid = pl[i];
-		if (!mjb_is_valid_player(tempid) || !IsPlayerAlive(tempid) || GetPlayerTeam(tempid) != PRISONER)
+		if (!mjb_is_valid_player(tempid) || !IsPlayerAlive(tempid) || GetTeam(tempid) != TERRORIST)
 			continue;
 
 		if (GetPlayerState(tempid) == PRISONER_LAST)
@@ -278,45 +282,61 @@ public GetPlayerState(id)
 
 public SetPlayerLast(id)
 {
-	if (!mjb_is_valid_player(id) || !IsPlayerAlive(id))
-		return;
+	if (!mjb_is_valid_player(id) || !is_user_alive(id))
+		return false;
 
-	if (GetTeamCount(PRISONER, MJB_True) > 1 || GetTeamCount(GUARD, MJB_True) <= 0)
+	if (GetTeamCount(TEAM_TERRORIST, MJB_True) > 1 || GetTeamCount(TEAM_CT, MJB_True) <= 0)
 	{
-		return;
+		return false;
 	}
-	// mjb_get_phase() == PHASE_GAMEDAY_ACTIVE || 
-	if (GetPlayerTeam(id) != PRISONER || GetPlayerState(id) == PRISONER_LAST ||mjb_get_phase() == PHASE_GAMEDAY_VOTE)
-		return;
+	//Removed Temporarily
+	// mjb_get_phase() == PHASE_GAMEDAY_ACTIVE  || mjb_get_phase() == PHASE_GAMEDAY_VOTE
+	if (GetTeam(id) != TEAM_TERRORIST || GetPlayerState(id) == PRISONER_LAST)
+		return false;
 
-	if (FindPrisonerLast())
+	new lastPn = FindPrisonerLast();
+	if (mjb_is_valid_player(lastPn))
 	{
-		new name[32];
-		get_user_name(FindPrisonerLast(), name, 31);
-		return;
+		return false;
 	}
 
-	SetPlayerState(id, PRISONER_LAST);
+	if (!SetPlayerState(id, PRISONER_LAST));
+		return false;
+	
+	return true;
 }
 
 public SetPlayerWanted(victim, attacker)
 {
 	if (!mjb_is_valid_player(attacker))
-		return;
+		return false;
 
-	if (GetPlayerState(attacker) == PRISONER_WANTED || GetPlayerState(attacker) == PRISONER_LAST || GetPlayerTeam(victim) != GUARD || GetPlayerTeam(attacker) != PRISONER)
-		return;
+	if (GetTeam(victim) != TEAM_CT || GetTeam(attacker) != TEAM_TERRORIST)
+		return false;
+
+	if (GetPlayerState(attacker) == PRISONER_WANTED || GetPlayerState(attacker) == PRISONER_LAST)
+		return false;
+	
 	SetPlayerState(attacker, PRISONER_WANTED);
-	emit_sound(0, CHAN_AUTO, "MOON_JB/MOON_wanted.wav", VOL_NORM, ATTN_NORM, 0, PITCH_NORM)
+	emit_sound(0, CHAN_AUTO, "MOON_JB/MOON_wanted.wav", VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+	return true;
 }
 
 public SetPlayerFreeday(id)
 {
 	if (!mjb_is_valid_player(id))
-		return 0;
+		return false;
 
 	//if (mjb_get_day_type() == FREEDAY || mjb_get_phase() == PHASE_FREEDAY || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE)
 	//	return 0
+
+	if (!is_user_alive(id))
+		return false;
+
+	if (GetTeam(id) != TEAM_TERRORIST)
+		return false;
+
+	if (GetPlayerState(id) != NORMAL || GetPlayerState(id) != PRISONER_BOXING)
 
 	if (GetPlayerTeam(id) != PRISONER || g_PlayerData[id][DATA_STATE] == PRISONER_FREEDAY || g_PlayerData[id][DATA_STATE] == PRISONER_WANTED || g_PlayerData[id][DATA_STATE] == PRISONER_LAST) 
 		return 0;
@@ -416,22 +436,10 @@ public SetAllState(iState)
 /* =========================
    FORWARDS
 ========================= */
-public Forward_TeamChanged(id, OldTeam)
-{
-	new ret;
-	ExecuteForward(g_fwTeamChanged, ret, id, OldTeam, g_PlayerData[id][DATA_TEAM]);
-}
-
 public Forward_StateChanged(id, OldState)
 {
 	new ret;
 	ExecuteForward(g_fwStateChanged, ret, id, OldState, g_PlayerData[id][DATA_STATE]);
-}
-
-public Forward_LifeStateChanged(id)
-{
-	new ret;
-	ExecuteForward(g_fwLifeStateChanged, ret, id, g_PlayerData[id][DATA_LIFE]);
 }
 
 public Forward_MinigamesTeamChanged(id)

@@ -1,6 +1,9 @@
 # Ignore all .inc files
 *.inc
 
+# Ignore compilers, launchers, executables
+*.exe
+
 # Exclude MJB_ files
 !include/MJB_Core.inc
 !include/MJB_Consts.inc
