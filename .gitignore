@@ -1,0 +1,7 @@
+# Ignore all .inc files
+*.inc
+
+# Exclude MJB_ files
+!include/MJB_Core.inc
+!include/MJB_Consts.inc
+!include/MJB_Stocks.inc
