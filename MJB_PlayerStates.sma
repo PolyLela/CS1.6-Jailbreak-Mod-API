@@ -172,13 +172,13 @@ public client_putinserver(id)
 {
     g_PlayerData[id][DATA_STATE] = NORMAL;
     g_PlayerData[id][DATA_LIFE] = MJB_False;
-	g_PlayerData[id][DATA_TEAM] = NONE;
+	SetPlayerTeamInfo(id, NONE)
 }
 
 public client_disconnected(id) {
 	g_PlayerData[id][DATA_STATE] = NORMAL;
     g_PlayerData[id][DATA_LIFE] = MJB_False;
-	g_PlayerData[id][DATA_TEAM] = NONE;
+	SetPlayerTeamInfo(id, NONE)
 	set_task(0.1, "ChoosePrisonerLast");
 }
 
@@ -228,10 +228,7 @@ public OnPlayerSpawn_Post(id) {
    CORE: TEAM SYSTEM
 ========================= */
 public SetPlayerTeamInfo(id, iTeam)
-{
-	if (!mjb_is_valid_player(id))
-		return;
-	
+{	
 	if (iTeam < PRISONER || iTeam > GUARD)
 		iTeam = NONE;
     
