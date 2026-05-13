@@ -386,7 +386,7 @@ native mjb_stop_all_timers();
  *
  * @noreturn
  */
-native mjb_set_team(id, iTeam, bKill=MJB_False);
+native mjb_set_team(id, iTeam);
 
 /**
  * Retrieves a player's Jailbreak team.
@@ -511,6 +511,3 @@ native mjb_get_mg_team_count(iMinigamesTeam);
 native mjb_set_all_state(iState);
 
 #include <MJB_Stocks>
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
-*/
