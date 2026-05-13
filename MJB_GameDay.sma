@@ -24,7 +24,7 @@
 
 #define PLUGIN "Gameday"
 
-enum _:DayModes {
+enum {
 	DAY_SPARTA = 0,
 	DAY_PREDATOR,
 	DAY_PRESIDANT,
@@ -33,11 +33,12 @@ enum _:DayModes {
 	DAY_SNOWBALL,
 	DAY_FREE,
 	DAY_INVERTED,
-	DAY_NORMAL
+	DAY_NORMAL,
+	DAYS_NUM
 }
 
 new g_iVoteTimer;
-new g_iDayModeVotes[DayModes];
+new g_iDayModeVotes[DAYS_NUM];
 new g_iCurrentVote[MAX_PLAYERS + 1];
 new g_iFreezed[MAX_PLAYERS + 1];
 public plugin_init() {

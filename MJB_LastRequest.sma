@@ -7,7 +7,7 @@
 #define PLUGIN "Last Request"
 #define DUEL_BEAM_TASK	5612
 
-enum _:LR_OptionType {
+enum {
 	LR_NONDUEL,
 	LR_DUEL_ONESHOOT,
 	LR_DUEL
