@@ -142,15 +142,6 @@ native mjb_disable_speaking(id);
  * @return	1 if can speak 0 if cannot (also return -1 if player isnt valid)
  */
 native mjb_can_speak(id);
- 
-/**
- * Checks if a player is alive.
- *
- * @param id        Player index.
- *
- * @return	1 if alive 0 if dead.
- */
-native mjb_is_player_alive(id);
 
 /**
  * UnBlocks simon menu.
@@ -377,36 +368,6 @@ native mjb_extend_timer(iTimerId, Float:fDuration);
  * @noreturn
  */
 native mjb_stop_all_timers();
-
-/**
- * Sets a player's Jailbreak team.
- *
- * @param id        Player index.
- * @param iTeam     Team value (TEAM_NONE, TEAM_PRISONER, TEAM_GUARD).
- *
- * @noreturn
- */
-native mjb_set_team(id, iTeam);
-
-/**
- * Retrieves a player's Jailbreak team.
- *
- * @param id        Player index.
- *
- * @return          Player's team value.
- */
-native mjb_get_team(id);
-
-/**
- * Retrieves number of players in a JB team.
- *
- * @param iTeam		Team index (NONE, PRISONER, GUARD).
- * @param iAliveOnly	If set to MJB_True it counts only alive players.
- * @param &iLastId	Gets written with the id of last found player in team;
- *
- * @return          Players number in the team.
- */
-native mjb_get_team_count(iTeam, iAliveOnly = MJB_False);
 
 /**
  * Sets a player's Jailbreak state.

@@ -63,7 +63,7 @@ stock MJB_Print(const id, const message[], any:...)
 	return strlen(finalmsg);
 }
 
-stock GetTeam(id)
+stock TeamName:GetTeam(id)
 {
     return get_member(id, m_iTeam);
 }
@@ -71,7 +71,7 @@ stock GetTeam(id)
 stock GetTeamCount(TeamName:iTeam, bool:bAliveOnly = true) {
 	new iTeamNum = 0;
 	for (new id = 1; id <= MAX_PLAYERS; id++) {
-		if (!mjb_is_player_valid(id) || GetTeam(id) != iTeam || (bAliveOnly && !is_user_alive(id)))
+		if (!mjb_is_valid_player(id) || GetTeam(id) != iTeam || (bAliveOnly && !is_user_alive(id)))
 			continue;
 		iTeamNum++;
 	}
