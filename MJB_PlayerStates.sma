@@ -336,10 +336,8 @@ public SetPlayerFreeday(id)
 	if (GetTeam(id) != TEAM_TERRORIST)
 		return false;
 
-	if (GetPlayerState(id) != NORMAL || GetPlayerState(id) != PRISONER_BOXING)
-
-	if (GetPlayerTeam(id) != PRISONER || g_PlayerData[id][DATA_STATE] == PRISONER_FREEDAY || g_PlayerData[id][DATA_STATE] == PRISONER_WANTED || g_PlayerData[id][DATA_STATE] == PRISONER_LAST) 
-		return 0;
+	if (GetPlayerState(id) != NORMAL && GetPlayerState(id) != PRISONER_BOXING && GetPlayerState(id) != PRISONER_SOCCER)
+		return false;
 
 	SetPlayerState(id, PRISONER_FREEDAY);
 	return 1;
@@ -347,47 +345,46 @@ public SetPlayerFreeday(id)
 
 public SetPlayerBoxing(id)
 {
-	if (!mjb_is_valid_player(id) || !IsPlayerAlive(id))
-		return 0;
+	if (!mjb_is_valid_player(id) || !is_user_alive(id))
+		return false;
 
 	//if (mjb_get_phase() != PHASE_NORMAL)
-	//	return 0;
+	//	return false;
 
-	//if (GetPlayerTeam(id) != PRISONER)
-	//	return 0;
+	if (GetTeam(id) != TEAM_TERRORIST)
+		return false;
 
-	if (g_PlayerData[id][DATA_STATE] == PRISONER_FREEDAY || g_PlayerData[id][DATA_STATE] == PRISONER_WANTED || g_PlayerData[id][DATA_STATE] == PRISONER_BOXING || g_PlayerData[id][DATA_STATE] == PRISONER_LAST)
-		return 0;
+	if (GetPlayerState(id) != NORMAL && GetPlayerState(id) != PRISONER_SOCCER)
+		return false;
 
 	SetPlayerState(id, PRISONER_BOXING);
-	return 1;
+	return true;
 }
 
 public SetPlayerSoccer(id)
 {
-	if (!mjb_is_valid_player(id) || !IsPlayerAlive(id))
-		return 0;
+	if (!mjb_is_valid_player(id) || !is_user_alive(id))
+		return false;
 
 	//if (mjb_get_phase() == PHASE_FREEDAY || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE)
-	//	return 0;
-	if (GetPlayerTeam(id) != PRISONER)
-		return 0;
+	//	return false;
+	if (GetTeam(id) != TEAM_TERRORIST)
+		return false;
 
-	if (g_PlayerData[id][DATA_STATE] == PRISONER_FREEDAY || g_PlayerData[id][DATA_STATE] == PRISONER_WANTED || g_PlayerData[id][DATA_STATE] == PRISONER_SOCCER || g_PlayerData[id][DATA_STATE] == PRISONER_LAST)
-		return 0;
+	if (GetPlayerState(id) != NORMAL && GetPlayerState(id) != PRISONER_BOXING)
+		return false;
 
 	SetPlayerState(id, PRISONER_SOCCER);
-	g_iPlayerMinigamesTeam[id] = 0;
-	return 1;
+	return true;
 }
 
 public SetPlayerMinigamesTeam(id, iMinigamesTeam)
 {
 	if (!mjb_is_valid_player(id))
-		return 0;
+		return false;
 	g_iPlayerMinigamesTeam[id] = iMinigamesTeam;
 	Forward_MinigamesTeamChanged(id);
-	return 1;
+	return true;
 }
 
 public GetPlayerMinigamesTeam(id)
