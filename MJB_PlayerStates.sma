@@ -313,8 +313,8 @@ public GetTeamCount(iTeam, iAliveOnly)
 ========================= */
 public ProcessFreedayNextday()
 {
-	if (mjb_get_phase() == PHASE_GAMEDAY_ACTIVE || mjb_get_phase() == PHASE_GAMEDAY_VOTE)
-		return;
+	//if (mjb_get_phase() == PHASE_GAMEDAY_ACTIVE || mjb_get_phase() == PHASE_GAMEDAY_VOTE)
+	//	return;
 
 	for (new id = 1; id < sizeof(g_bNextdayFreeday); id++)
 	{
@@ -397,8 +397,8 @@ public SetPlayerLast(id)
 	{
 		return;
 	}
-
-	if (GetPlayerTeam(id) != PRISONER || GetPlayerState(id) == PRISONER_LAST || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE || mjb_get_phase() == PHASE_GAMEDAY_VOTE)
+	// mjb_get_phase() == PHASE_GAMEDAY_ACTIVE || 
+	if (GetPlayerTeam(id) != PRISONER || GetPlayerState(id) == PRISONER_LAST ||mjb_get_phase() == PHASE_GAMEDAY_VOTE)
 		return;
 
 	if (FindPrisonerLast())
@@ -427,8 +427,8 @@ public SetPlayerFreeday(id)
 	if (!mjb_is_valid_player(id))
 		return 0;
 
-	if (mjb_get_day_type() == FREEDAY || mjb_get_phase() == PHASE_FREEDAY || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE)
-		return 0
+	//if (mjb_get_day_type() == FREEDAY || mjb_get_phase() == PHASE_FREEDAY || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE)
+	//	return 0
 
 	if (GetPlayerTeam(id) != PRISONER || g_PlayerData[id][DATA_STATE] == PRISONER_FREEDAY || g_PlayerData[id][DATA_STATE] == PRISONER_WANTED || g_PlayerData[id][DATA_STATE] == PRISONER_LAST) 
 		return 0;
@@ -442,11 +442,11 @@ public SetPlayerBoxing(id)
 	if (!mjb_is_valid_player(id) || !IsPlayerAlive(id))
 		return 0;
 
-	if (mjb_get_phase() != PHASE_NORMAL)
-		return 0;
+	//if (mjb_get_phase() != PHASE_NORMAL)
+	//	return 0;
 
-	if (GetPlayerTeam(id) != PRISONER)
-		return 0;
+	//if (GetPlayerTeam(id) != PRISONER)
+	//	return 0;
 
 	if (g_PlayerData[id][DATA_STATE] == PRISONER_FREEDAY || g_PlayerData[id][DATA_STATE] == PRISONER_WANTED || g_PlayerData[id][DATA_STATE] == PRISONER_BOXING || g_PlayerData[id][DATA_STATE] == PRISONER_LAST)
 		return 0;
@@ -460,8 +460,8 @@ public SetPlayerSoccer(id)
 	if (!mjb_is_valid_player(id) || !IsPlayerAlive(id))
 		return 0;
 
-	if (mjb_get_phase() == PHASE_FREEDAY || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE)
-		return 0;
+	//if (mjb_get_phase() == PHASE_FREEDAY || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE)
+	//	return 0;
 	if (GetPlayerTeam(id) != PRISONER)
 		return 0;
 

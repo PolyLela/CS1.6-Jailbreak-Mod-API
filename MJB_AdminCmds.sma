@@ -8,8 +8,8 @@ public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
 	register_concmd("mjb_set_team", "Cmd_SetPlayerTeam", ADMIN_BAN);
-	/*register_concmd("mjb_get_team", "Cmd_GetPlayerTeam", ADMIN_BAN);
-	register_concmd("mjb_set_state", "Cmd_SetPlayerState", ADMIN_BAN);
+	register_concmd("mjb_get_team", "Cmd_GetPlayerTeam", ADMIN_BAN);
+	/*register_concmd("mjb_set_state", "Cmd_SetPlayerState", ADMIN_BAN);
 	register_concmd("mjb_get_state", "Cmd_GetPlayerState", ADMIN_BAN);
 	register_concmd("mjb_open_cell", "Cmd_OpenCell", ADMIN_BAN);
 	register_concmd("mjb_get_cell_state", "Cmd_GetCellState", ADMIN_BAN);
@@ -26,6 +26,16 @@ public Cmd_SetPlayerTeam(id)
     
     new iTeam = str_to_num(arg2);
     mjb_set_team(targetId, iTeam);
+}
+
+public Cmd_GetPlayerTeam(id)
+{
+    new arg1[32];
+    read_argv(1, arg1, charsmax(arg1));
+    
+    new targetId = cmd_target(id, arg1, CMDTARGET_ALLOW_SELF | CMDTARGET_OBEY_IMMUNITY);
+    
+    MJB_Print(id, "team : %d", mjb_get_team(targetId));
 }
 
 /*public Cmd_SetPlayerState(id)
