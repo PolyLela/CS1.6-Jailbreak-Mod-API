@@ -63,19 +63,9 @@ stock MJB_Print(const id, const message[], any:...)
 	return strlen(finalmsg);
 }
 
-stock ParseAndSetState(id, const stateStr[])
+stock GetTeam(id)
 {
-	if (stateStr[0] == 'F')
-		mjb_set_state(id, PRISONER_FREEDAY);
-	else if (stateStr[0] == 'W')
-		mjb_set_state(id, PRISONER_WANTED);
-	else
-		mjb_set_state(id, NONE);
-}
-
-stock GetTeamStr(id, output[], len)
-{
-	copy(output, len, TeamNames[mjb_get_team(id)]);
+    return get_member(id, m_iTeam);
 }
 
 stock GetStateStr(id, output[], len)

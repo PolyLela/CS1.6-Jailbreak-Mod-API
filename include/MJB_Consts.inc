@@ -55,41 +55,6 @@
 #define JUMPS_ADMIN_STACKED		3
 
 /* =========================
-   CBASE PData
-========================= */
-#define linux_diff_weapon 4
-#define linux_diff_animating 4
-#define linux_diff_player 5
-#define ACT_RANGE_ATTACK1 28
-#define m_flFrameRate 36
-#define m_flGroundSpeed 37
-#define m_flLastEventCheck 38
-#define m_fSequenceFinished 39
-#define m_fSequenceLoops 40
-#define m_pPlayer 41
-#define m_flNextPrimaryAttack 46
-#define m_flNextSecondaryAttack 47
-#define m_iClip 51
-#define m_Activity 73
-#define m_IdealActivity 74
-#define m_LastHitGroup 75
-#define m_flNextAttack 83
-#define m_bloodColor 89
-#define m_iPlayerTeam 114
-#define m_fHasPrimary 116
-#define m_bHasChangeTeamThisRound 125
-#define m_iObserverMode	104
-#define m_hSpecTarget	98
-#define m_flLastAttackTime 220
-#define m_afButtonPressed 246
-#define m_iHideHUD 361
-#define m_iClientHideHUD 362
-#define m_iSpawnCount 365
-#define m_pActiveItem 373
-#define m_flNextDecalTime 486
-#define g_szModelIndexPlayer 491
-
-/* =========================
    Message ids
 ========================= */
 #define MsgId_ScreenShake 97
@@ -126,8 +91,7 @@ new const StateNames[][] = {
 	"Wanted",
 	"Soccer",
 	"Boxing",
-	"Last",
-	"Duel"
+	"Last"
 };
 
 new const DayNames[][] = {
@@ -218,7 +182,8 @@ enum _:PlayerState {
 	PRISONER_WANTED,
 	PRISONER_SOCCER,
 	PRISONER_BOXING,
-	PRISONER_LAST
+	PRISONER_LAST,
+	STATES_NUM
 };
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }

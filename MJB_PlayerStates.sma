@@ -13,18 +13,15 @@
 ========================= */
 enum 
 {
-	DATA_TEAM = 0,
 	DATA_STATE,
-	DATA_LIFE,
+	DATA_MG_TEAM,
 	DATA_NUM
 };
 
 new g_PlayerData[MAX_PLAYERS + 1][DATA_NUM];
 
 /* Forwards */
-new g_fwTeamChanged;
 new g_fwStateChanged;
-new g_fwLifeStateChanged;
 new g_fwMinigamesTeamChanged;
 
 new g_iPlayerMinigamesTeam[MAX_PLAYERS + 1];
@@ -45,9 +42,7 @@ public plugin_init()
 	RegisterHookChain(RG_CBasePlayer_Spawn, "OnPlayerSpawn_Post", 1);
 
 	/* Forwards */
-	g_fwTeamChanged			 = CreateMultiForward("mjb_team_changed", ET_IGNORE, FP_CELL, FP_CELL, FP_CELL);
 	g_fwStateChanged		 = CreateMultiForward("mjb_state_changed", ET_IGNORE, FP_CELL, FP_CELL, FP_CELL);
-	g_fwLifeStateChanged	 = CreateMultiForward("mjb_life_state_changed", ET_IGNORE, FP_CELL, FP_CELL);
 	g_fwMinigamesTeamChanged = CreateMultiForward("mjb_minigames_team_changed", ET_IGNORE, FP_CELL, FP_CELL);
 }
 
@@ -63,9 +58,6 @@ public plugin_natives()
 {
 	register_library("MJB_Core");
 
-	register_native("mjb_set_team", "native_mjb_set_team");
-	register_native("mjb_get_team", "native_mjb_get_team");
-	register_native("mjb_get_team_count", "native_get_team_count");
 	register_native("mjb_set_state", "native_mjb_set_state");
 	register_native("mjb_get_state", "native_mjb_get_state");
 	register_native("mjb_set_user_soccer", "native_set_user_soccer");
@@ -77,35 +69,13 @@ public plugin_natives()
 	register_native("mjb_get_user_mg_team", "native_get_user_mg_team");
 	register_native("mjb_get_mg_team_count", "native_get_mg_team_count");
 	register_native("mjb_set_all_state", "native_mjb_set_all_state");
-	register_native("mjb_is_player_alive", "native_mjb_is_player_alive");
-}
-
-public native_mjb_set_team()
-{
-	new id	  = get_param(1);
-	new iTeam = get_param(2);
-	SetPlayerTeam(id, iTeam);
-}
-
-public native_mjb_get_team()
-{
-	new id = get_param(1);
-	return GetPlayerTeam(id);
-}
-
-public native_get_team_count()
-{
-	new iTeam	   = get_param(1);
-	new iAliveOnly = get_param(2);
-
-	GetTeamCount(iTeam, iAliveOnly);
 }
 
 public native_mjb_set_state()
 {
 	new id	   = get_param(1);
 	new iState = get_param(2);
-	SetPlayerState(id, iState);
+	return SetPlayerState(id, iState);
 }
 
 public native_mjb_get_state()
@@ -136,7 +106,7 @@ public native_set_user_freeday_nextday()
 {
 	new id		= get_param(1);
 	new bToggle = get_param(2);
-	if (!mjb_is_valid_player(id) || mjb_get_team(id) != PRISONER)
+	if (!mjb_is_valid_player(id) || GetTeam(id) != TEAM_TERRORIST)
 		return 0;
 	g_bNextdayFreeday[id] = bToggle;
 	return 1;
@@ -145,7 +115,7 @@ public native_set_user_freeday_nextday()
 public native_is_user_freeday_nextday()
 {
 	new id = get_param(1);
-	if (!mjb_is_valid_player(id) || mjb_get_team(id) != PRISONER)
+	if (!mjb_is_valid_player(id) || GetTeam(id) != TEAM_TERRORIST)
 		return 0;
 	return g_bNextdayFreeday[id];
 }
@@ -169,41 +139,25 @@ public native_get_mg_team_count()
 	return GetMinigamesTeamCount(iMinigamesTeam);
 }
 
-public native_mjb_set_all_state()
-{
-	new iState = get_param(1);
-	SetAllState(iState);
-}
-
-public native_mjb_is_player_alive()
-{
-	new id = get_param(1);
-	return IsPlayerAlive(id);
-}
-
 /* =========================
    EVENTS
 ========================= */
 public client_putinserver(id)
 {
-	g_PlayerData[id][DATA_STATE] = NORMAL;
-	g_PlayerData[id][DATA_LIFE]  = MJB_False;
-	SetPlayerTeamInfo(id, NONE)
+	SetPlayerState(id, NORMAL);
 }
 
 public client_disconnected(id)
 {
-	g_PlayerData[id][DATA_STATE] = NORMAL;
-	g_PlayerData[id][DATA_LIFE]  = MJB_False;
-	SetPlayerTeamInfo(id, NONE);
+	SetPlayerState(id, NORMAL);
 	set_task(0.1, "ChoosePrisonerLast");
 }
 
 public Event_NewRound()
 {
-	for (new id = 1; id <= 32; id++)
+	for (new id = 1; id <= MAX_PLAYERS; id++)
 	{
-		g_PlayerData[id][DATA_STATE] = NORMAL;
+		SetPlayerState(id, NORMAL);
 	}
 	set_task(1.0, "ChoosePrisonerLast");
 	set_task(1.0, "ProcessFreedayNextday", 50);
@@ -231,7 +185,6 @@ public OnPlayerTraceAttack_Pre(pevVictim, pevAttacker)
 
 public OnPlayerKilled_Post(pevVictim, pevAttacker)
 {
-	SetPlayerDead(pevVictim);
 	SetPlayerState(pevVictim, NORMAL);
 	set_task(0.1, "ChoosePrisonerLast");
 }
@@ -240,72 +193,10 @@ public OnPlayerSpawn_Post(id)
 {
 	if (is_user_alive(id))
 	{
-		SetPlayerAlive(id);
 		g_PlayerData[id][DATA_STATE] = NORMAL;
 		g_iPlayerMinigamesTeam[id]	 = NONE;
 		set_task(0.5, "ChoosePrisonerLast");
 	}
-}
-
-/* =========================
-   CORE: TEAM SYSTEM
-========================= */
-public SetPlayerTeamInfo(id, iTeam)
-{
-	if (iTeam < PRISONER || iTeam > GUARD)
-		iTeam = NONE;
-
-	new OldTeam = g_PlayerData[id][DATA_TEAM];
-	g_PlayerData[id][DATA_TEAM] = iTeam;
-	Forward_TeamChanged(id, OldTeam);
-}
-
-public SetPlayerTeam(id, iTeam)
-{
-	if (!mjb_is_valid_player(id))
-		return false;
-
-	switch (iTeam)
-	{
-		case PRISONER:
-		{
-			if (!rg_set_user_team(id, TEAM_TERRORIST, MODEL_UNASSIGNED, true, true))
-				return false;
-		}
-		case GUARD:
-		{
-			if (!rg_set_user_team(id, TEAM_CT, MODEL_UNASSIGNED, true, true))
-				return false;
-		}
-		default:
-		{
-			if (!rg_set_user_team(id, TEAM_SPECTATOR, MODEL_UNASSIGNED, true, true))
-				return false;
-			iTeam = NONE;
-		}
-	}
-	SetPlayerTeamInfo(id, iTeam);
-	return true;
-}
-
-public GetPlayerTeam(id)
-{
-	return g_PlayerData[id][DATA_TEAM];
-}
-
-public GetTeamCount(iTeam, iAliveOnly)
-{
-	new count;
-	new pl[MAX_PLAYERS], plnum, tempid;
-	get_players(pl, plnum, "h");
-	for (new i = 0; i < plnum; i++)
-	{
-		tempid = pl[i];
-		if (!mjb_is_valid_player(tempid) || (iAliveOnly && !IsPlayerAlive(tempid)) || GetPlayerTeam(tempid) != iTeam)
-			continue;
-		count++;
-	}
-	return count;
 }
 
 /* =========================
@@ -361,30 +252,27 @@ public FindPrisonerLast()
 
 public SetPlayerState(id, iState)
 {
-	if (!mjb_is_valid_player(id))
-		return;
+	if (iState < NORMAL || iState >= STATES_NUM)
+		return false;
 
-	if (GetPlayerTeam(id) == GUARD)
+	if (GetTeam(id) == TEAM_CT && iState > NORMAL)
 	{
-		g_PlayerData[id][DATA_STATE] = NORMAL;
-		return;
+		return false;
 	}
 
-	if (GetPlayerState(id) == PRISONER_LAST && IsPlayerAlive(id))
+	if (GetPlayerState(id) == PRISONER_LAST && is_user_alive(id))
 	{
-		return;
+		return false;
 	}
 
-	new OldState				 = g_PlayerData[id][DATA_STATE];
+	new OldState = g_PlayerData[id][DATA_STATE];
 	g_PlayerData[id][DATA_STATE] = iState;
 	Forward_StateChanged(id, OldState);
+	return true;
 }
 
 public GetPlayerState(id)
 {
-	if (!mjb_is_valid_player(id))
-		return -1;
-
 	return g_PlayerData[id][DATA_STATE];
 }
 
@@ -526,26 +414,6 @@ public SetAllState(iState)
 }
 
 /* =========================
-   CORE: LIFE STATE SYSTEM
-========================= */
-public SetPlayerDead(id)
-{
-	g_PlayerData[id][DATA_LIFE] = MJB_False;
-	Forward_LifeStateChanged(id);
-}
-
-public SetPlayerAlive(id)
-{
-	g_PlayerData[id][DATA_LIFE] = MJB_True;
-	Forward_LifeStateChanged(id);
-}
-
-public IsPlayerAlive(id)
-{
-	return g_PlayerData[id][DATA_LIFE];
-}
-
-/* =========================
    FORWARDS
 ========================= */
 public Forward_TeamChanged(id, OldTeam)
@@ -570,17 +438,4 @@ public Forward_MinigamesTeamChanged(id)
 {
 	new ret;
 	ExecuteForward(g_fwMinigamesTeamChanged, ret, id, g_iPlayerMinigamesTeam[id]);
-}
-
-/* =========================
-   PLUGIN SPECIFIC STOCKS
-========================= */
-stock ParseAndSetTeam(id, const teamStr[])
-{
-	if (teamStr[0] == 'T')
-		SetPlayerTeamInfo(id, PRISONER);
-	else if (teamStr[0] == 'C')
-		SetPlayerTeamInfo(id, GUARD);
-	else
-		SetPlayerTeamInfo(id, NONE);
 }
