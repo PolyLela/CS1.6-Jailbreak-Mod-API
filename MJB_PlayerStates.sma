@@ -1,4 +1,5 @@
 #include <amxmodx>
+#include <reapi>
 #include <cstrike>
 #include <fakemeta>
 #include <engine>
@@ -34,7 +35,6 @@ public plugin_init()
     register_plugin(PLUGIN, VERSION, AUTHOR);
 
     /* Events */
-    register_event("TeamInfo", "Event_TeamInfo", "a");
     register_event("HLTV", "Event_NewRound", "a", "1=0", "2=0");
 
     /* Hooks */
@@ -172,9 +172,13 @@ public client_putinserver(id)
 {
     g_PlayerData[id][DATA_STATE] = NORMAL;
     g_PlayerData[id][DATA_LIFE] = MJB_False;
+	g_PlayerData[id][DATA_TEAM] = NONE;
 }
 
 public client_disconnected(id) {
+	g_PlayerData[id][DATA_STATE] = NORMAL;
+    g_PlayerData[id][DATA_LIFE] = MJB_False;
+	g_PlayerData[id][DATA_TEAM] = NONE;
 	set_task(0.1, "ChoosePrisonerLast");
 }
 
@@ -218,20 +222,6 @@ public OnPlayerSpawn_Post(id) {
 		g_iPlayerMinigamesTeam[id] = NONE;
 		set_task(0.5, "ChoosePrisonerLast");
 	}
-}
-
-public Event_TeamInfo()
-{
-    new id = read_data(1);
-
-    if (!mjb_is_valid_player(id))
-        return;
-
-    new teamStr[16];
-    read_data(2, teamStr, charsmax(teamStr));
-
-    ParseAndSetTeam(id, teamStr);
-    GetTeamStr(id, teamStr, 15);
 }
 
 /* =========================
