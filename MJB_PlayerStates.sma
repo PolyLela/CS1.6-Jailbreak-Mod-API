@@ -152,20 +152,20 @@ public native_set_all_state()
 public client_putinserver(id)
 {
 	SetPlayerState(id, NORMAL);
+	SetPlayerMinigamesTeam(id, 0);
 }
 
 public client_disconnected(id)
 {
 	SetPlayerState(id, NORMAL);
+	SetPlayerMinigamesTeam(id, 0);
 	set_task(0.1, "ChoosePrisonerLast");
 }
 
 public OnRoundStart()
 {
-	for (new id = 1; id <= MAX_PLAYERS; id++)
-	{
-		SetPlayerState(id, NORMAL);
-	}
+	SetAllState(NORMAL);
+	ResetEveryoneMinigamesTeam();
 	set_task(1.0, "ChoosePrisonerLast");
 	set_task(1.0, "ProcessFreedayNextday", 50);
 }
@@ -200,7 +200,7 @@ public OnPlayerSpawn_Post(id)
 	if (is_user_alive(id))
 	{
 		SetPlayerState(id, NORMAL);
-		g_iPlayerMinigamesTeam[id]	 = NORMAL;
+		SetPlayerMinigamesTeam(id, 0);
 		set_task(0.5, "ChoosePrisonerLast");
 	}
 }
@@ -386,8 +386,6 @@ public SetPlayerSoccer(id)
 
 public SetPlayerMinigamesTeam(id, iMinigamesTeam)
 {
-	if (!mjb_is_valid_player(id))
-		return false;
 	g_iPlayerMinigamesTeam[id] = iMinigamesTeam;
 	Forward_MinigamesTeamChanged(id);
 	return true;
@@ -395,9 +393,6 @@ public SetPlayerMinigamesTeam(id, iMinigamesTeam)
 
 public GetPlayerMinigamesTeam(id)
 {
-	if (!mjb_is_valid_player(id))
-		return -1;
-
 	return g_iPlayerMinigamesTeam[id];
 }
 
@@ -413,18 +408,11 @@ public GetMinigamesTeamCount(iMinigamesTeam)
 	return iCount;
 }
 
-public ResetPlayerMinigamesTeam(id)
-{
-	g_iPlayerMinigamesTeam[id] = 0;
-	Forward_MinigamesTeamChanged(id)
-}
-
 public ResetEveryoneMinigamesTeam()
 {
 	for (new i = 1; i <= MAX_PLAYERS; i++)
 	{
-		g_iPlayerMinigamesTeam[i] = 0;
-		Forward_MinigamesTeamChanged(i)
+		SetPlayerMinigamesTeam(i, 0);
 	}
 }
 
