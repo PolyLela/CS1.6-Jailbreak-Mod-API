@@ -261,12 +261,12 @@ public SetPlayerState(id, iState)
 	if (iState < NORMAL || iState >= STATES_NUM)
 		return false;
 
-	if (GetTeam(id) == TEAM_CT && iState > NORMAL)
+	if (mjb_is_valid_player(id) && GetTeam(id) == TEAM_CT && iState > NORMAL)
 	{
 		return false;
 	}
 
-	if (GetPlayerState(id) == PRISONER_LAST && is_user_alive(id))
+	if (mjb_is_valid_player(id) && GetPlayerState(id) == PRISONER_LAST && is_user_alive(id))
 	{
 		return false;
 	}

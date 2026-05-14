@@ -1,3 +1,9 @@
+/*
+	Todo:
+	Force map change on DayEnd when rounds reach 15 (if someone played with cvars the whole server will look ambigous)
+	Also Connect that with (Vote Map System (still didnt made))
+*/
+
 #include <amxmodx>
 #include <fakemeta>
 #include <reapi>
