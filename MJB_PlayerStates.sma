@@ -1,6 +1,6 @@
 /* TODO
 	Make SetPlayerWanted + Check on Killed because maybe player killed player without touching like when throwing grenades
-	Add Phase Check on SetPlayerWanted for GAMEDAY IMPORTANTTTTTTTTTTTTTTTTT
+	👍 Add Phase Check on SetPlayerWanted for GAMEDAY IMPORTANTTTTTTTTTTTTTTTTT
 */
 #include <amxmodx>
 #include <reapi>
@@ -190,6 +190,7 @@ public OnPlayerTraceAttack_Pre(pevVictim, pevAttacker, Float:flDamage, Float:vec
 public OnPlayerKilled_Post(pevVictim, pevAttacker, iGib)
 {
 	SetPlayerState(pevVictim, NORMAL);
+	SetPlayerWanted(pevVictim, pevAttacker);
 	set_task(0.1, "ChoosePrisonerLast");
 }
 
@@ -308,7 +309,7 @@ public SetPlayerLast(id)
 
 public SetPlayerWanted(victim, attacker)
 {
-	if (!mjb_is_valid_player(attacker))
+	if (victim == attacker || !mjb_is_valid_player(attacker) || !is_user_alive(attacker))
 		return false;
 
 	if (GetTeam(victim) != TEAM_CT || GetTeam(attacker) != TEAM_TERRORIST)
@@ -317,6 +318,9 @@ public SetPlayerWanted(victim, attacker)
 	if (GetPlayerState(attacker) == PRISONER_WANTED || GetPlayerState(attacker) == PRISONER_LAST)
 		return false;
 	
+	//When restructuring DayCycleSystem
+	//if (mjb_get_phase() == PHASE_GAMEDAY_ACTIVE || mjb_get_phase() == PHASE_GAMEDAY_VOTE)
+	//	return false;
 	SetPlayerState(attacker, PRISONER_WANTED);
 	emit_sound(0, CHAN_AUTO, "MOON_JB/MOON_wanted.wav", VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
 	return true;
