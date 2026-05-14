@@ -79,12 +79,6 @@
 #define mjb_is_valid_player(%1) (1 <= %1 <= MAX_PLAYERS && is_user_connected(%1))
 #define vec_copy(%1,%2)		( %2[0] = %1[0], %2[1] = %1[1],%2[2] = %1[2])
 
-new const TeamNames[][] = {
-        "None",
-        "Prisoner",
-        "Guard"
-};
-
 new const StateNames[][] = {
 	"None",
 	"Freeday",
@@ -163,12 +157,6 @@ enum _:DayPhase {
 enum _:TimerState {
 	Stopped = 0,
 	Running
-};
-
-enum _:PlayerTeam {
-	NONE = 0,
-	PRISONER,
-	GUARD
 };
 
 enum _:SoccerTeam{ 	

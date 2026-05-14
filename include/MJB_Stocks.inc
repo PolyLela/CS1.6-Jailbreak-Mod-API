@@ -8,14 +8,6 @@
     #include <amxmodx>
 #endif
 
-#if !defined _amxmodx_included
-    #include <amxmodx>
-#endif
-
-#if !defined _cstrike_included
-    #include <cstrike>
-#endif
-
 #if !defined _mjb_consts_library
     #include <MJB_Consts>
 #endif

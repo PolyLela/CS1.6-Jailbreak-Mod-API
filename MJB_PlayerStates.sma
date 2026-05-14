@@ -5,10 +5,6 @@
 */
 #include <amxmodx>
 #include <reapi>
-#include <cstrike>
-#include <fakemeta>
-#include <engine>
-#include <hamsandwich>
 #include <MJB_Core>
 
 #define PLUGIN "PlayerStates"
@@ -30,7 +26,7 @@ new g_fwStateChanged;
 new g_fwMinigamesTeamChanged;
 
 new g_iPlayerMinigamesTeam[MAX_PLAYERS + 1];
-new g_bNextdayFreeday[MAX_PLAYERS + 1];
+new bool:g_bNextdayFreeday[MAX_PLAYERS + 1];
 /* =========================
    PLUGIN INIT
 ========================= */
@@ -73,7 +69,7 @@ public plugin_natives()
 	register_native("mjb_set_user_mg_team", "native_set_user_mg_team");
 	register_native("mjb_get_user_mg_team", "native_get_user_mg_team");
 	register_native("mjb_get_mg_team_count", "native_get_mg_team_count");
-	register_native("mjb_set_all_state", "native_mjb_set_all_state");
+	register_native("mjb_set_all_state", "native_set_all_state");
 }
 
 public native_mjb_set_state()
@@ -110,7 +106,7 @@ public native_set_user_freeday()
 public native_set_user_freeday_nextday()
 {
 	new id		= get_param(1);
-	new bToggle = get_param(2);
+	new bool:bToggle = bool:get_param(2);
 	if (!mjb_is_valid_player(id) || GetTeam(id) != TEAM_TERRORIST)
 		return 0;
 	g_bNextdayFreeday[id] = bToggle;
@@ -142,6 +138,12 @@ public native_get_mg_team_count()
 {
 	new iMinigamesTeam = get_param(1);
 	return GetMinigamesTeamCount(iMinigamesTeam);
+}
+
+public native_set_all_state()
+{
+	new iState = get_param(1);
+	SetAllState(iState);
 }
 
 /* =========================
@@ -181,11 +183,9 @@ public mjb_phase_changed(iOldPhase, iNewPhase)
 public OnPlayerTraceAttack_Pre(pevVictim, pevAttacker, Float:flDamage, Float:vecDir[3], tracehandle, bitsDamageType)
 {
 	if (!mjb_is_valid_player(pevAttacker) || pevVictim == pevAttacker)
-		return HAM_IGNORED;
+		return;
 
 	SetPlayerWanted(pevVictim, pevAttacker);
-
-	return HAM_IGNORED;
 }
 
 public OnPlayerKilled_Post(pevVictim, pevAttacker, iGib)
@@ -200,7 +200,7 @@ public OnPlayerSpawn_Post(id)
 	if (is_user_alive(id))
 	{
 		SetPlayerState(id, NORMAL);
-		g_iPlayerMinigamesTeam[id]	 = NONE;
+		g_iPlayerMinigamesTeam[id]	 = NORMAL;
 		set_task(0.5, "ChoosePrisonerLast");
 	}
 }
@@ -217,7 +217,7 @@ public ProcessFreedayNextday()
 	{
 		if (!mjb_is_valid_player(id) || !is_user_alive(id) || GetTeam(id) != TEAM_TERRORIST || !g_bNextdayFreeday[id])
 			continue;
-		g_bNextdayFreeday[id] = MJB_False;
+		g_bNextdayFreeday[id] = true;
 		SetPlayerState(id, PRISONER_FREEDAY);
 	}
 }
@@ -247,7 +247,7 @@ public FindPrisonerLast()
 	for (new i = 0; i < plnum; i++)
 	{
 		tempid = pl[i];
-		if (!mjb_is_valid_player(tempid) || !IsPlayerAlive(tempid) || GetTeam(tempid) != TERRORIST)
+		if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != TEAM_TERRORIST)
 			continue;
 
 		if (GetPlayerState(tempid) == PRISONER_LAST)
@@ -287,7 +287,7 @@ public SetPlayerLast(id)
 	if (!mjb_is_valid_player(id) || !is_user_alive(id))
 		return false;
 
-	if (GetTeamCount(TEAM_TERRORIST, MJB_True) > 1 || GetTeamCount(TEAM_CT, MJB_True) <= 0)
+	if (GetTeamCount(TEAM_TERRORIST, true) > 1 || GetTeamCount(TEAM_CT, true) <= 0)
 	{
 		return false;
 	}
@@ -302,7 +302,7 @@ public SetPlayerLast(id)
 		return false;
 	}
 
-	if (!SetPlayerState(id, PRISONER_LAST));
+	if (!SetPlayerState(id, PRISONER_LAST))
 		return false;
 	
 	return true;
@@ -333,7 +333,7 @@ public SetPlayerFreeday(id)
 		return false;
 
 	//if (mjb_get_day_type() == FREEDAY || mjb_get_phase() == PHASE_FREEDAY || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE)
-	//	return 0
+	//	return true;
 
 	if (!is_user_alive(id))
 		return false;
@@ -345,7 +345,7 @@ public SetPlayerFreeday(id)
 		return false;
 
 	SetPlayerState(id, PRISONER_FREEDAY);
-	return 1;
+	return true;
 }
 
 public SetPlayerBoxing(id)
@@ -404,7 +404,7 @@ public GetPlayerMinigamesTeam(id)
 public GetMinigamesTeamCount(iMinigamesTeam)
 {
 	new iCount = 0;
-	for (new i = 0; i <= MAX_PLAYERS; i++)
+	for (new i = 1; i <= MAX_PLAYERS; i++)
 	{
 		if (g_iPlayerMinigamesTeam[i] != iMinigamesTeam)
 			continue;
@@ -421,7 +421,7 @@ public ResetPlayerMinigamesTeam(id)
 
 public ResetEveryoneMinigamesTeam()
 {
-	for (new i = 0; i <= MAX_PLAYERS; i++)
+	for (new i = 1; i <= MAX_PLAYERS; i++)
 	{
 		g_iPlayerMinigamesTeam[i] = 0;
 		Forward_MinigamesTeamChanged(i)
@@ -438,7 +438,7 @@ public SetAllState(iState)
 
 /* =========================
    FORWARDS
-========================= */
+=========================*/
 public Forward_StateChanged(id, OldState)
 {
 	new ret;
