@@ -1,16 +1,13 @@
 #include <amxmodx>
-#include <cstrike>
 #include <fakemeta>
-#include <hamsandwich>
+#include <reapi>
 #include <MJB_Core>
 
 #define PLUGIN "Days State System FSM"
 #define DAY_END_TASK	7124
 
-new g_iRoundIndex;
-
 new const DayTypes[16] = {
-    -1,
+    FREEDAY,
     FREEDAY, NORMALDAY, NORMALDAY, NORMALDAY,
     GAMEDAY,
     NORMALDAY, NORMALDAY, NORMALDAY, NORMALDAY,
@@ -22,7 +19,7 @@ new const DayTypes[16] = {
 
 new g_iPhase = -1;
 new g_iFreePhaseCount;
-new g_bManyFreeEnabled = MJB_True;
+new bool:g_bManyFreeEnabled = true;
 
 new g_iFreedayTimer = -1;
 new g_iSimonTimer  = -1;
@@ -34,10 +31,8 @@ public plugin_init()
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 	
 	set_cvar_num("mp_maxrounds", 15);
-	register_event("HLTV", "NewRound", "a", "1=0", "2=0");
-	register_logevent("OnGameRestart", 2, "1=Game_Commencing", "1&Restart_Round_");
-	register_logevent("OnRoundStart", 2, "1=Round_Start");
-	register_logevent("OnRoundEnd", 2, "1=Round_End");
+	RegisterHookChain(RG_CSGameRules_OnRoundFreezeEnd, "OnRoundStart", true);
+	RegisterHookChain(RG_RoundEnd, "OnRoundEnd", true);
 	g_fwPhaseChanged = CreateMultiForward("mjb_phase_changed", ET_IGNORE, FP_CELL, FP_CELL);
 	OnRoundStart();
 	g_HudSync = CreateHudSyncObj();
@@ -90,9 +85,9 @@ public ChangePhase(newPhase)
 			mjb_close_cell();
 			
 			if (!mjb_simon_exists())
-			ChangePhase(PHASE_SIMON_SELECT);
+				ChangePhase(PHASE_SIMON_SELECT);
 			else
-			ChangePhase(PHASE_NORMAL);
+				ChangePhase(PHASE_NORMAL);
 		}
 		
 		case PHASE_SIMON_SELECT:
@@ -129,7 +124,7 @@ public ChangePhase(newPhase)
 		case PHASE_SIMON_KILLED, PHASE_SIMON_DISCONNECTED:
 		{
 			if (mjb_simon_exists())
-			ChangePhase(PHASE_NORMAL);
+				ChangePhase(PHASE_NORMAL);
 		}
 		
 		case PHASE_GAMEDAY_NORMAL:
@@ -185,12 +180,13 @@ public StopAllTimers()
 ========================= */
 public OnRoundStart()
 {
-	ChangePhase(PHASE_DAY_STARTED);
 	mjb_unblock_game_behaviour();
+	ChangePhase(PHASE_DAY_STARTED);
 }
 
 public OnRoundEnd()
 {
+	StopAllTimers();
 	ChangePhase(PHASE_DAY_ENDED);
 	if (!task_exists(DAY_END_TASK))
 		set_task(0.1, "DayEnd");
@@ -199,22 +195,15 @@ public OnRoundEnd()
 public DayEnd() {
 	mjb_block_game_behaviour();
 	for (new i = 1; i <= MAX_PLAYERS; i++) {
-		if (!mjb_is_valid_player(i) || !mjb_is_player_alive(i))
+		if (!mjb_is_valid_player(i) || !is_user_alive(i))
 			continue;
 		client_cmd(i, "mp3 stop");
 		static iszViewModel = 0; //get the model one time
 		if(iszViewModel || (iszViewModel = engfunc(EngFunc_AllocString, "models/MOON_JB/MOON_JB_v_round_sound.mdl")))
 			set_pev_string(i, pev_viewmodel2, iszViewModel);
-		set_pdata_float(i, m_flNextAttack, 5.0);
+		set_member(i, m_flNextAttack);
 		UTIL_WeaponAnimation(i, 0);
 	}
-}
-
-public OnGameRestart() {
-	g_iRoundIndex = -1
-	
-	mjb_stop_all_timers();
-	ChangePhase(PHASE_DAY_ENDED);
 }
 
 public mjb_timer_ended(iTimer)
@@ -297,14 +286,9 @@ public MainHud()
 /* =========================
    DAY SYSTEM
 ========================= */
-public NewRound()
-{
-	g_iRoundIndex++;
-}
-
 public GetDay()
 {
-	return g_iRoundIndex + 1;
+	return get_member_game(m_iTotalRoundsPlayed) + 1;
 }
 
 public GetDayType(iDay)
