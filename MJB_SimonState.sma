@@ -1,5 +1,5 @@
 #include <amxmodx>
-#include <hamsandwich>
+#include <reapi>
 #include <MJB_Core>
 
 #define PLUGIN "Simon State"
@@ -8,8 +8,7 @@ new g_iSimon = 0;
 new g_fwSimonSet, g_fwSimonCleared, g_fwSimonDied, g_fwSimonDisconnected;
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
-	RegisterHam(Ham_Killed, "player" , "PostKilled", 1);
-	register_event("HLTV", "OnNewRound", "a", "1=0", "2=0");
+	RegisterHookChain(RG_CBasePlayer_Killed, "OnPlayerKilled_Post", true);
 	g_fwSimonSet = CreateMultiForward("mjb_simon_set", ET_IGNORE, FP_CELL);
 	g_fwSimonCleared = CreateMultiForward("mjb_simon_cleared", ET_IGNORE, FP_CELL);
 	g_fwSimonDied = CreateMultiForward("mjb_simon_died", ET_IGNORE, FP_CELL);
@@ -50,11 +49,13 @@ public native_simon_exists() {
 	return SimonExists();
 }
 
-public OnNewRound() {
+public mjb_phase_changed(iOldState, iNewState) {
+	if (iNewState != PHASE_DAY_STARTED)
+		return;
 	ClearSimon();
 }
 
-public client_disconnect(id) {
+public client_disconnected(id) {
 	if (id != g_iSimon)
 		return;
 		
@@ -63,7 +64,7 @@ public client_disconnect(id) {
 	ExecuteForward(g_fwSimonDisconnected, ret, id);
 }
 
-public PostKilled(id, idattacker) {
+public OnPlayerKilled_Post(id, pevAttacker, iGib) {
 	if (id != g_iSimon)
 		return;
 		
@@ -73,7 +74,7 @@ public PostKilled(id, idattacker) {
 }
 
 public SetSimon(id) {
-	if (mjb_get_team(id) != GUARD || SimonExists() || !mjb_is_valid_player(id))
+	if (GetTeam(id) != TEAM_CT|| SimonExists() || !mjb_is_valid_player(id))
 		return;
 	g_iSimon = id;
 	new ret;
@@ -81,7 +82,7 @@ public SetSimon(id) {
 }
 
 public ForceSetSimon(id) {
-	if (mjb_get_team(id) != GUARD || !mjb_is_valid_player(id))
+	if (GetTeam(id) != TEAM_CT || !mjb_is_valid_player(id))
 		return;
 
 	ClearSimon();
