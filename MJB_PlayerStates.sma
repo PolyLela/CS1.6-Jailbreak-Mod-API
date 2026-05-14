@@ -1,5 +1,6 @@
 /* TODO
-	Make SetPlayerWanted + Check on Killed because maybe player killed player without touching like when throwing grenades
+	Use Source of truth for any Day-related events from DayCycleSystem
+	👍Make SetPlayerWanted + Check on Killed because maybe player killed player without touching like when throwing grenades
 	👍 Add Phase Check on SetPlayerWanted for GAMEDAY IMPORTANTTTTTTTTTTTTTTTTT
 */
 #include <amxmodx>
@@ -43,7 +44,7 @@ public plugin_init()
 	/* Hooks */
 	RegisterHookChain(RG_CBasePlayer_TraceAttack, "OnPlayerTraceAttack_Pre", false);
 	RegisterHookChain(RG_CBasePlayer_Killed, "OnPlayerKilled_Post", true);
-	RegisterHookChain(RG_CBasePlayer_Spawn, "OnPlayerSpawn_Post", 1);
+	RegisterHookChain(RG_CBasePlayer_Spawn, "OnPlayerSpawn_Post", true);
 
 	/* Forwards */
 	g_fwStateChanged		 = CreateMultiForward("mjb_state_changed", ET_IGNORE, FP_CELL, FP_CELL, FP_CELL);
@@ -198,7 +199,7 @@ public OnPlayerSpawn_Post(id)
 {
 	if (is_user_alive(id))
 	{
-		g_PlayerData[id][DATA_STATE] = NORMAL;
+		SetPlayerState(id, NORMAL);
 		g_iPlayerMinigamesTeam[id]	 = NONE;
 		set_task(0.5, "ChoosePrisonerLast");
 	}
@@ -352,7 +353,7 @@ public SetPlayerBoxing(id)
 	if (!mjb_is_valid_player(id) || !is_user_alive(id))
 		return false;
 
-	//if (mjb_get_phase() != PHASE_NORMAL)
+	//if (mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE) 
 	//	return false;
 
 	if (GetTeam(id) != TEAM_TERRORIST)
@@ -370,8 +371,9 @@ public SetPlayerSoccer(id)
 	if (!mjb_is_valid_player(id) || !is_user_alive(id))
 		return false;
 
-	//if (mjb_get_phase() == PHASE_FREEDAY || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE)
+	//if (mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE) 
 	//	return false;
+
 	if (GetTeam(id) != TEAM_TERRORIST)
 		return false;
 
