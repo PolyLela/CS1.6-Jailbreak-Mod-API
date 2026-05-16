@@ -1,14 +1,12 @@
 #include <amxmodx>
-#include <amxmisc>
 #include <fakemeta>
 #include <engine>
 #include <hamsandwich>
+#include <reapi>
 #include <MJB_Core>
 
 #define PLUGIN "Core Identity"
 #define IUSER1_BUYZONE_KEY 302142
-#define MsgId_ShowMenu 96
-#define MsgId_VGUIMenu 114
 #define MsgId_TextMsg 77 
 #define MsgId_SendAudio 100 
 #define MsgId_StatusText 106 
@@ -16,28 +14,22 @@
 #define MsgId_ClCorpse 122 
 #define MsgId_HudTextArgs 145
 
-#define VGUIMenu_TeamMenu 2
-#define VGUIMenu_ClassMenuTe 26
-#define VGUIMenu_ClassMenuCt 27
-#define ShowMenu_TeamMenu 19
-#define ShowMenu_TeamSpectMenu 51
-#define ShowMenu_IgTeamMenu 531
-#define ShowMenu_IgTeamSpectMenu 563
-#define ShowMenu_ClassMenu 31
-
 new Trie:g_tRemoveEntities, Trie:g_tRadioSounds;
 new g_fmSpawnPostHandle;
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
+
 	set_cvar_num("mp_freezetime", 0);
-	set_cvar_num("mp_autoteambalance", 0);
-	set_cvar_num("mp_limitteams", 0);
+
+	register_message(get_user_msgid("MOTD"), "BlockMotd");
+    RegisterHookChain(RG_ShowVGUIMenu, "BlockMenu", false);
+    RegisterHookChain(RG_ShowMenu, "BlockMenu", false);
+
 	register_event("DeathMsg", "DeathMsg", "a")
+
 	RegisterHam(Ham_TraceAttack, "func_button", "Ham_ButtonTrace_Post", 1);
-	register_message(get_user_msgid("MOTD"), "Message_MOTD");
+
 	register_message(MsgId_TextMsg, "Message_TextMsg");
-	register_message(MsgId_ShowMenu, "Message_ShowMenu");
-	register_message(MsgId_VGUIMenu, "Message_VGUIMenu");
 	register_message(MsgId_ClCorpse, "Message_ClCorpse");
 	register_message(MsgId_HudTextArgs, "Message_HudTextArgs");
 	register_message(MsgId_SendAudio, "Message_SendAudio");
@@ -139,73 +131,25 @@ public Message_SendAudio()
 public Message_StatusText() return PLUGIN_HANDLED;
 
 
-public Message_MOTD(iMsgId, iMsgDest, iReceiver) {
-	return PLUGIN_HANDLED;
+public BlockMotd() {
+   return PLUGIN_HANDLED;
 }
 
-public Message_ShowMenu(iMsgId, iMsgDest, iReceiver)
+public BlockMenu() {
+   return HC_SUPERCEDE;
+}
+
+public client_putinserver(id)
 {
-	if(get_msg_arg_int(1) == ShowMenu_ClassMenu || get_msg_arg_int(1) == ShowMenu_IgTeamMenu || 
-	get_msg_arg_int(1) == ShowMenu_IgTeamSpectMenu || get_msg_arg_int(1) == ShowMenu_TeamMenu || get_msg_arg_int(1) == ShowMenu_TeamSpectMenu)
-		return PLUGIN_HANDLED;
-	return PLUGIN_CONTINUE;
+    set_task(0.1, "ForceJoin", id);
 }
 
-public Message_VGUIMenu(iMsgId, iMsgDest, iReceiver)
+public ForceJoin(id)
 {
-	if(get_msg_arg_int(1) == VGUIMenu_ClassMenuTe || get_msg_arg_int(1) == VGUIMenu_ClassMenuCt || get_msg_arg_int(1) == VGUIMenu_TeamMenu)
-		return PLUGIN_HANDLED;
-	return PLUGIN_CONTINUE;
-}
+    if (!is_user_connected(id))
+        return;
 
-public client_putinserver(id) {
-	set_task(0.3, "AutoJoin", id);
-}
-
-public AutoJoin(id) {
-	new pl[32], pnum, gNum, pNum;
-	get_players(pl, pnum, "h");
-	
-	for (new i = 0; i < pnum; i++) {
-		if (!mjb_is_valid_player(pl[i]) || !mjb_is_player_alive(pl[i]))
-			continue;
-		switch (mjb_get_team(pl[i])) {
-			case PRISONER : pNum++;
-			case GUARD : gNum++;
-		}
-	}
-	if (pNum >= 2 && gNum == 0) {
-		mjb_set_team(id, GUARD, MJB_False);
-		set_task(0.1, "ChangeTeamR", id + 30);
-		return;
-	}
-	
-	if (pNum >= 1 && gNum >= 1) {
-		mjb_set_team(id, GUARD, MJB_False);
-		set_task(0.1, "ChangeTeamK", id + 30);
-		return;
-	}
-	mjb_set_team(id, PRISONER, MJB_False);
-	set_pdata_int(id, m_bHasChangeTeamThisRound, false, linux_diff_player);
-	set_task(0.3, "CheckIfTeamChanged", id + 20);
-}
-
-public ChangeTeamR(taskid) {
-	new id = taskid - 30;
-	mjb_set_team(id, PRISONER, 2);
-}
-
-public ChangeTeamK(taskid) {
-	new id = taskid - 30;
-	mjb_set_team(id, PRISONER, 1);
-}
-
-public CheckIfTeamChanged(taskid) { 
-	new id = taskid - 20;
-	if (mjb_get_team(id) != PRISONER) {
-		mjb_set_team(id, NONE, MJB_True);
-		set_pdata_int(id, m_bHasChangeTeamThisRound, false, linux_diff_player);
-	}
+    rg_join_team(id, TEAM_TERRORIST);
 }
 
 public plugin_precache() {
