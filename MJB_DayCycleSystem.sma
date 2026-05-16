@@ -194,6 +194,7 @@ public OnRoundEnd()
 {
 	StopAllTimers();
 	ChangePhase(PHASE_DAY_ENDED);
+	mjb_close_cell();
 	if (!task_exists(DAY_END_TASK))
 		set_task(0.1, "DayEnd");
 }
