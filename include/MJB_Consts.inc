@@ -164,6 +164,13 @@ enum _:SoccerTeam{
 	RED
 };
 
+enum _:PlayerTeams{
+	UNASSIGNED = 0,
+	PRISONER,
+	GUARD,
+	SPECTATOR
+}
+
 enum _:PlayerState {
 	NORMAL = 0,
 	PRISONER_FREEDAY,

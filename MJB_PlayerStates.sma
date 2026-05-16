@@ -1,4 +1,5 @@
 /* TODO
+	Restructure FreedayNextday and ChoosePrisonerLast
 	👍 Use Source of truth for any Day-related events from DayCycleSystem
 	👍 Make SetPlayerWanted + Check on Killed because maybe player killed player without touching like when throwing grenades
 	👍 Add Phase Check on SetPlayerWanted for GAMEDAY IMPORTANTTTTTTTTTTTTTTTTT
@@ -123,7 +124,7 @@ public ProcessFreedayNextday()
 
 	for (new id = 1; id < MAX_PLAYERS; id++)
 	{
-		if (!mjb_is_valid_player(id) || !is_user_alive(id) || GetTeam(id) != TEAM_TERRORIST || !g_bNextdayFreeday[id])
+		if (!mjb_is_valid_player(id) || !is_user_alive(id) || GetTeam(id) != PRISONER || !g_bNextdayFreeday[id])
 			continue;
 		g_bNextdayFreeday[id] = true;
 		SetPlayerState(id, PRISONER_FREEDAY);
@@ -138,7 +139,7 @@ public ChoosePrisonerLast()
 	for (new i = 0; i < plnum; i++)
 	{
 		tempid = pl[i];
-		if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != TEAM_TERRORIST || g_bNextdayFreeday[tempid])
+		if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != PRISONER || g_bNextdayFreeday[tempid])
 			continue;
 
 		lastPn = tempid;
@@ -155,7 +156,7 @@ public FindPrisonerLast()
 	for (new i = 0; i < plnum; i++)
 	{
 		tempid = pl[i];
-		if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != TEAM_TERRORIST)
+		if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != PRISONER)
 			continue;
 
 		if (GetPlayerState(tempid) == PRISONER_LAST)
@@ -169,7 +170,10 @@ public SetPlayerState(id, iState)
 	if (iState < NORMAL || iState >= STATES_NUM)
 		return false;
 
-	if (mjb_is_valid_player(id) && GetTeam(id) == TEAM_CT && iState > NORMAL)
+	/*This variable should prevent runtime error 10 "invalid player or entity" by ReGameDLL*/
+	new team = (mjb_is_valid_player(id)) ? GetTeam(id) : UNASSIGNED;
+
+	if (team == GUARD && iState > NORMAL)
 	{
 		return false;
 	}
@@ -195,7 +199,7 @@ public SetPlayerLast(id)
 	if (!mjb_is_valid_player(id) || !is_user_alive(id))
 		return false;
 
-	if (GetTeamCount(TEAM_TERRORIST, true) > 1 || GetTeamCount(TEAM_CT, true) <= 0)
+	if (GetTeamCount(PRISONER, true) > 1 || GetTeamCount(GUARD, true) <= 0)
 	{
 		return false;
 	}
@@ -203,7 +207,7 @@ public SetPlayerLast(id)
 	if (mjb_get_phase() == PHASE_GAMEDAY_ACTIVE  || mjb_get_phase() == PHASE_GAMEDAY_VOTE)
 		return false;
 	
-	if (GetTeam(id) != TEAM_TERRORIST || GetPlayerState(id) == PRISONER_LAST)
+	if (GetTeam(id) != PRISONER || GetPlayerState(id) == PRISONER_LAST)
 		return false;
 
 	new lastPn = FindPrisonerLast();
@@ -223,7 +227,7 @@ public SetPlayerWanted(victim, attacker)
 	if (victim == attacker || !mjb_is_valid_player(attacker) || !is_user_alive(attacker))
 		return false;
 
-	if (GetTeam(victim) != TEAM_CT || GetTeam(attacker) != TEAM_TERRORIST)
+	if (GetTeam(victim) != GUARD || GetTeam(attacker) != PRISONER)
 		return false;
 
 	if (GetPlayerState(attacker) == PRISONER_WANTED || GetPlayerState(attacker) == PRISONER_LAST)
@@ -248,7 +252,7 @@ public SetPlayerFreeday(id)
 	if (!is_user_alive(id))
 		return false;
 
-	if (GetTeam(id) != TEAM_TERRORIST)
+	if (GetTeam(id) != PRISONER)
 		return false;
 
 	if (GetPlayerState(id) != NORMAL && GetPlayerState(id) != PRISONER_BOXING && GetPlayerState(id) != PRISONER_SOCCER)
@@ -266,7 +270,7 @@ public SetPlayerBoxing(id)
 	if (mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE) 
 		return false;
 
-	if (GetTeam(id) != TEAM_TERRORIST)
+	if (GetTeam(id) != PRISONER)
 		return false;
 
 	if (GetPlayerState(id) != NORMAL && GetPlayerState(id) != PRISONER_SOCCER)
@@ -284,7 +288,7 @@ public SetPlayerSoccer(id)
 	if (mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE) 
 		return false;
 
-	if (GetTeam(id) != TEAM_TERRORIST)
+	if (GetTeam(id) != PRISONER)
 		return false;
 
 	if (GetPlayerState(id) != NORMAL && GetPlayerState(id) != PRISONER_BOXING)
@@ -404,7 +408,7 @@ public native_set_user_freeday_nextday()
 {
 	new id		= get_param(1);
 	new bool:bToggle = bool:get_param(2);
-	if (!mjb_is_valid_player(id) || GetTeam(id) != TEAM_TERRORIST)
+	if (!mjb_is_valid_player(id) || GetTeam(id) != PRISONER)
 		return 0;
 	g_bNextdayFreeday[id] = bToggle;
 	return 1;
@@ -413,7 +417,7 @@ public native_set_user_freeday_nextday()
 public native_is_user_freeday_nextday()
 {
 	new id = get_param(1);
-	if (!mjb_is_valid_player(id) || GetTeam(id) != TEAM_TERRORIST)
+	if (!mjb_is_valid_player(id) || GetTeam(id) != PRISONER)
 		return 0;
 	return g_bNextdayFreeday[id];
 }
