@@ -22,8 +22,8 @@ public plugin_init() {
 	set_cvar_num("mp_freezetime", 0);
 
 	register_message(get_user_msgid("MOTD"), "BlockMotd");
-    RegisterHookChain(RG_ShowVGUIMenu, "BlockMenu", false);
-    RegisterHookChain(RG_ShowMenu, "BlockMenu", false);
+	RegisterHookChain(RG_ShowVGUIMenu, "BlockMenu", false);
+	RegisterHookChain(RG_ShowMenu, "BlockMenu", false);
 
 	register_event("DeathMsg", "DeathMsg", "a")
 
@@ -68,15 +68,6 @@ public Ham_ButtonTrace_Post(ent, attacker, Float:damage, Float:dir[3], trace, da
 	if (!mjb_is_valid_player(attacker))
 		return;
 	ExecuteHamB(Ham_Use, ent, attacker, attacker, USE_TOGGLE, 1.0);
-}
-
-public mjb_life_state_changed(id, iLifeState) {
-	if (iLifeState == MJB_True) {
-		if (mjb_get_team(id) == GUARD) {
-			set_pev(id, pev_health, 200.0);
-			set_pev(id, pev_health, 100.0);
-		}
-	}
 }
 
 public ClCmd_Block() return PLUGIN_HANDLED;

@@ -122,11 +122,11 @@ public ProcessFreedayNextday()
 	if (mjb_get_phase() == PHASE_GAMEDAY_ACTIVE || mjb_get_phase() == PHASE_GAMEDAY_VOTE)
 		return;
 
-	for (new id = 1; id < MAX_PLAYERS; id++)
+	for (new id = 1; id <= MAX_PLAYERS; id++)
 	{
 		if (!mjb_is_valid_player(id) || !is_user_alive(id) || GetTeam(id) != PRISONER || !g_bNextdayFreeday[id])
 			continue;
-		g_bNextdayFreeday[id] = true;
+		g_bNextdayFreeday[id] = false;
 		SetPlayerState(id, PRISONER_FREEDAY);
 	}
 }
