@@ -1,5 +1,4 @@
 #include <amxmodx>
-#include <amxmisc>
 #include <fakemeta>
 #include <engine>
 #include <hamsandwich>
@@ -22,8 +21,7 @@ new g_fwCellOpened, g_fwCellClosed;
    PLUGIN LIFECYCLE
 ========================= */
 public plugin_init() {
-	register_plugin(PLUGIN, VERSION, AUTHOR)
-	register_logevent("OnRoundEnd", 2, "1=Round_End");
+	register_plugin(PLUGIN, VERSION, AUTHOR);
 	g_fwCellOpened = CreateMultiForward("mjb_cell_opened", ET_IGNORE);
 	g_fwCellClosed = CreateMultiForward("mjb_cell_closed", ET_IGNORE);
 	doors_init();
@@ -37,10 +35,6 @@ public plugin_end() {
 public plugin_precache() {
 	g_tButtonsMap = TrieCreate();
 	g_iFakeMetaKV_Handler = register_forward(FM_KeyValue, "EntityKeyValueProcessed", MJB_True);
-}
-
-public OnRoundEnd() {
-	MJB_CloseCell();	
 }
 
 /* =========================
@@ -118,7 +112,7 @@ public Ham_Use_Door(iEntity, iCaller, iActivator) {
 }
 
 public Ham_Door_Blocked(iBlocked, iBlocker) {
-	if (mjb_is_valid_player(iBlocker) && mjb_is_player_alive(iBlocker) && (pev(iBlocked, pev_iuser1) == DOOR_TAG)) {
+	if (mjb_is_valid_player(iBlocker) && is_user_alive(iBlocker) && (pev(iBlocked, pev_iuser1) == DOOR_TAG)) {
 		ExecuteHam(Ham_TakeDamage, iBlocker, 0, 0, 9999.0, 0);
 		return HAM_SUPERCEDE;
 	}
