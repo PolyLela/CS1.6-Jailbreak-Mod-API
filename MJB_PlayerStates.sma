@@ -44,6 +44,9 @@ public plugin_init()
 
 	/* Forwards */
 	g_fwStateChanged		 = CreateMultiForward("mjb_state_changed", ET_IGNORE, FP_CELL, FP_CELL, FP_CELL);
+	if (g_fwStateChanged == -1) {
+		log_error(AMX_ERR_NATIVE, "Failed to CreateMultiForward");
+	}
 	g_fwMinigamesTeamChanged = CreateMultiForward("mjb_minigames_team_changed", ET_IGNORE, FP_CELL, FP_CELL);
 }
 

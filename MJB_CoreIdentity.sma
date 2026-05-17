@@ -10,7 +10,6 @@
 #define MsgId_TextMsg 77 
 #define MsgId_SendAudio 100 
 #define MsgId_StatusText 106 
-#define MsgId_VGUIMenu 114 
 #define MsgId_ClCorpse 122 
 #define MsgId_HudTextArgs 145
 

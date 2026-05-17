@@ -1,5 +1,6 @@
 #include <amxmodx>
 #include <fakemeta>
+#include <reapi>
 #include <MJB_Core>
 
 #define PLUGIN "Main Menu"
@@ -7,6 +8,7 @@
 new g_bMainMenuBlocked = MJB_False;
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
+	RegisterHookChain(RG_CBasePlayer_Spawn, "PostPlayerSpawn", true);
 	register_clcmd("chooseteam", "Hook_ChooseTeam");
 	register_menucmd(register_menuid("MainMenu"), (1<<0|1<<1|1<<2|1<<3|1<<4|1<<5|1<<6|1<<7|1<<8|1<<9), "Handle_MainMenu");
 	register_menucmd(register_menuid("TeamMenu"), (1<<0|1<<1|1<<2|1<<9), "Handle_TeamMenu");
@@ -40,10 +42,20 @@ public Hook_ChooseTeam(id) {
 	return PLUGIN_HANDLED;
 }
 
-public mjb_life_state_changed(id, isAlive) {
-	if (!isAlive || mjb_get_team(id) != GUARD)
+public PostPlayerSpawn(id) {
+	if (!is_user_alive(id) || get_user_team(id) != GUARD || mjb_get_day_type() == GAMEDAY)
 		return;
+
 	WeaponsMenu(id);
+}
+
+public bool:CanOpenWeaponMenu(id) {
+	if (get_user_team(id) != GUARD || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE || !is_user_alive(id))
+		return false; 
+	
+	if (mjb_is_user_in_duel(id))
+		return false;
+	return true;
 }
 
 public MainMenu(id) {
@@ -77,7 +89,7 @@ public MainMenu(id) {
 	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r8\d. \wRanks \r[\wPrices\r]^n", id);
 	iKeys |= (1<<7);
 	
-	if (!mjb_simon_exists() && mjb_get_team(id) == GUARD)
+	if (!mjb_simon_exists() && get_user_team(id) == GUARD)
 		iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r9\d. \rTake Simon^n", id);
 	else
 		iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r9\d. \rSimon Menu^n", id);
@@ -179,20 +191,20 @@ public Handle_TeamMenu(id, iKeys) {
 			new pl[32], plnum, ctnum = 0, tnum = 0;
 			get_players(pl, plnum, "h");
 			for (new i =0; i < plnum; i++) {
-				if (mjb_get_team(pl[i]) == GUARD)
+				if (get_user_team(pl[i]) == GUARD)
 					ctnum++;
-				else if (mjb_get_team(pl[i]) == PRISONER)
+				else if (get_user_team(pl[i]) == PRISONER)
 					tnum++;
 			}
 			if (3 * ctnum > tnum) {
 				MJB_Print(id, "!nUnable to change team to guards due to unbalance");
 				return PLUGIN_HANDLED;
 			}
-			mjb_set_team(id, GUARD, MJB_True);
+			rg_join_team(id, TEAM_TERRORIST);
 			MJB_Print(id, "!tYou changed your team to guards");
 		}
 		case 1: {
-			mjb_set_team(id, PRISONER, MJB_True);
+			rg_join_team(id, TEAM_CT);
 			MJB_Print(id, "!tYou changed your team to prisoners");
 		}
 		case 9: {
@@ -203,7 +215,7 @@ public Handle_TeamMenu(id, iKeys) {
 }
 
 public WeaponsMenu(id){
-	if (mjb_get_team(id) != GUARD || mjb_is_user_in_duel(id))
+	if (!CanOpenWeaponMenu(id))
 		return PLUGIN_HANDLED;
 	new szMenu[512], iKeys = (1<<0|1<<1|1<<2|1<<3|1<<4|1<<9), iLen = formatex(szMenu, charsmax(szMenu), "\yWeapons Menu^n^n", id);
 	
@@ -224,39 +236,29 @@ public WeaponsMenu(id){
 }
 
 public Handle_WeaponsMenu(id, iKey){
-	if (mjb_get_team(id) != GUARD || mjb_is_user_in_duel(id))
+	if (!CanOpenWeaponMenu(id))
 		return PLUGIN_HANDLED;
 	switch(iKey)
 	{
 		case 0:{
-			fm_strip_user_weapons(id)
-			fm_give_item(id, "weapon_knife")
-			fm_give_item(id, "weapon_ak47")
-			fm_set_user_bpammo(id, CSW_AK47, 250)
+			rg_give_item(id, "weapon_ak47")
+			rg_set_user_bpammo(id, WEAPON_AK47, 256)
 		}
 		case 1:{
-			fm_strip_user_weapons(id)
-			fm_give_item(id, "weapon_knife")
-			fm_give_item(id, "weapon_m4a1")
-			fm_set_user_bpammo(id, CSW_M4A1, 250)
+			rg_give_item(id, "weapon_m4a1")
+			rg_set_user_bpammo(id, WEAPON_M4A1, 256)
 		}
 		case 2:{
-			fm_strip_user_weapons(id)
-			fm_give_item(id, "weapon_knife")
-			fm_give_item(id, "weapon_awp")
-			fm_set_user_bpammo(id, CSW_AWP, 250)
+			rg_give_item(id, "weapon_awp")
+			rg_set_user_bpammo(id, WEAPON_AWP, 256)
 		}
 		case 3:{
-			fm_strip_user_weapons(id)
-			fm_give_item(id, "weapon_knife")
-			fm_give_item(id, "weapon_xm1014")
-			fm_set_user_bpammo(id, CSW_XM1014, 250)
+			rg_give_item(id, "weapon_xm1014")
+			rg_set_user_bpammo(id, WEAPON_XM1014, 256)
 		}
 		case 4:{
-			fm_strip_user_weapons(id)
-			fm_give_item(id, "weapon_knife")
-			fm_give_item(id, "weapon_famas")
-			fm_set_user_bpammo(id, CSW_FAMAS, 250)
+			rg_give_item(id, "weapon_famas")
+			rg_set_user_bpammo(id, WEAPON_FAMAS, 256)
 		}
 		case 9: return PLUGIN_HANDLED;
 	}
@@ -265,7 +267,7 @@ public Handle_WeaponsMenu(id, iKey){
 
 public Show_PistolsMenu(id)
 {
-	if (mjb_get_team(id) != GUARD || mjb_is_user_in_duel(id))
+	if (!CanOpenWeaponMenu(id))
 		return PLUGIN_HANDLED;
 	new szMenu[512], iKeys = (1<<0|1<<1|1<<2|1<<9), iLen = formatex(szMenu, charsmax(szMenu), "\yWeapons Menu^n^n", id);
 	
@@ -283,26 +285,26 @@ public Show_PistolsMenu(id)
 
 public Handle_PistolsMenu(id, iKey)
 {
-	if (mjb_get_team(id) != GUARD || mjb_is_user_in_duel(id))
+	if (!CanOpenWeaponMenu(id))
 		return PLUGIN_HANDLED;
 	switch(iKey)
 	{
 		case 0:
 		{
-			fm_give_item(id, "weapon_deagle")
-			fm_set_user_bpammo(id, CSW_DEAGLE, 250)
+			rg_give_item(id, "weapon_deagle")
+			rg_set_user_bpammo(id, WEAPON_DEAGLE, 2560)
 		
 		}
 		case 1:
 		{
-			fm_give_item(id, "weapon_usp")
-			fm_set_user_bpammo(id, CSW_USP, 250)
+			rg_give_item(id, "weapon_usp")
+			rg_set_user_bpammo(id, WEAPON_USP, 256)
 		
 		}
 		case 2:
 		{
-			fm_give_item(id, "weapon_glock18")
-			fm_set_user_bpammo(id, CSW_GLOCK18, 250)
+			rg_give_item(id, "weapon_glock18")
+			rg_set_user_bpammo(id, WEAPON_GLOCK18, 256)
 		
 		}
 		case 9: return PLUGIN_HANDLED;
