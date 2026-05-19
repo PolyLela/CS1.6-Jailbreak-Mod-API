@@ -1,3 +1,6 @@
+/*
+	Make checks for GameDAy
+*/
 #include <amxmodx>
 #include <hamsandwich>
 #include <fakemeta>
@@ -43,8 +46,8 @@ new const g_szHamHookEntityBlock[][] =
 new HamHook:g_iHamHookForwards[14];
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
-	RegisterHam(Ham_Killed, "player", "Ham_Killed_Pre", 0);
-	RegisterHam(Ham_TraceAttack, "player", "Ham_TraceAttack_Pre", 0);
+	RegisterHookChain(RG_CBasePlayer_TraceAttack, "OnPlayerTraceAttack_Pre", false);
+	RegisterHookChain(RG_CBasePlayer_Killed, "OnPlayerKilled_Pre", false);
 	
 	for(new i; i <= 8; i++) DisableHamForward(g_iHamHookForwards[i] = RegisterHam(Ham_Use, g_szHamHookEntityBlock[i], "HamHook_EntityBlock", false));
 	for(new i = 9; i < sizeof(g_szHamHookEntityBlock); i++) DisableHamForward(g_iHamHookForwards[i] = RegisterHam(Ham_Touch, g_szHamHookEntityBlock[i], "HamHook_EntityBlock", false));
@@ -148,8 +151,8 @@ public HamHook_EntityBlock(iEntity, id)
 public Ham_Weapon_Reload_Pre(iWpnEnt) {
 	if (!isDuelRunning() || g_iDuelType != LR_DUEL_ONESHOOT)
 		return HAM_IGNORED;
-	
-	new pPlayer = get_pdata_cbase(iWpnEnt, m_pPlayer, linux_diff_weapon);
+
+	new pPlayer = get_member(iWpnEnt, m_pPlayer);
 	if (!isUserDuel(pPlayer))
 		return HAM_IGNORED;
 		
@@ -160,14 +163,14 @@ public Ham_Weapon_Reload_Pre(iWpnEnt) {
 }
 
 public Ham_ItemPrimaryAttack_Post(iWpnEnt) {
-	new pPlayer = get_pdata_cbase(iWpnEnt, m_pPlayer, linux_diff_weapon);
+	new pPlayer = get_member(iWpnEnt, m_pPlayer);
 	new pPlayer2;
 	
 	if (!isDuelRunning())
 		return;
 	
-	if (g_iDuelType == LR_DUEL && g_iDuelWeaponId == CSW_M249) {
-		set_pdata_int(iWpnEnt, m_iClip, 511, linux_diff_weapon);
+	if (g_iDuelType == LR_DUEL && g_iDuelWeaponId == WEAPON_M249) {
+		rg_set_user_ammo(id, WEAPON_M249, 511);
 	} else if (g_iDuelType == LR_DUEL_ONESHOOT) {
 		if (pPlayer == g_iDuellerT)
 			pPlayer2 = g_iDuellerCT;
@@ -177,11 +180,11 @@ public Ham_ItemPrimaryAttack_Post(iWpnEnt) {
 		if (!mjb_is_valid_player(pPlayer2))
 			return;
 			
-		new weapon = get_pdata_cbase(pPlayer2, m_pActiveItem, linux_diff_player);
+		new weapon = get_member(pPlayer2, m_pActiveItem);
 		if (pev_valid(weapon)) {
-			set_pdata_int(weapon, m_iClip, 1, linux_diff_weapon);
+			rg_set_user_ammo(pPlayer2, WEAPON_M249, 511);
 		}
-		set_pdata_int(iWpnEnt, m_iClip, 0, linux_diff_weapon);
+		rg_set_user_ammo(pPlayer, WEAPON_M249, 511);
 	}
 }
 
@@ -189,13 +192,13 @@ public Ham_BlockScope(iWpnEnt) {
 	if (!isDuelRunning() || g_iDuelType != LR_DUEL_ONESHOOT)
 		return HAM_IGNORED;
 	
-	new pPlayer = get_pdata_cbase(iWpnEnt, m_pPlayer, linux_diff_weapon);
+	new pPlayer = get_member(iWpnEnt, m_pPlayer);
 	if (!isUserDuel(pPlayer))
 		return HAM_IGNORED;
 	return HAM_SUPERCEDE;
 }
 
-public Ham_TraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], trace, damagebits)
+public OnPlayerTraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], trace, damagebits)
 {
 	if (!isDuelRunning())
 		return HAM_IGNORED;
@@ -206,7 +209,7 @@ public Ham_TraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], trace, 
 	return HAM_IGNORED;
 }
 
-public Ham_Killed_Pre(victim, attacker) {
+public OnPlayerKilled_Pre(victim, attacker) {
 	if (!isDuelRunning())
 		return;
 	
@@ -241,13 +244,13 @@ public ClearDuel() {
 }
 
 public SetUsersDuel(iDuellerT, iDuellerCT) {
-	if (!mjb_is_valid_player(iDuellerT) || !mjb_is_valid_player(iDuellerCT) || !mjb_is_player_alive(iDuellerT) || !mjb_is_player_alive(iDuellerCT))
+	if (!mjb_is_valid_player(iDuellerT) || !mjb_is_valid_player(iDuellerCT) || !is_user_alive(iDuellerT) || !is_user_alive(iDuellerCT))
 		return 0;
 	
 	if (isDuelRunning())
 		return 0;
 	
-	if (iDuellerT == iDuellerCT || mjb_get_team(iDuellerT) != PRISONER || mjb_get_team(iDuellerCT) != GUARD)
+	if (iDuellerT == iDuellerCT || GetTeam(iDuellerT) != PRISONER || GetTeam(iDuellerCT) != GUARD)
 		return 0;
 	
 	switch(random(1)) {
@@ -260,8 +263,8 @@ public SetUsersDuel(iDuellerT, iDuellerCT) {
 	}
 	g_iDuellerT = iDuellerT;
 	g_iDuellerCT = iDuellerCT;
-	ResetMaxspeed(g_iDuellerT);
-	ResetMaxspeed(g_iDuellerCT);
+	rg_reset_maxspeed(g_iDuellerCT);
+	rg_reset_maxspeed(g_iDuellerT);
 	
 	RemoveAndSaveWeapons(g_iDuellerT);
 	RemoveAndSaveWeapons(g_iDuellerCT);
@@ -315,22 +318,22 @@ public DestroyAttachments(iDuellerT, iDuellerCT) {
 public GiveDuelWeapon(iDuellerT, iDuellerCT) {
 	new szWpnName[32];
 	get_weaponname(g_iDuelWeaponId, szWpnName, 31);
-	wpnTEnt = fm_give_item(iDuellerT, szWpnName);
-	wpnCTEnt = fm_give_item(iDuellerCT, szWpnName);
+	wpnTEnt = rg_give_item(iDuellerT, szWpnName);
+	wpnCTEnt = rg_give_item(iDuellerCT, szWpnName);
 	if (g_iDuelType == LR_DUEL_ONESHOOT) {
 		if (pev_valid(wpnTEnt))
-			set_pdata_int(wpnTEnt, m_iClip, 1, linux_diff_weapon);
+			rg_set_user_ammo(iDuellerT, g_iDuelWeaponId, 1);
 		if (pev_valid(wpnCTEnt))
-			set_pdata_int(wpnCTEnt, m_iClip, 0, linux_diff_weapon);
+			rg_set_user_ammo(iDuellerCT, g_iDuelWeaponId, 0);
 	} else if (g_iDuelType == LR_DUEL) {
-		if (g_iDuelWeaponId == CSW_M249) {
-			fm_set_user_bpammo(iDuellerT, g_iDuelWeaponId, 256);
-			fm_set_user_bpammo(iDuellerCT, g_iDuelWeaponId, 256);
+		if (g_iDuelWeaponId == WEAPON_M249) {
+			rg_set_user_bpammo(iDuellerT, g_iDuelWeaponId, 256);
+			rg_set_user_bpammo(iDuellerCT, g_iDuelWeaponId, 256);
 			if (pev_valid(wpnTEnt))
-				set_pdata_int(wpnTEnt, m_iClip, 511, linux_diff_weapon);
+				rg_set_user_ammo(iDuellerT, g_iDuelWeaponId, 511);
 			if (pev_valid(wpnCTEnt))
-				set_pdata_int(wpnCTEnt, m_iClip, 511, linux_diff_weapon);
-		} else if (g_iDuelWeaponId == CSW_KNIFE) {
+				rg_set_user_ammo(iDuellerCT, g_iDuelWeaponId, 511);
+		} else if (g_iDuelWeaponId == WEAPON_KNIFE) {
 			mjb_set_user_melee(iDuellerT, MELEE_BOXING_RED);
 			mjb_set_user_melee(iDuellerCT, MELEE_BOXING_BLUE);
 		}
@@ -343,19 +346,19 @@ public RemoveAndSaveWeapons(id) {
 	mjb_set_user_melee(id);
 	set_pev(id, pev_gravity, 1.0);
 	MJB_Print(id, "cached melee : %d", g_iCachedMeleeIndex[id]);
-	fm_strip_user_weapons(id);
+	rg_remove_all_items(id);
 	
 }
 
 public ReturnWeapons(id) {
-	if (!mjb_is_valid_player(id) || !mjb_is_player_alive(id))
+	if (!mjb_is_valid_player(id) || !is_user_alive(id))
 		return;
 	mjb_set_user_melee(id, g_iCachedMeleeIndex[id]);
 	set_pev(id, pev_gravity, g_fCachedGravityValue[id]);
 	set_pev(id, pev_health, 100.0);
 	
-	fm_strip_user_weapons(id, 0);
-	fm_give_item(id, "weapon_knife");
+	rg_remove_all_items(id);
+	rg_give_item(id, "weapon_knife");
 }
 public ClearUsersDuel() {
 	if (!isUsersDuel(g_iDuellerT, g_iDuellerCT))
@@ -373,11 +376,11 @@ public ClearUsersDuel() {
 	ReturnWeapons(iDuellerT);
 	ReturnWeapons(iDuellerCT);
 	DestroyAttachments(iDuellerT, iDuellerCT);
-	if (mjb_is_player_alive(iDuellerT)) {
+	if (is_user_alive(iDuellerT)) {
 		Show_LastRequestMenu(iDuellerT);
 		//if (pev_valid(wpnCTEnt)) engfunc(EngFunc_RemoveEntity, wpnCTEnt); they cause the crash
 	}
-	else if (mjb_is_player_alive(iDuellerCT)) {
+	else if (is_user_alive(iDuellerCT)) {
 		//if (pev_valid(wpnTEnt)) engfunc(EngFunc_RemoveEntity, wpnTEnt); here
 	}
 	client_cmd(0,  "mp3 stop");
@@ -425,7 +428,7 @@ public HOOK_Say(id) {
 	MENUS
 ========================= */
 public CanOpenLastRequestMenu(id) {
-	if (!mjb_is_valid_player(id) || !mjb_is_player_alive(id) || mjb_get_team(id) != PRISONER || mjb_get_state(id) != PRISONER_LAST || isUserDuel(id))
+	if (!mjb_is_valid_player(id) || !is_user_alive(id) || GetTeam(id) != PRISONER || mjb_get_state(id) != PRISONER_LAST || isUserDuel(id))
 		return MJB_False;
 	return MJB_True;
 }
@@ -476,35 +479,35 @@ public Handle_LastRequestMenu(id, iKeys) {
 	switch(iKeys) {
 		case 0: {
 			g_iDuelType = LR_DUEL_ONESHOOT;
-			g_iDuelWeaponId = CSW_DEAGLE;
+			g_iDuelWeaponId = WEAPON_DEAGLE;
 		}
 		case 1: {
 			g_iDuelType = LR_DUEL_ONESHOOT;
-			g_iDuelWeaponId = CSW_GLOCK18;
+			g_iDuelWeaponId = WEAPON_GLOCK18;
 		}
 		case 2: {
 			g_iDuelType = LR_DUEL_ONESHOOT;
-			g_iDuelWeaponId = CSW_USP;
+			g_iDuelWeaponId = WEAPON_USP;
 		}
 		case 3: {
 			g_iDuelType = LR_DUEL_ONESHOOT;
-			g_iDuelWeaponId = CSW_AWP;
+			g_iDuelWeaponId = WEAPON_AWP;
 		}
 		case 4: {
 			g_iDuelType = LR_DUEL_ONESHOOT;
-			g_iDuelWeaponId = CSW_M3;
+			g_iDuelWeaponId = WEAPON_M3;
 		}
 		case 5: {
 			g_iDuelType = LR_DUEL_ONESHOOT;
-			g_iDuelWeaponId = CSW_AK47;
+			g_iDuelWeaponId = WEAPON_AK47;
 		}
 		case 6: {
 			g_iDuelType = LR_DUEL;
-			g_iDuelWeaponId = CSW_M249;
+			g_iDuelWeaponId = WEAPON_M249;
 		}
 		case 7: {
 			g_iDuelType = LR_DUEL;
-			g_iDuelWeaponId = CSW_KNIFE;
+			g_iDuelWeaponId = WEAPON_KNIFE;
 		}
 		case 8: {
 			g_iDuelType = LR_NONDUEL;
@@ -529,7 +532,7 @@ public Cmd_ChooseGuardMenu(id) {
 	
 	for(new i = 0; i < iPlayersNum; i++)
 	{
-		if (!mjb_is_valid_player(pl[i]) || !mjb_is_player_alive(pl[i]) || mjb_get_team(pl[i]) != GUARD)
+		if (!mjb_is_valid_player(pl[i]) || !is_user_alive(pl[i]) || GetTeam(pl[i]) != GUARD)
 			continue;
 	
 		g_iMenuPlayers[id][j++] = pl[i];
@@ -602,7 +605,7 @@ public Handle_ChooseGuardMenu(id, iKey)
 				return Show_ChooseGuardMenu(id, g_iMenuPosition[id]);
 			
 			new iTarget = g_iMenuPlayers[id][index];
-			if(!mjb_is_valid_player(iTarget) || !mjb_is_player_alive(iTarget) || mjb_get_team(iTarget) != GUARD) return Show_ChooseGuardMenu(id, g_iMenuPosition[id]);
+			if(!mjb_is_valid_player(iTarget) || !is_user_alive(iTarget) || GetTeam(iTarget) != GUARD) return Show_ChooseGuardMenu(id, g_iMenuPosition[id]);
 			
 			if (g_iDuelType != LR_NONDUEL && g_iDuelWeaponId != -1)
 				StartDuel(id, iTarget);
