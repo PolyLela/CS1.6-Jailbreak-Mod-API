@@ -5,27 +5,42 @@
 #include <hamsandwich>
 #include <fakemeta>
 #include <engine>
+#include <reapi>
 #include <MJB_Core>
 
+/* Plugin Definition */
 #define PLUGIN "Last Request"
+
+/* Task IDs */
 #define DUEL_BEAM_TASK	5612
 
+/* Plugin Specific Enums */
 enum {
 	LR_NONDUEL,
 	LR_DUEL_ONESHOOT,
 	LR_DUEL
 };
 
+/* Menu Related Arrays */
 new g_iMenuPlayers[MAX_PLAYERS + 1][MAX_PLAYERS], g_iMenuPosition[MAX_PLAYERS + 1], g_iMenuCount[MAX_PLAYERS + 1];
-new g_iDuellerCT = 0, g_iDuellerT = 0;
-new g_fwUserSetDuel;
-new g_iCachedMeleeIndex[MAX_PLAYERS + 1], Float:g_fCachedGravityValue[MAX_PLAYERS + 1];
-new g_iDuelType = LR_NONDUEL;
-new g_iDuelWeaponId = -1;
-new g_pSpriteDuelRed, g_pSpriteDuelBlue, g_pSpriteWave;
+
+/* Duel Data*/
 new g_iDuelOneShootTurn;
+new g_iDuellerCT = 0, g_iDuellerT = 0;
+new g_iDuelType = LR_NONDUEL;
+new WeaponIdType:g_iDuelWeaponId = WEAPON_NONE;
 new wpnTEnt;
 new wpnCTEnt;
+
+new g_iCachedMeleeIndex[MAX_PLAYERS + 1], Float:g_fCachedGravityValue[MAX_PLAYERS + 1];
+
+/* Forwards */
+new g_fwUserSetDuel;
+
+/* Sprites */
+new g_pSpriteDuelRed, g_pSpriteDuelBlue, g_pSpriteWave;
+
+/* Blockage Behaviour */
 new const g_szHamHookEntityBlock[][] =
 {
 	"func_vehicle",
@@ -44,14 +59,24 @@ new const g_szHamHookEntityBlock[][] =
 	"weapon_shield"
 };
 new HamHook:g_iHamHookForwards[14];
+
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
+	menus_init();
+	ham_weapons_init();
+
 	RegisterHookChain(RG_CBasePlayer_TraceAttack, "OnPlayerTraceAttack_Pre", false);
 	RegisterHookChain(RG_CBasePlayer_Killed, "OnPlayerKilled_Pre", false);
 	
 	for(new i; i <= 8; i++) DisableHamForward(g_iHamHookForwards[i] = RegisterHam(Ham_Use, g_szHamHookEntityBlock[i], "HamHook_EntityBlock", false));
 	for(new i = 9; i < sizeof(g_szHamHookEntityBlock); i++) DisableHamForward(g_iHamHookForwards[i] = RegisterHam(Ham_Touch, g_szHamHookEntityBlock[i], "HamHook_EntityBlock", false));
 	
+	g_fwUserSetDuel = CreateMultiForward("mjb_user_set_in_duel", ET_IGNORE, FP_CELL);
+	
+	register_clcmd("say ", "HOOK_Say");
+}
+
+public ham_weapons_init() {
 	new const g_szWeaponName[][] = {"weapon_p228", "weapon_scout", "weapon_hegrenade", "weapon_xm1014", "weapon_c4", "weapon_mac10", "weapon_aug", "weapon_smokegrenade",
 	"weapon_elite", "weapon_fiveseven", "weapon_ump45", "weapon_sg550", "weapon_galil", "weapon_famas", "weapon_usp",
 	"weapon_glock18", "weapon_awp", "weapon_mp5navy", "weapon_m249", "weapon_m3", "weapon_m4a1", "weapon_tmp", "weapon_g3sg1",
@@ -67,12 +92,11 @@ public plugin_init() {
 	RegisterHam(Ham_Weapon_SecondaryAttack, "weapon_g3sg1", "Ham_BlockScope");
 	
 	register_clcmd("drop", "Cmd_BlockDrop");
-	
-	g_fwUserSetDuel = CreateMultiForward("mjb_user_set_in_duel", ET_IGNORE, FP_CELL);
-	
+}
+
+public menus_init() {
 	register_menucmd(register_menuid("LastRequestMenu"), (1<<0|1<<1|1<<2|1<<3|1<<4|1<<5|1<<6|1<<7|1<<8|1<<9), "Handle_LastRequestMenu");
 	register_menucmd(register_menuid("ChooseGuardMenu"), (1<<0|1<<1|1<<2|1<<3|1<<4|1<<5|1<<6|1<<7|1<<8|1<<9), "Handle_ChooseGuardMenu");
-	register_clcmd("say ", "HOOK_Say");
 }
 
 public plugin_precache() {
@@ -170,7 +194,8 @@ public Ham_ItemPrimaryAttack_Post(iWpnEnt) {
 		return;
 	
 	if (g_iDuelType == LR_DUEL && g_iDuelWeaponId == WEAPON_M249) {
-		rg_set_user_ammo(id, WEAPON_M249, 511);
+		rg_set_user_ammo(pPlayer, WEAPON_M249, 511);
+		rg_set_user_ammo(pPlayer2, WEAPON_M249, 511);
 	} else if (g_iDuelType == LR_DUEL_ONESHOOT) {
 		if (pPlayer == g_iDuellerT)
 			pPlayer2 = g_iDuellerCT;
@@ -182,9 +207,9 @@ public Ham_ItemPrimaryAttack_Post(iWpnEnt) {
 			
 		new weapon = get_member(pPlayer2, m_pActiveItem);
 		if (pev_valid(weapon)) {
-			rg_set_user_ammo(pPlayer2, WEAPON_M249, 511);
+			rg_set_user_ammo(pPlayer2, g_iDuelWeaponId, 1);
 		}
-		rg_set_user_ammo(pPlayer, WEAPON_M249, 511);
+		rg_set_user_ammo(pPlayer, g_iDuelWeaponId, 0);
 	}
 }
 
@@ -201,12 +226,12 @@ public Ham_BlockScope(iWpnEnt) {
 public OnPlayerTraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], trace, damagebits)
 {
 	if (!isDuelRunning())
-		return HAM_IGNORED;
+		return HC_CONTINUE;
 		
 	if ((isUserDuel(victim) && !isUserDuel(attacker)) || (!isUserDuel(victim) && isUserDuel(attacker)))
-		return HAM_SUPERCEDE;
+		return HC_SUPERCEDE;
 		
-	return HAM_IGNORED;
+	return HC_CONTINUE;
 }
 
 public OnPlayerKilled_Pre(victim, attacker) {
@@ -317,7 +342,8 @@ public DestroyAttachments(iDuellerT, iDuellerCT) {
 
 public GiveDuelWeapon(iDuellerT, iDuellerCT) {
 	new szWpnName[32];
-	get_weaponname(g_iDuelWeaponId, szWpnName, 31);
+	//Untag because this function from amxmodx uses CSW_*
+	get_weaponname(_:g_iDuelWeaponId, szWpnName, 31);
 	wpnTEnt = rg_give_item(iDuellerT, szWpnName);
 	wpnCTEnt = rg_give_item(iDuellerCT, szWpnName);
 	if (g_iDuelType == LR_DUEL_ONESHOOT) {
@@ -357,7 +383,6 @@ public ReturnWeapons(id) {
 	set_pev(id, pev_gravity, g_fCachedGravityValue[id]);
 	set_pev(id, pev_health, 100.0);
 	
-	rg_remove_all_items(id);
 	rg_give_item(id, "weapon_knife");
 }
 public ClearUsersDuel() {
@@ -373,6 +398,8 @@ public ClearUsersDuel() {
 	g_iDuellerT = 0;
 	g_iDuellerCT = 0;
 	UnblockGameBehaviour();
+	rg_remove_all_items(id);
+	rg_remove_all_items(id);
 	ReturnWeapons(iDuellerT);
 	ReturnWeapons(iDuellerCT);
 	DestroyAttachments(iDuellerT, iDuellerCT);
@@ -414,7 +441,6 @@ public HOOK_Say(id) {
 	new args[256];
 	read_args(args, 255);
 	
-	MJB_Print(id, args);
 	if (containi(args, "/last") != -1 || containi(args, "/lr") != -1) {
 		Show_LastRequestMenu(id);
 	}
@@ -605,9 +631,10 @@ public Handle_ChooseGuardMenu(id, iKey)
 				return Show_ChooseGuardMenu(id, g_iMenuPosition[id]);
 			
 			new iTarget = g_iMenuPlayers[id][index];
-			if(!mjb_is_valid_player(iTarget) || !is_user_alive(iTarget) || GetTeam(iTarget) != GUARD) return Show_ChooseGuardMenu(id, g_iMenuPosition[id]);
+			if(!mjb_is_valid_player(iTarget) || !is_user_alive(iTarget) || GetTeam(iTarget) != GUARD)
+				return Show_ChooseGuardMenu(id, g_iMenuPosition[id]);
 			
-			if (g_iDuelType != LR_NONDUEL && g_iDuelWeaponId != -1)
+			if (g_iDuelType != LR_NONDUEL && g_iDuelWeaponId != WEAPON_NONE)
 				StartDuel(id, iTarget);
 		}
 	}

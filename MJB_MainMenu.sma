@@ -200,11 +200,11 @@ public Handle_TeamMenu(id, iKeys) {
 				MJB_Print(id, "!nUnable to change team to guards due to unbalance");
 				return PLUGIN_HANDLED;
 			}
-			rg_join_team(id, TEAM_TERRORIST);
+			rg_join_team(id, TEAM_CT);
 			MJB_Print(id, "!tYou changed your team to guards");
 		}
 		case 1: {
-			rg_join_team(id, TEAM_CT);
+			rg_join_team(id, TEAM_TERRORIST);
 			MJB_Print(id, "!tYou changed your team to prisoners");
 		}
 		case 9: {
