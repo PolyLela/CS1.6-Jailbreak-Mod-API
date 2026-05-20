@@ -3,6 +3,7 @@
 #include <engine>
 #include <hamsandwich>
 #include <fun>
+#include <reapi>
 #include <MJB_Core>
 
 #define PLUGIN "Melee System"
@@ -20,7 +21,7 @@ new const g_Melee[MeleeType][MeleeData] =
 		"MOON_JB/Weapons/hand_hit.wav",
 		"MOON_JB/Weapons/hand_hit.wav",
 		
-		0.6,
+		0.4,
 		1.0
 	},
 	
@@ -35,7 +36,7 @@ new const g_Melee[MeleeType][MeleeData] =
 		"MOON_JB/Weapons/baton_hitwall.wav",
 		"MOON_JB/Weapons/baton_hit.wav",
 		
-		0.5,
+		0.4,
 		1.37
 	},
 	
@@ -80,7 +81,7 @@ new const g_Melee[MeleeType][MeleeData] =
 		"MOON_JB/SuperVIPMenu/hammer/hit.wav",
 		"MOON_JB/SuperVIPMenu/hammer/hit.wav",
 		
-		0.5,
+		0.4,
 		3.0
 	},
 	
@@ -155,9 +156,9 @@ public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 	register_event("CurWeapon", "CurWeapon", "be", "1=1");
-	RegisterHam(Ham_Spawn, "player", "HamSpawnPost", 1);
-	RegisterHam(Ham_TraceAttack, "player", "Ham_TraceAttack_Pre");
-	RegisterHam(Ham_TakeDamage, "player", "Ham_TakeDamage_Pre");
+	RegisterHookChain(RG_CBasePlayer_Spawn, "OnPlayerSpawn_Post", true);
+	RegisterHookChain(RG_CBasePlayer_TraceAttack, "OnPlayerTraceAttack_Pre", false);
+	RegisterHookChain(RG_CBasePlayer_TakeDamage, "OnPlayerTakeDamage_Pre", false);
 	RegisterHam(Ham_Item_Deploy, "weapon_knife", "Ham_KnifeDeploy_Post", true);
 	RegisterHam(Ham_Weapon_PrimaryAttack, "weapon_knife", "Ham_Melee_PrimaryAttack_Post", 1);
 	RegisterHam(Ham_Weapon_SecondaryAttack, "weapon_knife", "Ham_Melee_SecondaryAttack_Post", 1);
@@ -233,15 +234,16 @@ public CurWeapon(id) {
 	return PLUGIN_CONTINUE;
 }
 
-public HamSpawnPost(id) {
+public OnPlayerSpawn_Post(id) {
 	g_iPlayerMelee[id] = 0;
 	g_iFreezed[id] = MJB_False;
+	rg_give_item(id, "weapon_knife", GT_REPLACE);
 	fm_switch_to_knife(id);
 }
 
 public Ham_KnifeDeploy_Post(iEntity) 
 {
-	new id = get_pdata_cbase(iEntity, m_pPlayer, linux_diff_weapon);
+	new id = get_member(iEntity, m_pPlayer);
 	
 	UpdateMelee(id);
 }
@@ -249,20 +251,20 @@ public Ham_KnifeDeploy_Post(iEntity)
 
 public Ham_Melee_PrimaryAttack_Post(iEntity) 
 {
-	new id = get_pdata_cbase(iEntity, m_pPlayer, linux_diff_weapon);
+	new id = get_member(iEntity, m_pPlayer);
 	new m = GetPlayerMelee(id);
 	
-	set_pdata_float(iEntity, m_flNextPrimaryAttack, g_Melee[m][MELEE_PRIMARY_DELAY], linux_diff_weapon);
-	set_pdata_float(id, m_flNextAttack, g_Melee[m][MELEE_PRIMARY_DELAY]);
+	set_member(iEntity, m_Weapon_flNextPrimaryAttack, g_Melee[m][MELEE_PRIMARY_DELAY]);
+	set_member(id, m_flNextAttack, g_Melee[m][MELEE_PRIMARY_DELAY]);
 }
 
 public Ham_Melee_SecondaryAttack_Post(iEntity)
 {
-	new id = get_pdata_cbase(iEntity, m_pPlayer, linux_diff_weapon);
+	new id = get_member(iEntity, m_pPlayer);
 	new m = GetPlayerMelee(id);
 	
-	set_pdata_float(iEntity, m_flNextSecondaryAttack, g_Melee[m][MELEE_SECONDARY_DELAY], linux_diff_weapon);
-	set_pdata_float(id, m_flNextAttack, g_Melee[m][MELEE_PRIMARY_DELAY]);
+	set_member(iEntity, m_Weapon_flNextSecondaryAttack, g_Melee[m][MELEE_SECONDARY_DELAY]);
+	set_member(id, m_flNextAttack, g_Melee[m][MELEE_SECONDARY_DELAY]);
 }
 
 public FakeMeta_EmitSound(id, iChannel, szSample[], Float:fVolume, Float:fAttn, iFlag, iPitch) 
@@ -304,32 +306,32 @@ public mjb_phase_changed(iOldPhase, iNewPhase) {
 	}
 }
 
-public Ham_TraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], trace, damagebits)
+public OnPlayerTraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], trace, damagebits)
 {
 	if (!mjb_is_valid_player(victim) || !mjb_is_valid_player(attacker) || victim == attacker)
-		return HAM_IGNORED;
+		return HC_CONTINUE;
 	
 		
-	if  (mjb_get_team(victim) == GUARD &&  mjb_get_team(attacker) == GUARD) {
-		return HAM_SUPERCEDE;
+	if  (GetTeam(victim) == GUARD &&  GetTeam(attacker) == GUARD) {
+		return HC_SUPERCEDE;
 	} 
 	
-	new bool:bothArePrisoners = (mjb_get_team(victim) == PRISONER && mjb_get_team(attacker) == PRISONER);
+	new bool:bothArePrisoners = (GetTeam(victim) == PRISONER && GetTeam(attacker) == PRISONER);
 	if (bothArePrisoners) MJB_Print(0, "DEBUG: TEAMMATE FF TRACEATTACK");
 	new bool:bothAreBoxing = (mjb_get_state(victim) == PRISONER_BOXING && mjb_get_state(attacker) == PRISONER_BOXING);
 	new bool:sameMGTeam = (mjb_get_user_mg_team(victim) == mjb_get_user_mg_team(attacker));
 	
 	if (bothArePrisoners && (!bothAreBoxing || sameMGTeam)) {
-			return HAM_SUPERCEDE;
+			return HC_SUPERCEDE;
 	}
 	
 	if (g_iFreezed[victim]) 
 	{
-		return HAM_SUPERCEDE;
+		return HC_SUPERCEDE;
 	}
 	
 	if(get_user_weapon(attacker) != CSW_KNIFE)
-		return HAM_IGNORED;
+		return HC_CONTINUE;
 	
 	new meleeType = GetUserMelee(attacker);
 	new attButtons = get_user_button(attacker);
@@ -378,23 +380,23 @@ public Ham_TraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], trace, 
 			}
 			else fDamage = 15.0;
 			SetHamParamFloat(3, fDamage);
-			return HAM_IGNORED;
+			return HC_CONTINUE;
 		}
 		return HAM_SUPERCEDE;
 	}*/
 
-	return HAM_IGNORED;
+	return HC_CONTINUE;
 }
 
-public Ham_TakeDamage_Pre(victim, inflictor, attacker, Float:damage, damagebits)
+public OnPlayerTakeDamage_Pre(victim, inflictor, attacker, Float:damage, damagebits)
 {
 	if (!mjb_is_valid_player(victim) || !mjb_is_valid_player(attacker) || victim == attacker)
-		return HAM_IGNORED;
+		return HC_CONTINUE;
 	
 	new meleeType = GetUserMelee(attacker);
 	new vicMeleeType = GetUserMelee(victim);
 	
-	new bool:bothArePrisoners = (mjb_get_team(victim) == PRISONER && mjb_get_team(attacker) == PRISONER);
+	new bool:bothArePrisoners = (GetTeam(victim) == PRISONER && GetTeam(attacker) == PRISONER);
 	if (bothArePrisoners) MJB_Print(0, "DEBUG: OK1");
 	new bool:sameMGTeam = (mjb_get_user_mg_team(victim) == mjb_get_user_mg_team(attacker));
 	if (!sameMGTeam) MJB_Print(0, "DEBUG: OK2");
@@ -403,7 +405,7 @@ public Ham_TakeDamage_Pre(victim, inflictor, attacker, Float:damage, damagebits)
 	
 	if (bothArePrisoners && !sameMGTeam && bothHasBoxingGloves) {
 		MJB_Print(0, "DEBUG: OK4");
-		if (get_pdata_int(victim, m_LastHitGroup, linux_diff_player) == HIT_HEAD)
+		if (get_member(victim, m_LastHitGroup) == HIT_HEAD)
 		{
 			damage = 22.0;
 			UTIL_ScreenShake(victim, (1<<15), (1<<14), (1<<15));
@@ -411,18 +413,19 @@ public Ham_TakeDamage_Pre(victim, inflictor, attacker, Float:damage, damagebits)
 			
 		}
 		else damage = 15.0;
-		SetHamParamFloat(4, damage);
-		return HAM_IGNORED;
+		SetHookChainArg(4, ATYPE_FLOAT, damage);
+		
+		return HC_CONTINUE;
 	}
 	
 	if(get_user_weapon(attacker) != CSW_KNIFE)
-		return HAM_IGNORED;
+		return HC_CONTINUE;
 
 	if ((meleeType == MELEE_SVIP_STAP || meleeType == MELEE_SVIP_AXE) && get_user_button(attacker) & IN_ATTACK2)
 	{
-		if (damage < 150) SetHamParamFloat(4, damage = 80.0); //not stab from behind
+		if (damage < 150) SetHookChainArg(4, ATYPE_FLOAT, damage = 80.0); //not stab from behind
 	}
-	return HAM_IGNORED;
+	return HC_CONTINUE;
 }
 
 /* =========================
@@ -434,7 +437,7 @@ public GetPlayerMelee(id) {
 		return g_iPlayerMelee[id] + 1; //Offset correctness since SVIP melees start from index 2 on MeleeType Enum
 	
 	// 2. Team default fallback
-	switch (mjb_get_team(id))
+	switch (GetTeam(id))
 	{
 		case PRISONER: return MELEE_FISTS;
 		case GUARD:    return MELEE_BATON;
@@ -475,7 +478,7 @@ unFreeze(id) {
 }
 
 Freeze(id) {
-	if (!mjb_is_valid_player(id) || !mjb_is_player_alive(id) || task_exists(id + 2026))
+	if (!mjb_is_valid_player(id) || !is_user_alive(id) || task_exists(id + 2026))
 		return;
 	g_iFreezed[id] = MJB_True;
 	set_pev(id, pev_flags, pev(id, pev_flags) | FL_FROZEN);

@@ -1,6 +1,7 @@
 #include <amxmodx>
-#include <hamsandwich>
+#include <reapi>
 #include <engine>
+#include <hamsandwich>
 #include <fun>
 #include <fakemeta>
 #include <MJB_Core>
@@ -44,8 +45,8 @@ public plugin_init() {
 	register_menucmd(register_menuid("KnivesMenu"), (1<<0|1<<1|1<<2|1<<3|1<<4|1<<9), "Handle_KnivesMenu");
 	register_menucmd(register_menuid("SpecialMenu"), (1<<0|1<<1|1<<2|1<<9), "Handle_SpecialMenu");
 	
-	RegisterHam(Ham_Spawn, "player", "HamSpawnPost", 1);
-	RegisterHam(Ham_Killed, "player", "HamKilledPost", 1);
+	RegisterHookChain(RG_CBasePlayer_Spawn, "OnPlayerSpawn_Post", true);
+	RegisterHookChain(RG_CBasePlayer_Killed, "OnPlayerKilled_Pre", false);
 	register_message(get_user_msgid("ScoreAttrib"), "Hook_ScoreAttribute");
 }
 
@@ -55,7 +56,7 @@ public plugin_precache() {
 }
 
 public CurWeapon(id) {
-	if (!mjb_is_valid_player(id) || !mjb_is_player_alive(id))
+	if (!mjb_is_valid_player(id) || !is_user_alive(id))
 		return;
 	if (g_fMaxSpeed[id] != 0.0 && !mjb_is_user_in_duel(id))
 		entity_set_float(id, EV_FL_maxspeed, g_fMaxSpeed[id]);
@@ -132,9 +133,9 @@ public Hook_Say(id) {
 	return PLUGIN_CONTINUE;
 }
 
-public HamSpawnPost(id) {
+public OnPlayerSpawn_Post(id) {
 	new Float:fUserHealth, Float:fUserArmor;
-	if (mjb_get_team(id) == GUARD) {
+	if (GetTeam(id) == GUARD) {
 		if (mjb_is_simon(id)) {
 			fUserHealth = 511.0;
 			fUserArmor = 255.0;
@@ -147,7 +148,7 @@ public HamSpawnPost(id) {
 				fUserArmor = 100.0;
 			}
 		}
-		} else if (mjb_get_team(id) == PRISONER) {
+		} else if (GetTeam(id) == PRISONER) {
 		if(hasRank(id, RANK_VIP)) {
 			fUserHealth = 150.0;
 			fUserArmor = 100.0;
@@ -168,7 +169,7 @@ public HamSpawnPost(id) {
 	trap_off(id);
 }
 
-public HamKilledPost(id) {
+public OnPlayerKilled_Post(id) {
 	unblind_player(id);
 	g_fMaxSpeed[id] = 0.0;
 }
@@ -176,7 +177,7 @@ public HamKilledPost(id) {
 public Hook_ScoreAttribute() {
 	new id = get_msg_arg_int(1);
 	if (mjb_is_valid_player(id) && hasRank(id, RANK_VIP)) {
-		set_msg_arg_int(2, ARG_BYTE, mjb_is_player_alive(id) ? SCOREATTRIB_FLAG_VIP : SCOREATTRIB_FLAG_DEAD);
+		set_msg_arg_int(2, ARG_BYTE, is_user_alive(id) ? SCOREATTRIB_FLAG_VIP : SCOREATTRIB_FLAG_DEAD);
 	}
 }
 
@@ -231,7 +232,7 @@ public Handle_VIPMenu(id, iKeys){
 	{
 		case 0:
 		{
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			GiveBombPackage(id);
 			MJB_Print(id, "!gYou got !tHe!g, !t2xFlash!g, !tSmoke !g!");
@@ -239,7 +240,7 @@ public Handle_VIPMenu(id, iKeys){
 		}
 		case 1:
 		{
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			set_pev(id, pev_gravity, 0.4);
 			MJB_Print(id, "!gYou got !tGravity !g!");
@@ -247,7 +248,7 @@ public Handle_VIPMenu(id, iKeys){
 		}
 		case 2:
 		{
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			set_pev(id, pev_health, 170.0);
 			set_pev(id, pev_armorvalue, 130.0);
@@ -256,9 +257,9 @@ public Handle_VIPMenu(id, iKeys){
 		}
 		case 3:
 		{
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
-			cs_set_user_money(id, cs_get_user_money(id) + 1000);
+			rg_add_account(id, 1000, AS_ADD, true);
 			g_iMenuChooseCount[id][COUNT_VIPMENU]++;
 		}
 		case 9:
@@ -330,14 +331,14 @@ public Handle_SVIPMenu(id, iKeys){
 	{
 		case 0:
 		{
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			
 			return Show_WeaponMenu(id);
 		}
 		case 1:
 		{
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			set_pev(id, pev_health, 170.0);
 			set_pev(id, pev_armorvalue, 130.0);
@@ -346,7 +347,7 @@ public Handle_SVIPMenu(id, iKeys){
 		}
 		case 2:
 		{
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			
 			set_user_drug(id, MJB_True);
@@ -355,7 +356,7 @@ public Handle_SVIPMenu(id, iKeys){
 		}
 		case 3:
 		{
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			
 			GiveBombPackage(id);
@@ -364,7 +365,7 @@ public Handle_SVIPMenu(id, iKeys){
 		}
 		case 4:
 		{
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			
 			set_pev(id, pev_gravity, 0.4);
@@ -373,27 +374,27 @@ public Handle_SVIPMenu(id, iKeys){
 		}
 		case 5:
 		{
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			
-			fm_set_user_bpammo(id,CSW_AK47,5000);
-			fm_set_user_bpammo(id,CSW_AWP,5000);
-			fm_set_user_bpammo(id,CSW_DEAGLE,5000);
-			fm_set_user_bpammo(id,CSW_M249,5000);
-			fm_set_user_bpammo(id,CSW_FAMAS,5000);
-			fm_set_user_bpammo(id,CSW_GALIL,5000);
-			fm_set_user_bpammo(id,CSW_GLOCK18,5000);
-			fm_set_user_bpammo(id,CSW_XM1014,5000);
-			fm_set_user_bpammo(id,CSW_SCOUT,5000);
-			fm_set_user_bpammo(id,CSW_AUG,5000);
-			fm_set_user_bpammo(id,CSW_M3,5000);
-			fm_set_user_bpammo(id,CSW_MP5NAVY,5000);		
-			fm_set_user_bpammo(id,CSW_M4A1,5000);
+			rg_set_user_bpammo(id,WEAPON_AK47,5000);
+			rg_set_user_bpammo(id,WEAPON_AWP,5000);
+			rg_set_user_bpammo(id,WEAPON_DEAGLE,5000);
+			rg_set_user_bpammo(id,WEAPON_M249,5000);
+			rg_set_user_bpammo(id,WEAPON_FAMAS,5000);
+			rg_set_user_bpammo(id,WEAPON_GALIL,5000);
+			rg_set_user_bpammo(id,WEAPON_GLOCK18,5000);
+			rg_set_user_bpammo(id,WEAPON_XM1014,5000);
+			rg_set_user_bpammo(id,WEAPON_SCOUT,5000);
+			rg_set_user_bpammo(id,WEAPON_AUG,5000);
+			rg_set_user_bpammo(id,WEAPON_M3,5000);
+			rg_set_user_bpammo(id,WEAPON_MP5N,5000);		
+			rg_set_user_bpammo(id,WEAPON_M4A1,5000);
 			g_iMenuChooseCount[id][COUNT_SVIPMENU]++;
 		}
 		case 6:
 		{
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			
 			g_fMaxSpeed[id] = 500.0;
@@ -416,11 +417,11 @@ public Show_WeaponMenu(id) {
 	new szMenu[512], iKeys = 0, iLen = formatex(szMenu, charsmax(szMenu), "\rM\wOON JB \r| \wArms Menu^n^n");
 	
 	if (hasRank(id, RANK_HEAD_ADMIN)) {
-		if (mjb_get_team(id) == PRISONER) {
+		if (GetTeam(id) == PRISONER) {
 			iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r1\d. \wSpecial Weapons \y(\dAvailable only for protection\y) ^n");
 			if (hasRank(id, RANK_CO_OWNER))
 				iKeys |= (1<<0);
-		} else if (mjb_get_team(id) == GUARD) {
+		} else if (GetTeam(id) == GUARD) {
 			if (g_iMenuChooseCount[id][COUNT_SPECIALMENU] >= SPECIALMENU_CHOOSE_LIMIT) {
 				iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r1\d. \dSpecial Weapons (Available in the next round) ^n");
 				if (hasRank(id, RANK_CO_OWNER))
@@ -490,35 +491,35 @@ public Show_KnivesMenu(id) {
 public Handle_KnivesMenu(id, iKeys) {
 	switch(iKeys) {
 		case 0 : {
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			mjb_set_user_melee(id, MELEE_SVIP_AXE);
 			g_iMenuChooseCount[id][COUNT_SVIPMENU]++;
 			g_iMenuChooseCount[id][COUNT_KNIVESMENU]++;
 		}
 		case 1 : {
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			mjb_set_user_melee(id, MELEE_SVIP_COMBAT);
 			g_iMenuChooseCount[id][COUNT_SVIPMENU]++;
 			g_iMenuChooseCount[id][COUNT_KNIVESMENU]++;
 		}
 		case 2 : {
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			mjb_set_user_melee(id, MELEE_SVIP_HAMMER);
 			g_iMenuChooseCount[id][COUNT_SVIPMENU]++;
 			g_iMenuChooseCount[id][COUNT_KNIVESMENU]++;
 		}
 		case 3 : {
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			mjb_set_user_melee(id, MELEE_SVIP_KATANA);
 			g_iMenuChooseCount[id][COUNT_SVIPMENU]++;
 			g_iMenuChooseCount[id][COUNT_KNIVESMENU]++;
 		}
 		case 4 : {
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
 			mjb_set_user_melee(id, MELEE_SVIP_STAP);
 			g_iMenuChooseCount[id][COUNT_SVIPMENU]++;
@@ -536,7 +537,7 @@ public Show_SpecialMenu(id) {
 		return PLUGIN_HANDLED;
 	show_menu(id, 0, "^n", 1);
 	new szMenu[512], iKeys = 0, iLen;
-	if (mjb_get_team(id) == GUARD) {
+	if (GetTeam(id) == GUARD) {
 		iLen = formatex(szMenu, charsmax(szMenu), "\rM\wOON JB \r| \wSpecial Weapons^n^n");
 		
 		iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r1\d. \wWeapon 1^n");
@@ -548,7 +549,7 @@ public Show_SpecialMenu(id) {
 		iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r3\d. \wWeapon 3^n");
 		iKeys |= (1<<2);
 	}
-	else if (mjb_get_team(id) == PRISONER)
+	else if (GetTeam(id) == PRISONER)
 	{
 		if (!hasRank(id, RANK_CO_OWNER))
 			return PLUGIN_HANDLED;
@@ -584,9 +585,9 @@ public Show_SpecialMenu(id) {
 public Handle_SpecialMenu(id, iKeys) {
 	switch(iKeys) {
 		case 0 : {
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
-			if (mjb_get_team(id) == PRISONER) {
+			if (GetTeam(id) == PRISONER) {
 				mjb_open_cell();
 				g_iOpenDoorCount[id]++;
 			}
@@ -594,9 +595,9 @@ public Handle_SpecialMenu(id, iKeys) {
 			g_iMenuChooseCount[id][COUNT_SPECIALMENU]++;
 		}
 		case 1 : {
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
-			if (mjb_get_team(id) == PRISONER) {
+			if (GetTeam(id) == PRISONER) {
 				blind_guards(id);
 				g_iFlashChooseCount[id]++;
 			}
@@ -604,9 +605,9 @@ public Handle_SpecialMenu(id, iKeys) {
 			g_iMenuChooseCount[id][COUNT_SPECIALMENU]++;
 		}
 		case 2 : {
-			if (!mjb_is_player_alive(id))
+			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
-			if (mjb_get_team(id) == PRISONER) {
+			if (GetTeam(id) == PRISONER) {
 				trap(id);
 				g_iTrapChooseCount[id]++;
 			}
@@ -626,7 +627,7 @@ blind_guards(id) {
 	
 	for(new i = 0; i < plnum; i++) 
 	{
-		if(!mjb_is_valid_player(pl[i]) || !mjb_is_player_alive(pl[i]) || mjb_get_team(pl[i]) == PRISONER)
+		if(!mjb_is_valid_player(pl[i]) || !is_user_alive(pl[i]) || GetTeam(pl[i]) == PRISONER)
 			continue;
 			
 		new szName[33]
@@ -685,7 +686,7 @@ public trap(id)
 
 /*public client_PreThink(id)
 {
-	if(!mjb_is_valid_player(id) || !mjb_is_player_alive(id) || mjb_get_team(id) != GUARD)
+	if(!mjb_is_valid_player(id) || !is_user_alive(id) || GetTeam(id) != GUARD)
 		return PLUGIN_CONTINUE;
 	
 	new Float:gametime = get_gametime();
@@ -702,7 +703,7 @@ public trap(id)
 		if(distance < MAX_DISTANCE)
 		{
 			set_user_maxspeed(id, 1.0 );
-			fm_strip_user_weapons(id);
+			rg_strip_user_weapons(id);
 			
 			if(!iTrapped[id])
 			{
@@ -720,11 +721,11 @@ public trap(id)
 public end_trap(id) {
 	trap_off(id);
 	fTrapCooldown[id] = get_gametime() + 60.0;
-	fm_give_item(id, "weapon_knife");
-	fm_give_item(id,"weapon_deagle");
-	fm_give_item(id,"weapon_m4a1");
-	fm_set_user_bpammo(id,CSW_M4A1, 90);
-	fm_set_user_bpammo(id,CSW_DEAGLE, 35);
+	rg_give_item(id, "weapon_knife");
+	rg_give_item(id,"weapon_deagle");
+	rg_give_item(id,"weapon_m4a1");
+	rg_set_user_bpammo(id,WEAPON_M4A1, 90);
+	rg_set_user_bpammo(id,WEAPON_DEAGLE, 35);
 }
 
 public trap_off(id)
@@ -744,8 +745,8 @@ stock ResetMenusChooseCount(id) {
 }
 
 stock GiveBombPackage(id) {
-	fm_give_item(id, "weapon_hegrenade");
-	fm_give_item(id, "weapon_flashbang");
-	fm_give_item(id, "weapon_flashbang");
-	fm_give_item(id, "weapon_smokegrenade");
+	rg_give_item(id, "weapon_hegrenade");
+	rg_give_item(id, "weapon_flashbang");
+	rg_give_item(id, "weapon_flashbang");
+	rg_give_item(id, "weapon_smokegrenade");
 }

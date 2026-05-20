@@ -314,100 +314,13 @@ stock fm_switch_to_knife(pPlayer) {
 	if(get_user_weapon(pPlayer) != CSW_KNIFE) engclient_cmd(pPlayer, "weapon_knife");
 	else
 	{
-		new iActiveItem = get_pdata_cbase(pPlayer, m_pActiveItem);
+		new iActiveItem = get_member(pPlayer, m_pActiveItem);
 		if(iActiveItem > 0)
 		{
 			ExecuteHamB(Ham_Item_Deploy, iActiveItem);
 			UTIL_WeaponAnimation(pPlayer, 3);
 		}
 	}
-}
-
-stock fm_give_item(pPlayer, const szItem[])
-{
-	new iEntity = engfunc(EngFunc_CreateNamedEntity, engfunc(EngFunc_AllocString, szItem));
-	if(!pev_valid(iEntity)) return 0;
-	new Float:vecOrigin[3];
-	pev(pPlayer, pev_origin, vecOrigin);
-	set_pev(iEntity, pev_origin, vecOrigin);
-	set_pev(iEntity, pev_spawnflags, pev(iEntity, pev_spawnflags) | SF_NORESPAWN);
-	dllfunc(DLLFunc_Spawn, iEntity);
-	dllfunc(DLLFunc_Touch, iEntity, pPlayer);
-	if(pev(iEntity, pev_solid) != SOLID_NOT)
-	{
-		engfunc(EngFunc_RemoveEntity, iEntity);
-		return -1;
-	}
-	return iEntity;
-}
-
-stock fm_strip_user_weapons(pPlayer, iType = 0)
-{
-	static iEntity, iszWeaponStrip = 0;
-	if(iszWeaponStrip || (iszWeaponStrip = engfunc(EngFunc_AllocString, "player_weaponstrip"))) iEntity = engfunc(EngFunc_CreateNamedEntity, iszWeaponStrip);
-	if(!pev_valid(iEntity)) return 0;
-	if(iType && get_user_weapon(pPlayer) != CSW_KNIFE)
-	{
-		engclient_cmd(pPlayer, "weapon_knife");
-		engfunc(EngFunc_MessageBegin, MSG_ONE_UNRELIABLE, 66, {0.0, 0.0, 0.0}, pPlayer);
-		write_byte(1);
-		write_byte(CSW_KNIFE);
-		write_byte(0);
-		message_end();
-	}
-	dllfunc(DLLFunc_Spawn, iEntity);
-	dllfunc(DLLFunc_Use, iEntity, pPlayer);
-	engfunc(EngFunc_RemoveEntity, iEntity);
-	set_pdata_int(pPlayer, m_fHasPrimary, 0, linux_diff_player);
-	return 1;
-}
-
-stock fm_get_user_bpammo(pPlayer, iWeaponId)
-{
-	new iOffset;
-	switch(iWeaponId)
-	{
-		case CSW_AWP: iOffset = 377; // ammo_338magnum
-		case CSW_SCOUT, CSW_AK47, CSW_G3SG1: iOffset = 378; // ammo_762nato
-		case CSW_M249: iOffset = 379; // ammo_556natobox
-		case CSW_FAMAS, CSW_M4A1, CSW_AUG, CSW_SG550, CSW_GALI, CSW_SG552: iOffset = 380; // ammo_556nato
-		case CSW_M3, CSW_XM1014: iOffset = 381; // ammo_buckshot
-		case CSW_USP, CSW_UMP45, CSW_MAC10: iOffset = 382; // ammo_45acp
-		case CSW_FIVESEVEN, CSW_P90: iOffset = 383; // ammo_57mm
-		case CSW_DEAGLE: iOffset = 384; // ammo_50ae
-		case CSW_P228: iOffset = 385; // ammo_357sig
-		case CSW_GLOCK18, CSW_MP5NAVY, CSW_TMP, CSW_ELITE: iOffset = 386; // ammo_9mm
-		case CSW_FLASHBANG: iOffset = 387;
-		case CSW_HEGRENADE: iOffset = 388;
-		case CSW_SMOKEGRENADE: iOffset = 389;
-		case CSW_C4: iOffset = 390;
-		default: return 0;
-	}
-	return get_pdata_int(pPlayer, iOffset, linux_diff_player);
-}
-
-stock fm_set_user_bpammo(pPlayer, iWeaponId, iAmount)
-{
-	new iOffset;
-	switch(iWeaponId)
-	{
-		case CSW_AWP: iOffset = 377; // ammo_338magnum
-		case CSW_SCOUT, CSW_AK47, CSW_G3SG1: iOffset = 378; // ammo_762nato
-		case CSW_M249: iOffset = 379; // ammo_556natobox
-		case CSW_FAMAS, CSW_M4A1, CSW_AUG, CSW_SG550, CSW_GALI, CSW_SG552: iOffset = 380; // ammo_556nato
-		case CSW_M3, CSW_XM1014: iOffset = 381; // ammo_buckshot
-		case CSW_USP, CSW_UMP45, CSW_MAC10: iOffset = 382; // ammo_45acp
-		case CSW_FIVESEVEN, CSW_P90: iOffset = 383; // ammo_57mm
-		case CSW_DEAGLE: iOffset = 384; // ammo_50ae
-		case CSW_P228: iOffset = 385; // ammo_357sig
-		case CSW_GLOCK18, CSW_MP5NAVY, CSW_TMP, CSW_ELITE: iOffset = 386; // ammo_9mm
-		case CSW_FLASHBANG: iOffset = 387;
-		case CSW_HEGRENADE: iOffset = 388;
-		case CSW_SMOKEGRENADE: iOffset = 389;
-		case CSW_C4: iOffset = 390;
-		default: return;
-	}
-	set_pdata_int(pPlayer, iOffset, iAmount, linux_diff_player);
 }
 
 public fm_set_kvd(iEntity, const szClassName[], const szKeyName[], const szValue[]) {
