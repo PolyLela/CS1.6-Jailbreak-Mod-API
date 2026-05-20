@@ -6,6 +6,7 @@
 
 #include <amxmodx>
 #include <fakemeta>
+#include <hamsandwich>
 #include <reapi>
 #include <MJB_Core>
 
@@ -23,6 +24,26 @@ new const DayTypes[16] = {
     FREEDAY
 };
 
+/* Blockage Behaviour */
+new const g_szHamHookEntityBlock[][] =
+{
+	"func_vehicle",
+	"func_tracktrain",
+	"func_tank",
+	"game_player_hurt",
+	"func_recharge",
+	"func_healthcharger",
+	"game_player_equip",
+	"player_weaponstrip",
+	//"func_button",
+	"trigger_hurt",
+	"trigger_gravity",
+	"armoury_entity",
+	"weaponbox",
+	"weapon_shield"
+};
+new HamHook:g_iHamHookForwards[14];
+
 new g_iPhase = -1;
 new g_iFreePhaseCount;
 new bool:g_bManyFreeEnabled = true;
@@ -39,6 +60,8 @@ public plugin_init()
 	set_cvar_num("mp_maxrounds", 15);
 	RegisterHookChain(RG_CSGameRules_OnRoundFreezeEnd, "OnRoundStart", true);
 	RegisterHookChain(RG_RoundEnd, "OnRoundEnd", true);
+	for(new i; i <= 8; i++) DisableHamForward(g_iHamHookForwards[i] = RegisterHam(Ham_Use, g_szHamHookEntityBlock[i], "HamHook_EntityBlock", false));
+	for(new i = 9; i < sizeof(g_szHamHookEntityBlock); i++) DisableHamForward(g_iHamHookForwards[i] = RegisterHam(Ham_Touch, g_szHamHookEntityBlock[i], "HamHook_EntityBlock", false));
 	g_fwPhaseChanged = CreateMultiForward("mjb_phase_changed", ET_IGNORE, FP_CELL, FP_CELL);
 	OnRoundStart();
 	g_HudSync = CreateHudSyncObj();
@@ -186,7 +209,7 @@ public StopAllTimers()
 ========================= */
 public OnRoundStart()
 {
-	mjb_unblock_game_behaviour();
+	UnblockGameBehaviour();
 	ChangePhase(PHASE_DAY_STARTED);
 }
 
@@ -200,7 +223,7 @@ public OnRoundEnd()
 }
 
 public DayEnd() {
-	mjb_block_game_behaviour();
+	BlockGameBehaviour();
 	for (new i = 1; i <= MAX_PLAYERS; i++) {
 		if (!mjb_is_valid_player(i) || !is_user_alive(i))
 			continue;
@@ -314,8 +337,10 @@ public plugin_natives() {
 	register_native("mjb_get_day", "native_get_day");
 	register_native("mjb_get_day_type", "native_get_day_type");
 	register_native("mjb_get_phase", "native_get_phase");
-	register_native("mjb_get_free_timer_id", "native_get_free_timer_id")
-	register_native("mjb_get_simon_timer_id", "native_get_simon_timer_id")
+	register_native("mjb_get_free_timer_id", "native_get_free_timer_id");
+	register_native("mjb_get_simon_timer_id", "native_get_simon_timer_id");
+	register_native("mjb_block_game_behaviour", "BlockGameBehaviour", 1);
+	register_native("mjb_unblock_game_behaviour", "UnblockGameBehaviour", 1);
 }
 
 public native_end_gameday_vote() {
@@ -364,4 +389,17 @@ public native_get_free_timer_id() {
 
 public native_get_simon_timer_id() {
 	return g_iSimonTimer;
+}
+
+public UnblockGameBehaviour() {
+	for(new i; i < charsmax(g_iHamHookForwards); i++) DisableHamForward(g_iHamHookForwards[i]);
+}
+
+public BlockGameBehaviour() {
+	for(new i; i < charsmax(g_iHamHookForwards); i++) EnableHamForward(g_iHamHookForwards[i]);
+}
+
+public HamHook_EntityBlock(iEntity, id)
+{
+	return HAM_SUPERCEDE;
 }

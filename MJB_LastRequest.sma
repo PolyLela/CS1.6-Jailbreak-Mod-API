@@ -40,26 +40,6 @@ new g_fwUserSetDuel;
 /* Sprites */
 new g_pSpriteDuelRed, g_pSpriteDuelBlue, g_pSpriteWave;
 
-/* Blockage Behaviour */
-new const g_szHamHookEntityBlock[][] =
-{
-	"func_vehicle",
-	"func_tracktrain",
-	"func_tank",
-	"game_player_hurt",
-	"func_recharge",
-	"func_healthcharger",
-	"game_player_equip",
-	"player_weaponstrip",
-	//"func_button",
-	"trigger_hurt",
-	"trigger_gravity",
-	"armoury_entity",
-	"weaponbox",
-	"weapon_shield"
-};
-new HamHook:g_iHamHookForwards[14];
-
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 	menus_init();
@@ -67,9 +47,6 @@ public plugin_init() {
 
 	RegisterHookChain(RG_CBasePlayer_TraceAttack, "OnPlayerTraceAttack_Pre", false);
 	RegisterHookChain(RG_CBasePlayer_Killed, "OnPlayerKilled_Pre", false);
-	
-	for(new i; i <= 8; i++) DisableHamForward(g_iHamHookForwards[i] = RegisterHam(Ham_Use, g_szHamHookEntityBlock[i], "HamHook_EntityBlock", false));
-	for(new i = 9; i < sizeof(g_szHamHookEntityBlock); i++) DisableHamForward(g_iHamHookForwards[i] = RegisterHam(Ham_Touch, g_szHamHookEntityBlock[i], "HamHook_EntityBlock", false));
 	
 	g_fwUserSetDuel = CreateMultiForward("mjb_user_set_in_duel", ET_IGNORE, FP_CELL);
 	
@@ -112,8 +89,6 @@ public plugin_natives() {
 	register_native("mjb_is_user_in_duel", "native_is_user_in_duel");
 	register_native("mjb_is_users_in_duel", "native_is_users_in_duel");
 	register_native("mjb_is_duel_running", "native_is_duel_running");
-	register_native("mjb_block_game_behaviour", "native_block_game_behaviour");
-	register_native("mjb_unblock_game_behaviour", "native_unblock_game_behaviour");
 }
 
 public native_is_user_in_duel() {
@@ -131,14 +106,6 @@ public native_is_duel_running() {
 	return isDuelRunning();
 }
 
-public native_block_game_behaviour() {
-	BlockGameBehaviour();
-}
-
-public native_unblock_game_behaviour() {
-	UnblockGameBehaviour();
-}
-
 public mjb_state_changed(id, iOldState, iNewState) {
 	if (iNewState == PRISONER_LAST)
 		Show_LastRequestMenu(id);
@@ -152,24 +119,10 @@ public mjb_phase_changed(iOldPhase, iNewPhase) {
 	ClearDuel();
 }
 
-public UnblockGameBehaviour() {
-	for(new i; i < charsmax(g_iHamHookForwards); i++) DisableHamForward(g_iHamHookForwards[i]);
-}
-
-public BlockGameBehaviour() {
-	for(new i; i < charsmax(g_iHamHookForwards); i++) EnableHamForward(g_iHamHookForwards[i]);
-}
-
 public Cmd_BlockDrop(id) {
 	if(isDuelRunning() && isUserDuel(id) && g_iDuelType != LR_NONDUEL)
 		return PLUGIN_HANDLED;
 	return PLUGIN_CONTINUE;
-}
-
-public HamHook_EntityBlock(iEntity, id)
-{
-	if(isDuelRunning() && isUserDuel(id)) return HAM_SUPERCEDE;
-	return HAM_IGNORED;
 }
 
 public Ham_Weapon_Reload_Pre(iWpnEnt) {
@@ -304,7 +257,7 @@ public SetUsersDuel(iDuellerT, iDuellerCT) {
 	set_pev(g_iDuellerCT, pev_armorvalue, 100.0);
 	
 	mjb_open_cell();
-	BlockGameBehaviour();
+	mjb_block_game_behaviour();
 	
 	new ret;
 	ExecuteForward(g_fwUserSetDuel, ret, g_iDuellerT);
@@ -397,9 +350,9 @@ public ClearUsersDuel() {
 	
 	g_iDuellerT = 0;
 	g_iDuellerCT = 0;
-	UnblockGameBehaviour();
-	rg_remove_all_items(id);
-	rg_remove_all_items(id);
+	mjb_unblock_game_behaviour();
+	rg_remove_all_items(iDuellerT);
+	rg_remove_all_items(iDuellerCT);
 	ReturnWeapons(iDuellerT);
 	ReturnWeapons(iDuellerCT);
 	DestroyAttachments(iDuellerT, iDuellerCT);
