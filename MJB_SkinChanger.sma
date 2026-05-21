@@ -1,6 +1,7 @@
 #include <amxmodx>
 #include <fakemeta>
 #include <hamsandwich>
+#include <reapi>
 #include <MJB_Core>
 
 #define PLUGIN "JB Stable Skin System - FIXED"
@@ -9,10 +10,6 @@
 #define ClCorpse_ModelName 1
 #define ClCorpse_PlayerID 12
 #define TASK_SKIN 1337
-
-// ================= FLAGS =================
-#define ADMIN ADMIN_BAN
-#define HEAD_ADMIN ADMIN_CVAR
 
 // ================= MODELS =================
 static const szAdminModel[]    = "MoonJb_Admin";
@@ -126,7 +123,7 @@ public mjb_simon_set(id) {
 }
 
 public mjb_simon_cleared(id) {
-    if(!mjb_is_valid_player(id) || !mjb_is_player_alive(id))
+    if(!mjb_is_valid_player(id) || !is_user_alive(id))
         return;
 	
     if(task_exists(id + TASK_SKIN))
@@ -135,7 +132,7 @@ public mjb_simon_cleared(id) {
 }
 
 public mjb_state_changed(id) {
-    if(!mjb_is_valid_player(id) || !mjb_is_player_alive(id))
+    if(!mjb_is_valid_player(id) || !is_user_alive(id))
         return;
 	
     if(task_exists(id + TASK_SKIN))
@@ -147,7 +144,7 @@ public mjb_phase_changed() {
 	new pl[32], plnum;
 	get_players(pl, plnum, "ah");
 	for(new i = 0; i  < plnum; i++) {
-		if (!mjb_is_valid_player(pl[i]) || !mjb_is_player_alive(pl[i])) 
+		if (!mjb_is_valid_player(pl[i]) || !is_user_alive(pl[i])) 
 			continue
 		if(task_exists(pl[i] + TASK_SKIN))
 			remove_task(pl[i] + TASK_SKIN);
@@ -205,14 +202,7 @@ ApplyToEngine(id, const model[], body, skin)
     if(!mjb_is_valid_player(id))
         return;
 
-    if(mjb_is_player_alive(id))
-    {
-        set_user_info(id, "model", model);
-    }
-    else
-    {
-        cs_set_user_model(id, model);
-    }
+    set_user_info(id, "model", model);
 
     if(TrieKeyExists(g_tModelIndex, model))
     {
@@ -255,27 +245,53 @@ public SetClientKeyValue(id, const buffer[], const key[], const value[])
 // ================= CORPSE FIX (IMPORTANT) =================
 public Message_ClCorpse()
 {
-    new id = get_msg_arg_int(ClCorpse_PlayerID);
-
-    if(!mjb_is_valid_player(id))
-        return;
-
-    if(!g_bIsDead[id])
-        return;
-
-    set_msg_arg_string(ClCorpse_ModelName, g_szDeathModel[id]);
+	new id = get_msg_arg_int(ClCorpse_PlayerID);
+	
+	if(!mjb_is_valid_player(id))
+		return;
+	
+	if(!g_bIsDead[id])
+		return;
+	
+	//Donot update model on player death for visual also donot make body or skin if there is a task to prevent override
+	new model[32];
+	if (GetModelInternalTeam(g_szDeathModel[id]) == GetTeam(id)) {
+		copy(model, 31, g_szDeathModel[id]);
+	} else {
+		new b, s;
+		GetDesiredSkin(id, model, 31, b, s);
+	}
+	set_msg_arg_string(ClCorpse_ModelName, model);
 }
 
 // ================= SKIN LOGIC =================
+GetModelInternalTeam(const model[]) {
+	if (equal(model, szAdminModel)) {
+		return PRISONER;
+	} else if (equal(model, szPrisonerModel)) {
+		return PRISONER;
+	} else if (equal(model, szSoccerBlueModel)) {
+		return PRISONER;
+	} else if (equal(model, szSoccerRedModel)) {
+		return PRISONER;
+	} else if (equal(model, szSimonModel)) {
+		return GUARD;
+	} else if (equal(model, szGuardModel)) {
+		return GUARD;
+	}
+	return GUARD;
+}
+
 GetDesiredSkin(id, model[], len, &body, &skin)
 {
-	new team  = mjb_get_team(id);
+	new team  = GetTeam(id);
 	new iState = mjb_get_state(id);
 	new phase = mjb_get_phase();
 	
 	// ================= GUARD =================
 	if(team == GUARD)
 	{
+		MJB_Print(id, "2 Should work");
 		if(mjb_is_simon(id))
 		{
 			copy(model, len, szSimonModel);
