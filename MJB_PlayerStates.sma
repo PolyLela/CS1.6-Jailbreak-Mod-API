@@ -77,7 +77,7 @@ public mjb_phase_changed(iOldPhase, iNewPhase)
 		OnDayStart();
 	
 	if (iNewPhase == PHASE_DAY_ENDED && iOldPhase != PHASE_DAY_ENDED)
-		OnDayStart();
+		OnDayEnd();
 
 	if (iOldPhase == PHASE_GAMEDAY_NORMAL) {
 		if (task_exists(TASK_PROCESS_FREEDAY))
@@ -95,7 +95,7 @@ public OnDayStart()
 	set_task(1.0, "ProcessFreedayNextday", TASK_PROCESS_FREEDAY);
 }
 
-public OnDayEnded()
+public OnDayEnd()
 {
 	SetAllState(NORMAL);
 	ResetEveryoneMinigamesTeam();

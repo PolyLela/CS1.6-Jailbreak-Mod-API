@@ -3,6 +3,7 @@
 #include <engine>
 #include <fakemeta>
 #include <hamsandwich>
+#include <reapi>
 #include <MJB_Core>
 
 #define PLUGIN "Simon Functionality"
@@ -32,11 +33,7 @@ new menus[14];
 ========================= */
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
-	register_event("HLTV", "OnNewRound", "a", "1=0", "2=0");
-	register_logevent("OnRoundEnd", 2, "1=Round_End");
 	register_clcmd("say", "HandleSay");
-	set_cvar_num("mp_tkpunish", 0);
-	set_cvar_num("mp_friendlyfire", 1);
 	menus[0] = register_menuid("SimonMenu");
 	menus[1] = register_menuid("CountdownMenu");
 	menus[2] = register_menuid("WantedsMenu");
@@ -116,11 +113,20 @@ public plugin_precache() {
 /* =========================
    EVENTS
 ========================= */
-public OnNewRound() {
+public mjb_phase_changed(iOldPhase, iNewPhase)
+{
+	if (iNewPhase == PHASE_DAY_STARTED && iOldPhase != PHASE_DAY_STARTED)
+		OnDayStart();
+	
+	if (iNewPhase == PHASE_DAY_ENDED && iOldPhase != PHASE_DAY_ENDED)
+		OnDayEnd();
+}
+
+public OnDayStart() {
 	UnBlockSimonMenu()
 }
 
-public OnRoundEnd() {
+public OnDayEnd() {
 	show_menu(0, 0, "^n", 1);
 	StopCountdown();
 }
@@ -173,7 +179,7 @@ public SemiCanOpenSimonMenu(id) {
 	if (!mjb_is_valid_player(id))
 		return MJB_False;
 	
-	if (!mjb_is_player_alive(id) || !mjb_is_simon(id)) {
+	if (!is_user_alive(id) || !mjb_is_simon(id)) {
 		if (!hasRank(id, RANK_CO_OWNER)) MJB_Print(id, "!tOnly simon can open this menu");
 		return MJB_False;
 	}
@@ -208,33 +214,31 @@ public HandleSay(id) {
 }
 
 public GiveSimon(id) {
-	if (mjb_get_team(id) == GUARD && mjb_get_phase() != PHASE_GAMEDAY_VOTE && mjb_get_phase() != PHASE_GAMEDAY_ACTIVE && !mjb_is_user_in_duel(id)) {
+	if (GetTeam(id) == GUARD && mjb_get_phase() != PHASE_GAMEDAY_VOTE && mjb_get_phase() != PHASE_GAMEDAY_ACTIVE && !mjb_is_user_in_duel(id)) {
 		mjb_set_simon(id);
 	}
 	SimonMenu(id);
 }
 
 public mjb_simon_set(id) {
-	fm_give_item(id, "weapon_m249");
-	fm_give_item(id, "weapon_deagle");
-	fm_set_user_bpammo(id, CSW_M249, 200);
-	fm_set_user_bpammo(id, CSW_DEAGLE, 35);
+	rg_give_item(id, "weapon_m249");
+	rg_give_item(id, "weapon_deagle");
+	rg_set_user_bpammo(id, WEAPON_M249, 200);
+	rg_set_user_bpammo(id, WEAPON_DEAGLE, 35);
 	set_pev(id, pev_health, 511.0);
 	set_pev(id, pev_armorvalue, 200.0);
 }
 
 public mjb_simon_cleared(iOldSimon) {
-	if (!mjb_is_valid_player(iOldSimon) || !mjb_is_player_alive(iOldSimon))
+	if (!mjb_is_valid_player(iOldSimon) || !is_user_alive(iOldSimon))
 		return;
 		
 	show_menu(iOldSimon, 0, "^n", 1);
 	engclient_cmd(iOldSimon, "drop", "weapon_m249");
-	if (mjb_get_team(iOldSimon) == GUARD) {
+	engclient_cmd(iOldSimon, "drop", "weapon_deagle");
+	if (GetTeam(iOldSimon) == GUARD) {
 		set_pev(iOldSimon, pev_health, 200.0);
 		set_pev(iOldSimon, pev_armorvalue, 100.0);
-	} else {
-		set_pev(iOldSimon, pev_health, 100.0);
-		set_pev(iOldSimon, pev_armorvalue, 0.0);
 	}
 }
 
@@ -462,7 +466,7 @@ public Cmd_PunishMenu(id) {
 	
 	for(new i = 0; i < iPlayersNum; i++)
 	{
-		if (pl[i] == id || !mjb_is_valid_player(pl[i]) || mjb_get_team(pl[i]) != GUARD)
+		if (pl[i] == id || !mjb_is_valid_player(pl[i]) || GetTeam(pl[i]) != GUARD)
 			continue;
 	
 		g_iMenuPlayers[id][j++] = pl[i];
@@ -535,13 +539,13 @@ public Handle_PunishMenu(id, iKey)
 				return Show_PunishMenu(id, g_iMenuPosition[id]);
 			
 			new iTarget = g_iMenuPlayers[id][index];
-			if(!mjb_is_valid_player(iTarget) || mjb_get_team(iTarget) != GUARD) return Show_PunishMenu(id, g_iMenuPosition[id]);
+			if(!mjb_is_valid_player(iTarget) || GetTeam(iTarget) != GUARD) return Show_PunishMenu(id, g_iMenuPosition[id]);
 			new szName[32], szTargetName[32];
 			get_user_name(id, szName, charsmax(szName));
 			get_user_name(iTarget, szTargetName, charsmax(szTargetName));
-			MJB_Print(id, "!gSimon %s Punished %s", szName, szTargetName);
-			//force set
-			mjb_set_team(iTarget, PRISONER);
+			MJB_Print(id, "!tSimon !g%s !tPunished !g%s", szName, szTargetName);
+			rg_set_user_team(iTarget, TEAM_TERRORIST, MODEL_AUTO, true, true);
+			user_kill(iTarget, 1);
 		}
 	}
 	return Show_PunishMenu(id, g_iMenuPosition[id]);
@@ -575,11 +579,11 @@ public Handle_MinigamesMenu(id, iKeys) {
 		case 0: {
 			for(new i = 1; i <= MAX_PLAYERS; i++)
 			{
-				if(!mjb_is_valid_player(i) || !mjb_is_player_alive(i) || mjb_get_team(i) != PRISONER || mjb_get_state(i) != NORMAL)
+				if(!mjb_is_valid_player(i) || !is_user_alive(i) || GetTeam(i) != PRISONER || mjb_get_state(i) != NORMAL)
 					continue;
-				ham_strip_weapon_name(i, "weapon_deagle");
-				new iEntity = fm_give_item(i, "weapon_deagle");
-				if(pev_valid(iEntity)) set_pdata_int(iEntity, m_iClip, -1, linux_diff_weapon);
+				rg_remove_item(i, "weapon_deagle", true);
+				new iEntity = rg_give_item(i, "weapon_deagle");
+				if(pev_valid(iEntity)) rg_set_user_ammo(id, WEAPON_DEAGLE, 0);
 			}
 			MJB_Print(0, "!tSimon started a distance drop game.");
 		}
@@ -671,7 +675,7 @@ public StartBoxingMatch(id) {
 	get_players(pl, plnum, "h");
 	for (new i = 0; i < plnum; i++) {
 		tempid = pl[i];
-		if (!mjb_is_valid_player(tempid) || !mjb_is_player_alive(tempid) || mjb_get_team(tempid) != PRISONER || mjb_get_state(tempid) == PRISONER_WANTED  || mjb_get_state(tempid) == PRISONER_FREEDAY || mjb_get_state(tempid) == PRISONER_LAST)
+		if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != PRISONER || mjb_get_state(tempid) == PRISONER_WANTED  || mjb_get_state(tempid) == PRISONER_FREEDAY || mjb_get_state(tempid) == PRISONER_LAST)
 			continue;
 		
 		switch (mjb_get_user_mg_team(tempid)) {
@@ -710,7 +714,7 @@ public EndBoxingMatch(id) {
 	get_players(pl, plnum, "h");
 	for (new i = 0; i < plnum; i++) {
 		tempid = pl[i];
-		if (!mjb_is_valid_player(tempid) || !mjb_is_player_alive(tempid) || mjb_get_team(tempid) != PRISONER)
+		if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != PRISONER)
 			continue;
 
 		if (mjb_get_state(tempid) == PRISONER_BOXING) mjb_set_state(tempid, NORMAL);
@@ -754,7 +758,7 @@ public Handle_BoxingTeamsMenu(id, iKeys) {
 			
 			for (new i = 0; i < plnum; i++) {
 				tempid = pl[i];
-				if (!mjb_is_valid_player(tempid) || !mjb_is_player_alive(tempid) || mjb_get_team(tempid) != PRISONER || 
+				if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != PRISONER || 
 				(mjb_get_state(tempid) != NORMAL && mjb_get_state(tempid) != PRISONER_SOCCER && mjb_get_state(tempid) != PRISONER_BOXING))
 					continue;
 				prisoners[prnum++] = tempid;
@@ -778,7 +782,7 @@ public Handle_BoxingTeamsMenu(id, iKeys) {
 		case 1: {
 			new target, body;
 			get_user_aiming(id, target, body);
-			if (!mjb_is_valid_player(target) || !mjb_is_player_alive(target) || mjb_get_team(target) != PRISONER)
+			if (!mjb_is_valid_player(target) || !is_user_alive(target) || GetTeam(target) != PRISONER)
 				return PLUGIN_HANDLED;
 			mjb_set_user_mg_team(target, BLUE);
 			MJB_Print(id, "Successfully set target team to blue");
@@ -786,7 +790,7 @@ public Handle_BoxingTeamsMenu(id, iKeys) {
 		case 2: {
 			new target, body;
 			get_user_aiming(id, target, body);
-			if (!mjb_is_valid_player(target) || !mjb_is_player_alive(target) || mjb_get_team(target) != PRISONER)
+			if (!mjb_is_valid_player(target) || !is_user_alive(target) || GetTeam(target) != PRISONER)
 				return PLUGIN_HANDLED;
 			mjb_set_user_mg_team(target, RED);
 			MJB_Print(id, "Successfully set target team to red");
@@ -794,7 +798,7 @@ public Handle_BoxingTeamsMenu(id, iKeys) {
 		case 3: {
 			new target, body;
 			get_user_aiming(id, target, body);
-			if (!mjb_is_valid_player(target) || !mjb_is_player_alive(target) || mjb_get_team(target) != PRISONER)
+			if (!mjb_is_valid_player(target) || !is_user_alive(target) || GetTeam(target) != PRISONER)
 				return PLUGIN_HANDLED;
 			mjb_set_user_mg_team(target, 0);
 			MJB_Print(id, "Successfully cleared target team");
@@ -805,7 +809,7 @@ public Handle_BoxingTeamsMenu(id, iKeys) {
 			
 			for (new i = 0; i < plnum; i++) {
 				tempid = pl[i];
-				if (!mjb_is_valid_player(tempid) || !mjb_is_player_alive(tempid) || mjb_get_team(tempid) != PRISONER)
+				if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != PRISONER)
 					continue;
 				mjb_set_user_mg_team(tempid, 0);
 			}
@@ -991,7 +995,7 @@ public Handle_TeamsMenu(id, iKeys) {
 			
 			for (new i = 0; i < plnum; i++) {
 				tempid = pl[i];
-				if (!mjb_is_valid_player(tempid) || !mjb_is_player_alive(tempid) || mjb_get_team(tempid) != PRISONER)
+				if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != PRISONER)
 					continue;
 				prisoners[prnum++] = tempid;
 			}
@@ -1015,7 +1019,7 @@ public Handle_TeamsMenu(id, iKeys) {
 		case 1: {
 			new target, body;
 			get_user_aiming(id, target, body);
-			if (!mjb_is_valid_player(target) || !mjb_is_player_alive(target) || mjb_get_team(target) != PRISONER)
+			if (!mjb_is_valid_player(target) || !is_user_alive(target) || GetTeam(target) != PRISONER)
 				return PLUGIN_HANDLED;
 			if (!mjb_set_user_soccer(target)) {
 				MJB_Print(id, "Failed to set target to footballer");
@@ -1027,7 +1031,7 @@ public Handle_TeamsMenu(id, iKeys) {
 		case 2: {
 			new target, body;
 			get_user_aiming(id, target, body);
-			if (!mjb_is_valid_player(target) || !mjb_is_player_alive(target) || mjb_get_team(target) != PRISONER)
+			if (!mjb_is_valid_player(target) || !is_user_alive(target) || GetTeam(target) != PRISONER)
 				return PLUGIN_HANDLED;
 			if (!mjb_set_user_soccer(target)) {
 				MJB_Print(id, "Failed to set target to footballer");
@@ -1039,7 +1043,7 @@ public Handle_TeamsMenu(id, iKeys) {
 		case 3: {
 			new target, body;
 			get_user_aiming(id, target, body);
-			if (!mjb_is_valid_player(target) || !mjb_is_player_alive(target) || mjb_get_team(target) != PRISONER)
+			if (!mjb_is_valid_player(target) || !is_user_alive(target) || GetTeam(target) != PRISONER)
 				return PLUGIN_HANDLED;
 			
 			if (mjb_get_state(target) != PRISONER_SOCCER)
@@ -1065,7 +1069,7 @@ public ClearAllTeam(id) {
 	
 	for (new i = 0; i < plnum; i++) {
 		tempid = pl[i];
-		if (!mjb_is_valid_player(tempid) || !mjb_is_player_alive(tempid) || mjb_get_team(tempid) != PRISONER)
+		if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != PRISONER)
 			continue;
 		if (mjb_get_state(tempid) != PRISONER_SOCCER)
 			continue;
@@ -1089,7 +1093,7 @@ public Cmd_WantedPrisonersMenu(id)
 	
 	for(new i = 0; i < iPlayersNum; i++)
 	{
-		if (pl[i] == id || !mjb_is_valid_player(pl[i]) || mjb_get_team(pl[i]) != PRISONER || mjb_get_state(pl[i]) != PRISONER_WANTED)
+		if (pl[i] == id || !mjb_is_valid_player(pl[i]) || GetTeam(pl[i]) != PRISONER || mjb_get_state(pl[i]) != PRISONER_WANTED)
 			continue;
 	
 		g_iMenuPlayers[id][j++] = pl[i];
@@ -1162,7 +1166,7 @@ public Handle_WantedPrisonersMenu(id, iKey)
 				return Show_WantedPrisonersMenu(id, g_iMenuPosition[id]);
 			
 			new iTarget = g_iMenuPlayers[id][index];
-			if(!mjb_is_valid_player(iTarget) || mjb_get_team(iTarget) != PRISONER || mjb_get_state(iTarget) != PRISONER_WANTED) return Show_WantedPrisonersMenu(id, g_iMenuPosition[id]);
+			if(!mjb_is_valid_player(iTarget) || GetTeam(iTarget) != PRISONER || mjb_get_state(iTarget) != PRISONER_WANTED) return Show_WantedPrisonersMenu(id, g_iMenuPosition[id]);
 		}
 	}
 	return Show_WantedPrisonersMenu(id, g_iMenuPosition[id]);
@@ -1177,11 +1181,11 @@ public Show_ManagePrisonerMenu(id) {
 	show_menu(id, 0, "^n", 1);
 	new szMenu[512], iKeys, iLen = formatex(szMenu, charsmax(szMenu), "\r\wMOON JB \r| \yPrisoner Management^n^n", id);
 	
-	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r1\d. \wGive / Take Free day^n", id);
+	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r1\d. \yGive\w/\rTake \wFree day^n", id);
 	iKeys |= (1<<0);
-	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r2\d. \wMute / Unmute prisoners Voice^n", id);
-	iKeys |= (1<<1);
 	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r3\d. \wHeal prisoners^n^n^n^n^n^n^n", id);
+	iKeys |= (1<<2);
+	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r2\d. \yMute\w/\rUnmute \wprisoners Voice^n", id);
 	iKeys |= (1<<2);
 	
 	formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n\r0\d. \wExit", id);
@@ -1197,10 +1201,10 @@ public Handle_ManagePrisonerMenu(id, iKeys) {
 			return Cmd_FreeDayControlMenu(id);
 		}
 		case 1: {
-			return Cmd_VoiceControlMenu(id);
+			return Cmd_TreatPrisonerMenu(id);
 		}
 		case 2: {
-			return Cmd_TreatPrisonerMenu(id);
+			return Cmd_VoiceControlMenu(id);
 		}
 		case 9: {
 			return SimonMenu(id);
@@ -1221,7 +1225,7 @@ public Cmd_FreeDayControlMenu(id) {
 	
 	for(new i = 0; i < iPlayersNum; i++)
 	{
-		if(pl[i] == id || !mjb_is_valid_player(pl[i]) || mjb_get_team(pl[i]) != PRISONER || (mjb_get_state(pl[i]) != NORMAL && mjb_get_state(pl[i]) != PRISONER_FREEDAY)) 
+		if(pl[i] == id || !mjb_is_valid_player(pl[i]) || GetTeam(pl[i]) != PRISONER || (mjb_get_state(pl[i]) != NORMAL && mjb_get_state(pl[i]) != PRISONER_FREEDAY)) 
 			continue;
 		g_iMenuPlayers[id][j++] = pl[i];
 	}
@@ -1297,11 +1301,11 @@ public Handle_FreeDayControlMenu(id, iKey)
 				return Show_FreeDayControlMenu(id, g_iMenuPosition[id]);
 			
 			new iTarget = g_iMenuPlayers[id][index];
-			if(!mjb_is_valid_player(iTarget) || mjb_get_team(iTarget) != PRISONER || (mjb_get_state(iTarget) != NORMAL && mjb_get_state(iTarget) != PRISONER_FREEDAY)) return Show_FreeDayControlMenu(id, g_iMenuPosition[id]);
+			if(!mjb_is_valid_player(iTarget) || GetTeam(iTarget) != PRISONER || (mjb_get_state(iTarget) != NORMAL && mjb_get_state(iTarget) != PRISONER_FREEDAY)) return Show_FreeDayControlMenu(id, g_iMenuPosition[id]);
 			new szName[32], szTargetName[32];
 			get_user_name(id, szName, charsmax(szName));
 			get_user_name(iTarget, szTargetName, charsmax(szTargetName));
-			if(mjb_is_player_alive(iTarget)) {
+			if(is_user_alive(iTarget)) {
 				if(mjb_get_state(iTarget) == PRISONER_FREEDAY)
 				{
 					MJB_Print(0, "!tSimon !g%s !tTook Freeday From !g%s", szName, szTargetName);
@@ -1341,7 +1345,7 @@ public Cmd_VoiceControlMenu(id) {
 	
 	for(new i = 0; i < iPlayersNum; i++)
 	{
-		if(pl[i] == id || !mjb_is_valid_player(pl[i]) || mjb_get_team(pl[i]) != PRISONER) 
+		if(pl[i] == id || !mjb_is_valid_player(pl[i]) || GetTeam(pl[i]) != PRISONER) 
 			continue;
 		g_iMenuPlayers[id][j++] = pl[i];
 	}
@@ -1413,7 +1417,7 @@ public Handle_VoiceControlMenu(id, iKey)
 				return Show_VoiceControlMenu(id, g_iMenuPosition[id]);
 			
 			new iTarget = g_iMenuPlayers[id][index];
-			if(!mjb_is_valid_player(iTarget) || mjb_get_team(iTarget) != PRISONER || !mjb_is_player_alive(iTarget)) 
+			if(!mjb_is_valid_player(iTarget) || GetTeam(iTarget) != PRISONER || !is_user_alive(iTarget)) 
 				return Show_VoiceControlMenu(id, g_iMenuPosition[id]);
 			new szName[32], szTargetName[32];
 			get_user_name(id, szName, charsmax(szName));
@@ -1442,7 +1446,7 @@ public Cmd_TreatPrisonerMenu(id) {
 	
 	for(new i = 0; i < iPlayersNum; i++)
 	{
-		if(pl[i] == id || !mjb_is_valid_player(pl[i]) || mjb_get_team(pl[i]) != PRISONER || !mjb_is_player_alive(pl[i])) 
+		if(pl[i] == id || !mjb_is_valid_player(pl[i]) || GetTeam(pl[i]) != PRISONER || !is_user_alive(pl[i])) 
 			continue;
 		g_iMenuPlayers[id][j++] = pl[i];
 	}
@@ -1515,7 +1519,7 @@ public Handle_TreatPrisonerMenu(id, iKey)
 				return Show_TreatPrisonerMenu(id, g_iMenuPosition[id]);
 			
 			new iTarget = g_iMenuPlayers[id][index];
-			if(!mjb_is_valid_player(iTarget) || mjb_get_team(iTarget) != PRISONER || !mjb_is_player_alive(iTarget) || pev(iTarget, pev_health) >= 100.0) 
+			if(!mjb_is_valid_player(iTarget) || GetTeam(iTarget) != PRISONER || !is_user_alive(iTarget) || pev(iTarget, pev_health) >= 100.0) 
 				return Show_TreatPrisonerMenu(id, g_iMenuPosition[id]);
 			
 			new szName[32], szTargetName[32];
@@ -1539,7 +1543,7 @@ public Cmd_TransferSimonMenu(id) {
 	
 	for(new i = 0; i < iPlayersNum; i++)
 	{
-		if (pl[i] == id || !mjb_is_valid_player(pl[i]) || mjb_get_team(pl[i]) != GUARD || !mjb_is_player_alive(pl[i]))
+		if (pl[i] == id || !mjb_is_valid_player(pl[i]) || GetTeam(pl[i]) != GUARD || !is_user_alive(pl[i]))
 			continue;
 	
 		g_iMenuPlayers[id][j++] = pl[i];
@@ -1611,7 +1615,7 @@ public Handle_TransferSimonMenu(id, iKey)
 				return Show_TransferSimonMenu(id, g_iMenuPosition[id]);
 			
 			new iTarget = g_iMenuPlayers[id][index];
-			if(!mjb_is_valid_player(iTarget) || mjb_get_team(iTarget) != GUARD || !mjb_is_player_alive(iTarget)) return Show_TransferSimonMenu(id, g_iMenuPosition[id]);
+			if(!mjb_is_valid_player(iTarget) || GetTeam(iTarget) != GUARD || !is_user_alive(iTarget)) return Show_TransferSimonMenu(id, g_iMenuPosition[id]);
 			new szName[32], szTargetName[32];
 			get_user_name(id, szName, charsmax(szName));
 			get_user_name(iTarget, szTargetName, charsmax(szTargetName));
