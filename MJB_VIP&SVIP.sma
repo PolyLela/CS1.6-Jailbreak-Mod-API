@@ -7,8 +7,6 @@
 #include <MJB_Core>
 
 #define PLUGIN "Rank Privileges"
-#define SCOREATTRIB_FLAG_DEAD 1
-#define SCOREATTRIB_FLAG_VIP  4
 
 #define MAX_DISTANCE 100.0 
 
@@ -34,8 +32,8 @@ new Float:g_fMaxSpeed[MAX_PLAYERS + 1];
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 	
-	register_clcmd("say ", "Hook_Say");
-	register_clcmd("say_team ", "Hook_Say");
+	register_clcmd("say", "Hook_Say");
+	register_clcmd("say_team", "Hook_Say");
 	
 	register_event("CurWeapon", "CurWeapon", "be") // speed
 	
@@ -162,22 +160,25 @@ public OnPlayerSpawn_Post(id) {
 	if (hasRank(id, RANK_VIP)) {
 		GiveBombPackage(id);
 		fm_switch_to_knife(id);
-		MJB_Print(id, "!gYou got !tHe, 2xFlash, Smoke !gAnd Hp : !t%d !g|| Armor : !t%d", floatround(fUserHealth), floatround(fUserArmor));
+		//MJB_Print(id, "!gYou got !tHe, 2xFlash, Smoke !gAnd Hp : !t%d !g|| Armor : !t%d", floatround(fUserHealth), floatround(fUserArmor));
 	}
 	ResetMenusChooseCount(id);
 	g_fMaxSpeed[id] = 0.0;
 	trap_off(id);
 }
 
-public OnPlayerKilled_Post(id) {
+public OnPlayerKilled_Pre(id) {
 	unblind_player(id);
 	g_fMaxSpeed[id] = 0.0;
 }
 
 public Hook_ScoreAttribute() {
 	new id = get_msg_arg_int(1);
-	if (mjb_is_valid_player(id) && hasRank(id, RANK_VIP)) {
-		set_msg_arg_int(2, ARG_BYTE, is_user_alive(id) ? SCOREATTRIB_FLAG_VIP : SCOREATTRIB_FLAG_DEAD);
+	new flags = get_msg_arg_int(2);
+	if (mjb_is_valid_player(id) && hasRank(id, RANK_VIP) && !(flags & SCORE_STATUS_DEAD)) {
+		flags &= ~(SCORE_STATUS_BOMB | SCORE_STATUS_DEFKIT);
+		flags |= SCORE_STATUS_VIP;
+		set_msg_arg_int(2, ARG_BYTE, flags);
 	}
 }
 

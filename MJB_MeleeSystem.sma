@@ -37,7 +37,7 @@ new const g_Melee[MeleeType][MeleeData] =
 		"MOON_JB/Weapons/baton_hit.wav",
 		
 		0.4,
-		1.37
+		1.0
 	},
 	
 	//SuperVIP (AXE)
@@ -51,7 +51,7 @@ new const g_Melee[MeleeType][MeleeData] =
 		"MOON_JB/SuperVIPMenu/axe/hitwall.wav",
 		"MOON_JB/SuperVIPMenu/axe/hit.wav",
 		
-		1.0,
+		0.5,
 		2.2
 	},
 	
@@ -67,7 +67,7 @@ new const g_Melee[MeleeType][MeleeData] =
 		"MOON_JB/SuperVIPMenu/combat/hit.wav",
 		
 		0.4,
-		1.36
+		1.3
 	},
 	
 	//SuperVIP (HAMMER)
@@ -147,7 +147,7 @@ new const g_Melee[MeleeType][MeleeData] =
 };
 
 new g_iPlayerMelee[MAX_PLAYERS + 1];
-new g_iFreezed[MAX_PLAYERS + 1];
+new bool:g_bFreezed[MAX_PLAYERS + 1];
 new exploSpr;
 /* =========================
    PLUGIN LIFECYCLE
@@ -224,7 +224,7 @@ public GetUserMelee(id) {
    Update Events
 ========================= */
 public client_putinserver(id) {
-	g_iFreezed[id] = MJB_False;
+	g_bFreezed[id] = false;
 }
 
 public CurWeapon(id) {
@@ -236,7 +236,7 @@ public CurWeapon(id) {
 
 public OnPlayerSpawn_Post(id) {
 	g_iPlayerMelee[id] = 0;
-	g_iFreezed[id] = MJB_False;
+	g_bFreezed[id] = false;
 	rg_give_item(id, "weapon_knife", GT_REPLACE);
 	fm_switch_to_knife(id);
 }
@@ -298,7 +298,7 @@ public mjb_phase_changed(iOldPhase, iNewPhase) {
 	for (new i = 0; i < plnum; i++) {
 		if (!mjb_is_valid_player(pl[i]))
 			continue;
-		if (g_iFreezed[pl[i]]) {
+		if (g_bFreezed[pl[i]]) {
 			unFreeze(pl[i]);
 			if (task_exists(pl[i] + 2026)) remove_task(pl[i] + 2026);
 		}
@@ -325,7 +325,7 @@ public OnPlayerTraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], tra
 			return HC_SUPERCEDE;
 	}
 	
-	if (g_iFreezed[victim]) 
+	if (g_bFreezed[victim]) 
 	{
 		return HC_SUPERCEDE;
 	}
@@ -403,6 +403,13 @@ public OnPlayerTakeDamage_Pre(victim, inflictor, attacker, Float:damage, damageb
 	new bool:bothHasBoxingGloves = (((meleeType == MELEE_BOXING_BLUE || meleeType == MELEE_BOXING_RED) && get_user_weapon(attacker) == CSW_KNIFE) && ((vicMeleeType == MELEE_BOXING_BLUE || vicMeleeType == MELEE_BOXING_RED) && get_user_weapon(victim) == CSW_KNIFE));
 	if (bothHasBoxingGloves) MJB_Print(0, "DEBUG: OK3");
 	
+	if (g_bFreezed[victim]) 
+	{
+		MJB_Print(attacker, "Player Still freezed");
+		SetHookChainReturn(ATYPE_INTEGER, 0);
+		return HC_SUPERCEDE;
+	}
+	
 	if (bothArePrisoners && !sameMGTeam && bothHasBoxingGloves) {
 		MJB_Print(0, "DEBUG: OK4");
 		if (get_member(victim, m_LastHitGroup) == HIT_HEAD)
@@ -472,7 +479,7 @@ public UpdateMelee(id)
 unFreeze(id) {
 	if (!mjb_is_valid_player(id))
 		return;
-	g_iFreezed[id] = MJB_False;
+	g_bFreezed[id] = false;
 	set_pev(id, pev_flags, pev(id, pev_flags) & ~FL_FROZEN);
 	glow(id, 0);
 }
@@ -480,7 +487,7 @@ unFreeze(id) {
 Freeze(id) {
 	if (!mjb_is_valid_player(id) || !is_user_alive(id) || task_exists(id + 2026))
 		return;
-	g_iFreezed[id] = MJB_True;
+	g_bFreezed[id] = true;
 	set_pev(id, pev_flags, pev(id, pev_flags) | FL_FROZEN);
 	glow(id, 1);
 	new iOrigin[3];

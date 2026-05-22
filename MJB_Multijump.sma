@@ -27,7 +27,7 @@ public client_disconnected(id)
 
 public client_PreThink(id)
 {
-	if (!mjb_is_player_alive(id))
+	if (!is_user_alive(id))
 		return PLUGIN_CONTINUE;
 	
 	new iButton = get_user_button(id);
@@ -52,7 +52,7 @@ public client_PreThink(id)
 }
 
 public client_PostThink(id) {
-	if (!mjb_is_player_alive(id)) 
+	if (!is_user_alive(id)) 
 		return PLUGIN_CONTINUE;
 	if (g_iShouldJump[id]) {
 		new Float:fVelocity[3];
