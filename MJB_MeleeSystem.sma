@@ -336,11 +336,8 @@ public OnPlayerTraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], tra
 	new meleeType = GetUserMelee(attacker);
 	new attButtons = get_user_button(attacker);
 	
-	if (meleeType == MELEE_SVIP_COMBAT) 
-	{
-		Freeze(victim);
-	}
-	else if (meleeType == MELEE_SVIP_HAMMER) 
+
+	if (meleeType == MELEE_SVIP_HAMMER) 
 	{
 		if (attButtons & IN_ATTACK2)
 		{
@@ -427,6 +424,11 @@ public OnPlayerTakeDamage_Pre(victim, inflictor, attacker, Float:damage, damageb
 	
 	if(get_user_weapon(attacker) != CSW_KNIFE)
 		return HC_CONTINUE;
+
+	if (meleeType == MELEE_SVIP_COMBAT) 
+	{
+		Freeze(victim);
+	}
 
 	if ((meleeType == MELEE_SVIP_STAP || meleeType == MELEE_SVIP_AXE) && get_user_button(attacker) & IN_ATTACK2)
 	{
