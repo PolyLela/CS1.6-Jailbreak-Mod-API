@@ -155,8 +155,8 @@ public Handle_MainMenu(id, iKeys) {
 			}
 			if (!mjb_simon_exists())
 				client_cmd(id, "say /simon");
-			else
-				mjb_show_simon_menu(id);
+			//else
+			//	mjb_show_simon_menu(id);
 		}
 		case 9: {
 			return PLUGIN_HANDLED;
@@ -200,11 +200,13 @@ public Handle_TeamMenu(id, iKeys) {
 				MJB_Print(id, "!nUnable to change team to guards due to unbalance");
 				return PLUGIN_HANDLED;
 			}
-			rg_join_team(id, TEAM_CT);
+			rg_set_user_team(id, TEAM_CT, MODEL_AUTO, true, true);
+			user_kill(id, 1);
 			MJB_Print(id, "!tYou changed your team to guards");
 		}
 		case 1: {
-			rg_join_team(id, TEAM_TERRORIST);
+			rg_set_user_team(id, TEAM_TERRORIST, MODEL_AUTO, true, true);
+			user_kill(id, 1);
 			MJB_Print(id, "!tYou changed your team to prisoners");
 		}
 		case 9: {
