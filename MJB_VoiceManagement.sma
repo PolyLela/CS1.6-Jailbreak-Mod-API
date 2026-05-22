@@ -8,14 +8,7 @@
 new g_iCanSpeakPlayers[MAX_PLAYERS + 1];
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
-	register_logevent("OnRoundEnd", 2, "1=Round_End");
 	register_forward(FM_Voice_SetClientListening, "FakeMeta_Voice_SetListening", false);
-}
-
-public OnRoundEnd() {
-	for (new i = 0; i < sizeof(g_iCanSpeakPlayers); i++) {
-		g_iCanSpeakPlayers[i] = MJB_False;
-	}
 }
 
 public plugin_natives() {
@@ -28,15 +21,11 @@ public plugin_natives() {
 
 public native_enable_speaking() {
 	new id = get_param(1);
-	if (!mjb_is_valid_player(id))
-		return;
 	g_iCanSpeakPlayers[id] = MJB_True;
 }
 
 public native_disable_speaking() {
 	new id = get_param(1);
-	if (!mjb_is_valid_player(id))
-		return;
 	g_iCanSpeakPlayers[id] = MJB_False;
 }
 
