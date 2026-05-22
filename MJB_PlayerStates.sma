@@ -76,6 +76,9 @@ public mjb_phase_changed(iOldPhase, iNewPhase)
 	if (iNewPhase == PHASE_DAY_STARTED && iOldPhase != PHASE_DAY_STARTED)
 		OnDayStart();
 	
+	if (iNewPhase == PHASE_DAY_ENDED && iOldPhase != PHASE_DAY_ENDED)
+		OnDayStart();
+
 	if (iOldPhase == PHASE_GAMEDAY_NORMAL) {
 		if (task_exists(TASK_PROCESS_FREEDAY))
 			remove_task(TASK_PROCESS_FREEDAY);
@@ -90,6 +93,12 @@ public OnDayStart()
 	ResetEveryoneMinigamesTeam();
 	set_task(1.0, "ChoosePrisonerLast");
 	set_task(1.0, "ProcessFreedayNextday", TASK_PROCESS_FREEDAY);
+}
+
+public OnDayEnded()
+{
+	SetAllState(NORMAL);
+	ResetEveryoneMinigamesTeam();
 }
 
 public OnPlayerTraceAttack_Pre(pevVictim, pevAttacker, Float:flDamage, Float:vecDir[3], tracehandle, bitsDamageType)
@@ -142,7 +151,7 @@ public ChoosePrisonerLast()
 	for (new i = 0; i < plnum; i++)
 	{
 		tempid = pl[i];
-		if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != PRISONER || g_bNextdayFreeday[tempid])
+		if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != PRISONER)
 			continue;
 
 		lastPn = tempid;
