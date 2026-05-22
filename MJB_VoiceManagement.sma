@@ -45,7 +45,7 @@ public FakeMeta_Voice_SetListening(iReceiver, iSender, bool:bListen)
 
 	if (g_iCanSpeakPlayers[iSender] 
 	|| (hasRank(iSender, RANK_DEPUTY_HEAD))
-	|| (mjb_get_team(iSender) == GUARD && mjb_is_player_alive(iSender)))
+	|| (GetTeam(iSender) == GUARD && is_user_alive(iSender)))
 	{
 		allow = true;
 	}

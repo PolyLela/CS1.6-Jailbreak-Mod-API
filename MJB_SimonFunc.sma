@@ -128,7 +128,7 @@ public OnDayStart() {
 
 public OnDayEnd() {
 	show_menu(0, 0, "^n", 1);
-	for (int i = 1; i <= MAX_PLAYERS; i++) {
+	for (new i = 1; i <= MAX_PLAYERS; i++) {
 		mjb_disable_speaking(i);
 	}
 	StopCountdown();
