@@ -1,8 +1,6 @@
 /* TODO
 	Restructure FreedayNextday and ChoosePrisonerLast
-	👍 Use Source of truth for any Day-related events from DayCycleSystem
-	👍 Make SetPlayerWanted + Check on Killed because maybe player killed player without touching like when throwing grenades
-	👍 Add Phase Check on SetPlayerWanted for GAMEDAY IMPORTANTTTTTTTTTTTTTTTTT
+	Boxing State
 */
 #include <amxmodx>
 #include <reapi>
@@ -68,7 +66,8 @@ public client_disconnected(id)
 {
 	SetPlayerState(id, NORMAL);
 	SetPlayerMinigamesTeam(id, 0);
-	set_task(0.1, "ChoosePrisonerLast");
+	if (GetTeam(id) == PRISONER)
+		set_task(0.1, "ChoosePrisonerLast");
 }
 
 public mjb_phase_changed(iOldPhase, iNewPhase)
@@ -91,7 +90,8 @@ public OnDayStart()
 {
 	SetAllState(NORMAL);
 	ResetEveryoneMinigamesTeam();
-	set_task(1.0, "ChoosePrisonerLast");
+	if (GetTeamCount(PRISONER, false) == 1)
+		set_task(1.0, "ChoosePrisonerLast");
 	set_task(1.0, "ProcessFreedayNextday", TASK_PROCESS_FREEDAY);
 }
 
@@ -113,7 +113,8 @@ public OnPlayerKilled_Post(pevVictim, pevAttacker, iGib)
 {
 	SetPlayerState(pevVictim, NORMAL);
 	SetPlayerWanted(pevVictim, pevAttacker);
-	set_task(0.1, "ChoosePrisonerLast");
+	if (GetTeam(pevVictim) == PRISONER)
+		set_task(0.1, "ChoosePrisonerLast");
 }
 
 public OnPlayerSpawn_Post(id)
@@ -122,7 +123,8 @@ public OnPlayerSpawn_Post(id)
 	{
 		SetPlayerState(id, NORMAL);
 		SetPlayerMinigamesTeam(id, 0);
-		set_task(0.5, "ChoosePrisonerLast");
+		if (GetTeam(id) == PRISONER && !(mjb_get_phase() == PHASE_DAY_STARTED && GetTeamCount(PRISONER, false) > 1))
+			set_task(0.5, "ChoosePrisonerLast");
 	}
 }
 
@@ -131,7 +133,7 @@ public OnPlayerSpawn_Post(id)
 ========================= */
 public ProcessFreedayNextday()
 {
-	if (mjb_get_phase() == PHASE_GAMEDAY_ACTIVE || mjb_get_phase() == PHASE_GAMEDAY_VOTE)
+	/*if (mjb_get_phase() == PHASE_GAMEDAY_ACTIVE || mjb_get_phase() == PHASE_GAMEDAY_VOTE)
 		return;
 
 	for (new id = 1; id <= MAX_PLAYERS; id++)
@@ -140,7 +142,7 @@ public ProcessFreedayNextday()
 			continue;
 		g_bNextdayFreeday[id] = false;
 		SetPlayerState(id, PRISONER_FREEDAY);
-	}
+	}*/
 }
 
 public ChoosePrisonerLast()
@@ -148,15 +150,19 @@ public ChoosePrisonerLast()
 	new pl[MAX_PLAYERS], plnum, tempid;
 	get_players(pl, plnum, "h");
 	new lastPn = 0;
+	new pnum = 0;
 	for (new i = 0; i < plnum; i++)
 	{
 		tempid = pl[i];
 		if (!mjb_is_valid_player(tempid) || !is_user_alive(tempid) || GetTeam(tempid) != PRISONER)
 			continue;
 
+		pnum++;
 		lastPn = tempid;
 	}
 
+	if (pnum > 1)
+		return;
 	SetPlayerLast(lastPn);
 }
 
@@ -211,7 +217,7 @@ public SetPlayerLast(id)
 	if (!mjb_is_valid_player(id) || !is_user_alive(id))
 		return false;
 
-	if (GetTeamCount(PRISONER, true) > 1 || GetTeamCount(GUARD, true) <= 0)
+	if (GetTeamCount(PRISONER, true) > 1 || GetTeamCount(GUARD, false) <= 0)
 	{
 		return false;
 	}
@@ -222,6 +228,7 @@ public SetPlayerLast(id)
 	if (GetTeam(id) != PRISONER || GetPlayerState(id) == PRISONER_LAST)
 		return false;
 
+	// if found a last prisoner
 	new lastPn = FindPrisonerLast();
 	if (mjb_is_valid_player(lastPn))
 	{
@@ -372,7 +379,9 @@ public plugin_natives()
 {
 	register_library("MJB_Core");
 
+
 	register_native("mjb_set_state", "native_mjb_set_state");
+	register_native("mjb_find_last_prisoner", "native_find_last_prisoner")
 	register_native("mjb_get_state", "native_mjb_get_state");
 	register_native("mjb_set_user_soccer", "native_set_user_soccer");
 	register_native("mjb_set_user_boxing", "native_set_user_boxing");
@@ -390,6 +399,13 @@ public native_mjb_set_state()
 	new id	   = get_param(1);
 	new iState = get_param(2);
 	return SetPlayerState(id, iState);
+}
+
+public native_find_last_prisoner() {
+	new lastPn = FindPrisonerLast();
+	if (!mjb_is_valid_player(lastPn))
+		return -1;
+	return lastPn;
 }
 
 public native_mjb_get_state()

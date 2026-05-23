@@ -380,6 +380,13 @@ native mjb_stop_all_timers();
 native mjb_set_state(id, iState);
 
 /**
+ * Finds Prisoner of State Last.
+ *
+ * @return		Priosner id if valid, and if not valid -1.
+ */
+native mjb_find_last_prisoner();
+
+/**
  * Retrieves a player's Jailbreak state.
  *
  * @param id        Player index.

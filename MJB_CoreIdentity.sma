@@ -23,6 +23,7 @@ public plugin_init() {
 	register_message(get_user_msgid("MOTD"), "BlockMotd");
 	RegisterHookChain(RG_ShowVGUIMenu, "BlockMenu", false);
 	RegisterHookChain(RG_ShowMenu, "BlockMenu", false);
+	RegisterHookChain(RG_CBasePlayer_Spawn, "RG_PlayerSpawn_Post", true);
 
 	register_event("DeathMsg", "DeathMsg", "a")
 
@@ -54,6 +55,11 @@ public plugin_init() {
 		
 	TrieDestroy(g_tRemoveEntities);
 	unregister_forward(FM_Spawn, g_fmSpawnPostHandle, 1);
+}
+
+public RG_PlayerSpawn_Post(id) {
+	rg_remove_all_items(id);
+	rg_give_item(id, "weapon_knife");
 }
 
 public DeathMsg() {
@@ -138,8 +144,18 @@ public ForceJoin(id)
 {
     if (!is_user_connected(id))
         return;
-
+	
+    //kill player if there is last prisoner to not rune the game
+    
     rg_join_team(id, TEAM_TERRORIST);
+    if (mjb_find_last_prisoner() != -1) {
+	client_print(0, print_chat, "Found last prisoner, player got executed");
+	set_task(0.1, "KillPlayer", id);
+    }
+}
+
+public KillPlayer(id) {
+	user_kill(id, 1);
 }
 
 public plugin_precache() {

@@ -1186,9 +1186,9 @@ public Show_ManagePrisonerMenu(id) {
 	
 	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r1\d. \yGive\w/\rTake \wFree day^n", id);
 	iKeys |= (1<<0);
-	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r3\d. \wHeal prisoners^n^n^n^n^n^n^n", id);
-	iKeys |= (1<<2);
-	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r2\d. \yMute\w/\rUnmute \wprisoners Voice^n", id);
+	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r2\d. \wHeal prisoners^n", id);
+	iKeys |= (1<<1);
+	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r3\d. \yMute\w/\rUnmute \wprisoners Voice^n^n^n^n^n^n^n", id);
 	iKeys |= (1<<2);
 	
 	formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n\r0\d. \wExit", id);
