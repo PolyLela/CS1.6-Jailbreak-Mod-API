@@ -67,6 +67,7 @@
 #define MJB_False 0
 
 #define MAX_PLAYERS 32
+#define MAX_DAYS 15
 #define PLAYERS_PER_PAGE 8
 
 #define MAX_TIMERS 10
@@ -89,9 +90,9 @@ new const StateNames[][] = {
 };
 
 new const DayNames[][] = {
-	"Normal",
+	"Normalday",
 	"Freeday",
-	"Gamesday"
+	"Gameday"
 };
 
 /* =========================

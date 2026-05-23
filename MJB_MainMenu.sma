@@ -62,7 +62,9 @@ public MainMenu(id) {
 	if (g_bMainMenuBlocked)
 		return PLUGIN_HANDLED;
 	new szMenu[512], iKeys, iLen = formatex(szMenu, charsmax(szMenu), "\rMOON JB \w| \wMain Menu^n", id);
-	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\d https://discord.gg/XkD8tZe^n", id);
+	new szDiscord[32];
+	GetCommunityDiscord(szDiscord, 31);
+	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\d https://%s^n", szDiscord);
 	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\d      MOON JailBreak^n^n", id);
 	
 	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r1\d. \wHats \yFree^n", id);
@@ -155,8 +157,8 @@ public Handle_MainMenu(id, iKeys) {
 			}
 			if (!mjb_simon_exists())
 				client_cmd(id, "say /simon");
-			//else
-			//	mjb_show_simon_menu(id);
+			else
+				mjb_show_simon_menu(id);
 		}
 		case 9: {
 			return PLUGIN_HANDLED;

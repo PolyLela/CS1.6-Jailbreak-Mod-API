@@ -13,7 +13,7 @@
 #define PLUGIN "Days State System FSM"
 #define DAY_END_TASK	7124
 
-new const DayTypes[16] = {
+new const DayTypes[MAX_DAYS + 1] = {
     FREEDAY,
     FREEDAY, NORMALDAY, NORMALDAY, NORMALDAY,
     GAMEDAY,
@@ -57,7 +57,7 @@ public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 	
-	set_cvar_num("mp_maxrounds", 15);
+	set_cvar_num("mp_maxrounds", MAX_DAYS);
 	RegisterHookChain(RG_CSGameRules_OnRoundFreezeEnd, "OnRoundStart", true);
 	RegisterHookChain(RG_RoundEnd, "OnRoundEnd", true);
 	for(new i; i <= 8; i++) DisableHamForward(g_iHamHookForwards[i] = RegisterHam(Ham_Use, g_szHamHookEntityBlock[i], "HamHook_EntityBlock", false));

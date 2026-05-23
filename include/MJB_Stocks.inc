@@ -13,6 +13,10 @@
 #endif
     
 
+stock GetCommunityDiscord(output[], len) {
+	copy(output, len, "discord.gg/Soon");
+}
+
 /**
  * Sends a colored chat message.
  *

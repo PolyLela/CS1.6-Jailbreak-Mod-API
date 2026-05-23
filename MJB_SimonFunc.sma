@@ -1632,7 +1632,7 @@ public Handle_TransferSimonMenu(id, iKey)
 stock printCenterHud(id, szMessage[64], Float:fDuration, any:...) {
 	set_hudmessage(255, 234, 101, -1.0, 0.22, 0, 0.0, fDuration);
 	new szBuffer[64];
-	vformat(szBuffer, 63, szMessage, 3);
+	vformat(szBuffer, 63, szMessage, 4);
 	ShowSyncHudMsg(id, g_iCenterHudSync, szBuffer);
 }
 
