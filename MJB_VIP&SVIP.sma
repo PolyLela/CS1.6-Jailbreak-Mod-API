@@ -84,7 +84,7 @@ public Show_WelcomeMsg(id){
 		tempid = pl[i];
 		if (!mjb_is_valid_player(tempid) || tempid == id)
 			continue;
-		set_hudmessage(0, 255, 255, -1.0, 0.12, 0, 0.0, 3.0, 0.3, 0.5, 2);
+		set_hudmessage(0, 255, 255, -1.0, 0.12, 0, 0.0, 3.0, 0.3, 0.5, 3);
 		show_hudmessage(tempid, "Vip Client %s Connected On The Server", name)
 	}
 }

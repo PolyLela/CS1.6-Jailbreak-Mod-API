@@ -51,7 +51,6 @@ new bool:g_bManyFreeEnabled = true;
 new g_iFreedayTimer = -1;
 new g_iSimonTimer  = -1;
 
-new g_HudSync;
 new g_fwPhaseChanged;
 public plugin_init()
 {
@@ -64,8 +63,6 @@ public plugin_init()
 	for(new i = 9; i < sizeof(g_szHamHookEntityBlock); i++) DisableHamForward(g_iHamHookForwards[i] = RegisterHam(Ham_Touch, g_szHamHookEntityBlock[i], "HamHook_EntityBlock", false));
 	g_fwPhaseChanged = CreateMultiForward("mjb_phase_changed", ET_IGNORE, FP_CELL, FP_CELL);
 	OnRoundStart();
-	g_HudSync = CreateHudSyncObj();
-	set_task(1.0, "MainHud", _, _, _, "b");
 }
 
 public plugin_precache() {
@@ -267,50 +264,6 @@ public mjb_simon_disconnected(id)
 {
 	if (g_iPhase == PHASE_NORMAL)
 		ChangePhase(PHASE_SIMON_DISCONNECTED);
-}
-
-/* =========================
-   HUD
-========================= */
-public MainHud()
-{
-	new iFreedayTimeLeft = (g_iFreedayTimer != -1) ?
-	floatround(mjb_get_timer_timeleft(g_iFreedayTimer)) : 0;
-	
-	new iSimonTimeLeft = (g_iSimonTimer != -1) ?
-	floatround(mjb_get_timer_timeleft(g_iSimonTimer)) : 0;
-
-	switch(g_iPhase) {
-		case PHASE_FREEDAY: {
-			set_hudmessage(0, 255, 0, 0.05, 0.15, 0, 0.0, 1.0);
-			ShowSyncHudMsg(0, g_HudSync, "DayMode : Freeday^nFreeday Ends In : %d seconds", iFreedayTimeLeft);
-		}
-		case PHASE_SIMON_SELECT: {
-			set_hudmessage(0, 255, 255, 0.05, 0.15, 0, 0.0, 1.0);
-			ShowSyncHudMsg(0, g_HudSync, "Simon Not Selected^nFreeday Starts In : %d seconds", iSimonTimeLeft);
-		}
-		case PHASE_NORMAL: {
-			new id = mjb_get_simon();
-			if (mjb_is_valid_player(id)) {
-				new szBuffer[32];
-				get_user_name(id, szBuffer, 31);
-				set_hudmessage(0, 255, 255, 0.05, 0.15, 0, 0.0, 1.0);
-				ShowSyncHudMsg(0, g_HudSync, "DayMode : Normal^nSimon : %s", szBuffer);
-			}
-		}
-		case PHASE_SIMON_NOT_SELECTED: {
-			set_hudmessage(255, 255, 0, 0.05, 0.15, 0, 0.0, 1.0);
-			ShowSyncHudMsg(0, g_HudSync, "Simon Not Selected");
-		}
-		case PHASE_SIMON_KILLED: {
-			set_hudmessage(255, 255, 0, 0.05, 0.15, 0, 0.0, 1.0);
-			ShowSyncHudMsg(0, g_HudSync, "Simon Is Killed");
-		}
-		case PHASE_SIMON_DISCONNECTED: {
-			set_hudmessage(255, 255, 0, 0.05, 0.15, 0, 0.0, 1.0);
-			ShowSyncHudMsg(0, g_HudSync, "Simon Disconnected");
-		}
-	}
 }
 
 /* =========================

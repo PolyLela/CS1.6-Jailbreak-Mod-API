@@ -11,6 +11,11 @@
 #define TASK_HUD_GENERAL_INFO 8362
 #define TASK_HUD_MAIN_INFO 8632
 
+#define CHANNEL_HUD_GENERAL_INFO 1
+#define CHANNEL_HUD_MAIN_INFO 2
+#define CHANNEL_HUD_FD 3
+#define CHANNEL_HUD_WANTED 4
+
 stock fm_set_entity_visibility(index, visible = 1) set_pev(index, pev_effects, visible == 1 ? pev(index, pev_effects) & ~EF_NODRAW : pev(index, pev_effects) | EF_NODRAW)
 
 /* Hat Variables */
@@ -49,7 +54,7 @@ new g_iLastAttacker[MAX_PLAYERS + 1];
 
 /* Hud Freeday & Wanted */
 new Array:g_aFreedayPrisoners, Array:g_aWantedPrisoners;
-new g_FreedayHudSync, g_WantedHudSync, g_GeneralInfoHudSync;
+new g_FreedayHudSync, g_WantedHudSync, g_GeneralInfoHudSync, g_MainInfoHudSync;
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -69,7 +74,9 @@ public plugin_init() {
 	
 	/* General Info Hud */
 	g_GeneralInfoHudSync = CreateHudSyncObj();
+	g_MainInfoHudSync = CreateHudSyncObj();
 	set_task(1.0, "HudGeneralInfo", TASK_HUD_GENERAL_INFO, _, _, "b");
+	set_task(1.0, "HudMainInfo", TASK_HUD_MAIN_INFO, _, _, "b");
 }
 
 public plugin_precache() {
@@ -131,7 +138,7 @@ public HudFreedayPrisoners() {
 		get_user_name(id, szName, charsmax(szName));
 		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "%s^n", szName);
 	}
-	set_hudmessage(0, 255, 0, 0.25, 0.25, 0, 0.0, 1.0, _, _, 3);
+	set_hudmessage(0, 255, 0, 0.25, 0.25, 0, 0.0, 1.0, _, _, CHANNEL_HUD_FD);
 	ShowSyncHudMsg(0, g_FreedayHudSync, szMessage);
 }
 
@@ -144,11 +151,20 @@ public HudWantedPrisoners() {
 		get_user_name(id, szName, charsmax(szName));
 		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "%s^n", szName);
 	}
-	set_hudmessage(255, 0, 0, 0.6, 0.7, 0, 0.0, 1.0, _, _, 4);
+	set_hudmessage(255, 0, 0, 0.6, 0.7, 0, 0.0, 1.0, _, _, CHANNEL_HUD_WANTED);
 	ShowSyncHudMsg(0, g_WantedHudSync, szMessage);
 }
 
-/* General Hud Info */
+/* Main Huds Info */
+public mjb_phase_changed(iOldPhase, iPhase) {
+	if (!task_exists(TASK_HUD_MAIN_INFO) && (iPhase == PHASE_FREEDAY || iPhase == PHASE_NORMAL || iPhase == PHASE_SIMON_SELECT || iPhase == PHASE_GAMEDAY_ACTIVE))
+		set_task(0.1, "SetMainHud", 9171);
+}
+
+public SetMainHud() {
+	set_task(1.0, "HudMainInfo", TASK_HUD_MAIN_INFO, _, _, "b");
+}
+
 public HudGeneralInfo() {
 	new szMessage[512], iLen, ip[32], dayType[32], szTime[32], szDate[32], szDiscord[32];
 	get_user_ip(0, ip, charsmax(ip));
@@ -170,9 +186,53 @@ public HudGeneralInfo() {
 	iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "--------------------^n");
 	iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "%s^n", szDiscord);
 	iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "--------------------^n");
-	iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "☺ Good luck, Have fun!^n");
-	set_hudmessage(0, 255, 255, 0.6, 0.05, 0, 0.0, 1.0, _, _, 1);
+	iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Good luck, Have fun!^n");
+	set_hudmessage(0, 255, 255, 0.9, 0.02, 0, 0.0, 1.0, _, _, CHANNEL_HUD_GENERAL_INFO);
 	ShowSyncHudMsg(0, g_GeneralInfoHudSync, szMessage);
+}
+
+public HudMainInfo() {
+	new iPhase = mjb_get_phase();
+	new szMessage[256], iLen;
+	new iColor[3];
+	if (iPhase == PHASE_FREEDAY) {
+		new iTimeLeft = floatround(mjb_get_timer_timeleft(mjb_get_free_timer_id()));
+		iLen = format(szMessage, charsmax(szMessage), "Today is: Free Day^n");
+		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Ends in: %d seconds!^n", iTimeLeft);
+		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "^n- Prisoners may go wherever they want, except the gunroom.^n");
+		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "[MOON] After it ends, Normal routine resumes.^n");
+		iColor = {0, 255, 0};
+	} else if (iPhase == PHASE_NORMAL)  {
+		new szSimonName[MAX_NAME_LENGTH];
+		get_user_name(mjb_get_simon(), szSimonName, charsmax(szSimonName));
+		iLen = format(szMessage, charsmax(szMessage), "Today is: Normal Day^n");
+		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Simon: Sir, %s^n", szSimonName);
+		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "^n-All players must obey his orders, Even the guards.^n");
+		iColor = {0, 255, 255};
+	} else if (iPhase == PHASE_SIMON_SELECT) {
+		new iTimeLeft = floatround(mjb_get_timer_timeleft(mjb_get_simon_timer_id()));
+		iLen = format(szMessage, charsmax(szMessage), "You have %d seconds to become simon^n", iTimeLeft);
+		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Command for taking it: /simon");
+		iColor = {0, 255, 255};
+		set_hudmessage(iColor[0], iColor[1], iColor[2], -1.0, 0.03, 0, 0.0, 1.0, 0.4, 0.4, CHANNEL_HUD_MAIN_INFO);
+		new pl[32], plnum;
+		get_players(pl, plnum, "h");
+		for (new i = 0; i < plnum; i++) {
+			if (!mjb_is_valid_player(pl[i]) || !is_user_alive(pl[i]) || GetTeam(pl[i]) != GUARD)
+				continue;
+			ShowSyncHudMsg(pl[i], g_MainInfoHudSync, szMessage);	
+		}
+		return;
+	} else if (iPhase == PHASE_GAMEDAY_ACTIVE) {
+		iLen = format(szMessage, charsmax(szMessage), "Today Game: [SOON]^n");
+		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Game [SOON] will end in: d seconds!^n");
+		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "^n-During Game: All menus and shops are disabled^n");
+		iColor = {255, 255, 0};
+	} else {
+		remove_task(TASK_HUD_MAIN_INFO);
+	}
+	set_hudmessage(iColor[0], iColor[1], iColor[2], 0.05, 0.15, 0, 0.0, 1.0, _, _, CHANNEL_HUD_MAIN_INFO);
+	ShowSyncHudMsg(0, g_MainInfoHudSync, szMessage);
 }
 
 /* Hud Damage Logic */
