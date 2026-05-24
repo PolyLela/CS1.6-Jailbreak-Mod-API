@@ -19,8 +19,10 @@ public client_disconnected(id)
 }
 
 public hasDebugger(id) {
-	if (hasRank(id, RANK_OWNER))
+	if (hasRank(id, RANK_OWNER)) {
+		MJB_Print(id, "!tYou are authorized");
 		return MJB_True;
+	}
 	return MJB_False;
 }
 
@@ -54,7 +56,7 @@ public HudTask(hudID) {
 		
 		iLen += formatex(szFormat[iLen], charsmax(szFormat) - iLen, "%d | %d | %d | %d^n", i, timerId, gen, floatround(timeleft));
 	}
-	new szName[32], szTeam[32], szMGTeam[32], szState[32];
+	new szName[32], szTeam[32], szMGTeam[32], szState[32], szRank[32];
 	new pl[32], plnum;
 	get_players(pl, plnum, "h");
 	for (new i = 0; i < plnum; i++) {
@@ -65,7 +67,8 @@ public HudTask(hudID) {
 		GetTeamStr(pl[i], szTeam, 31);
 		GetMGTStr(mjb_get_user_mg_team(pl[i]), szMGTeam, 31);
 		GetStateStr(pl[i], szState, 31);
-		iLen += formatex(szFormat[iLen], charsmax(szFormat) - iLen, "^n%s | %s | %s | %s%s | %s^n", szName, szTeam, szMGTeam, (mjb_is_user_in_duel(pl[i]) ? "D | " : ""),szState, is_user_alive(pl[i]) ? "ALIVE" : "DEAD");
+		GetRankLevelStr(pl[i], szRank, 31);
+		iLen += formatex(szFormat[iLen], charsmax(szFormat) - iLen, "^n%s | %s | %s | %s%s | %s^n", szName, szRank, szTeam, szMGTeam, (mjb_is_user_in_duel(pl[i]) ? "D | " : ""),szState, is_user_alive(pl[i]) ? "ALIVE" : "DEAD");
 	}
 	iLen += formatex(szFormat[iLen], charsmax(szFormat) - iLen, "^n%d | %d | %s%s",mjb_get_day(), mjb_get_day_type(), (mjb_is_duel_running() ? "DUEL  | " : ""),GetPhaseStr(mjb_get_phase()));
 	set_hudmessage(75, 75, 75, 0.0, 0.7, 0, 0.0, 1.0, _, _, 4);

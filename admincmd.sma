@@ -193,8 +193,10 @@ public cmdKick(id, level, cid)
 	if (!player)
 		return PLUGIN_HANDLED
 	
-	if (!canAffect(id, player))
+	if (!canAffect(id, player)) {
+		console_print(id, "[AMXX] You cannot affect this player, he has higher rank than you.");
 		return PLUGIN_HANDLED;
+	}
 	
 	new authid[32], authid2[32], name2[MAX_NAME_LENGTH], name[MAX_NAME_LENGTH], userid2, reason[32]
 	
@@ -430,6 +432,11 @@ public cmdBan(id, level, cid)
 	if (!player)
 		return PLUGIN_HANDLED
 
+	if (!canAffect(id, player)) {
+		console_print(id, "[AMXX] You cannot affect this player, he has higher rank than you.");
+		return PLUGIN_HANDLED;
+	}
+
 	new nNum = str_to_num(minutes)
 	new const tempBanMaxTime = get_pcvar_num(p_amx_tempban_maxtime);
 	if( nNum < 0 ) // since negative values result in permanent bans
@@ -517,6 +524,11 @@ public cmdBanIP(id, level, cid)
 	if (!player)
 		return PLUGIN_HANDLED
 
+	if (!canAffect(id, player)) {
+		console_print(id, "[AMXX] You cannot affect this player, he has higher rank than you.");
+		return PLUGIN_HANDLED;
+	}
+
 	new nNum = str_to_num(minutes)
 	new const tempBanMaxTime = get_pcvar_num(p_amx_tempban_maxtime);
 	if( nNum < 0 ) // since negative values result in permanent bans
@@ -603,6 +615,11 @@ public cmdSlay(id, level, cid)
 	if (!player)
 		return PLUGIN_HANDLED
 	
+	if (!canAffect(id, player)) {
+		console_print(id, "[AMXX] You cannot affect this player, he has higher rank than you.");
+		return PLUGIN_HANDLED;
+	}
+
 	user_kill(player)
 	
 	new authid[32], name2[MAX_NAME_LENGTH], authid2[32], name[MAX_NAME_LENGTH]
@@ -633,6 +650,11 @@ public cmdSlap(id, level, cid)
 	
 	if (!player)
 		return PLUGIN_HANDLED
+
+	if (!canAffect(id, player)) {
+		console_print(id, "[AMXX] You cannot affect this player, he has higher rank than you.");
+		return PLUGIN_HANDLED;
+	}
 
 	new spower[32], authid[32], name2[MAX_NAME_LENGTH], authid2[32], name[MAX_NAME_LENGTH]
 	
@@ -1204,18 +1226,15 @@ public cmdWho(id, level, cid)
 	if (!cmd_access(id, level, cid, 1))
 		return PLUGIN_HANDLED
 
-	new players[MAX_PLAYERS], inum, cl_on_server[64], authid[32], name[MAX_NAME_LENGTH], flags, sflags[32], plr
-	new lImm[16], lRes[16], lAccess[16], lYes[16], lNo[16]
+	new players[MAX_PLAYERS], inum, cl_on_server[64], authid[32], name[MAX_NAME_LENGTH], flags, sflags[32], plr, sRankL[32];
+	new szRankLevel[16], lAccess[16]
 	
-	formatex(lImm, charsmax(lImm), "%L", id, "IMMU")
-	formatex(lRes, charsmax(lRes), "%L", id, "RESERV")
 	formatex(lAccess, charsmax(lAccess), "%L", id, "ACCESS")
-	formatex(lYes, charsmax(lYes), "%L", id, "YES")
-	formatex(lNo, charsmax(lNo), "%L", id, "NO")
+	formatex(szRankLevel, charsmax(szRankLevel), "RankLevel")
 	
 	get_players(players, inum)
 	format(cl_on_server, charsmax(cl_on_server), "%L", id, "CLIENTS_ON_SERVER")
-	console_print(id, "^n%s:^n #  %-16.15s %-20s %-8s %-4.3s %-4.3s %s", cl_on_server, "nick", "authid", "userid", lImm, lRes, lAccess)
+	console_print(id, "^n%s:^n #  %-16.15s %-20s %-8s %-4.3s %s", cl_on_server, "nick", "authid", "userid", lAccess, szRankLevel)
 	
 	for (new a = 0; a < inum; ++a)
 	{
@@ -1224,8 +1243,9 @@ public cmdWho(id, level, cid)
 		get_user_name(plr, name, charsmax(name))
 		flags = get_user_flags(plr)
 		get_flags(flags, sflags, charsmax(sflags))
-		console_print(id, "%2d  %-16.15s %-20s %-8d %-6.5s %-6.5s %s", plr, name, authid, 
-		get_user_userid(plr), (flags&ADMIN_IMMUNITY) ? lYes : lNo, (flags&ADMIN_RESERVATION) ? lYes : lNo, sflags)
+		GetRankLevelStr(plr, sRankL, 31);
+		console_print(id, "%2d  %-16.15s %-20s %-8d %-6.5s %d", plr, name, authid, 
+		get_user_userid(plr), sflags, sRankL)
 	}
 	
 	console_print(id, "%L", id, "TOTAL_NUM", inum)
