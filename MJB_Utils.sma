@@ -1,3 +1,6 @@
+/*
+	CmdHatsMenu (g_iMenuPositon = 0);
+*/
 #include <amxmodx>
 #include <reapi>
 #include <fakemeta>
@@ -353,14 +356,14 @@ public HatsMenu(id, iPos) {
 	if (iPos < 0) {
 		return PLUGIN_HANDLED;
 	}
-	new iStart = iPos * 8;
-	if (iStart >= g_iMenuCount) iStart = g_iMenuCount - 8;
+	new iStart = iPos * ITEMS_PER_PAGE;
+	if (iStart >= g_iMenuCount) iStart = g_iMenuCount - ITEMS_PER_PAGE;
 	if (iStart < 0) iStart = 0;
-	iStart -= (iStart % 8);
-	g_iMenuPosition[id] = iStart / 8;
-	new iEnd = iStart + 8;
+	iStart -= (iStart % ITEMS_PER_PAGE);
+	g_iMenuPosition[id] = iStart / ITEMS_PER_PAGE;
+	new iEnd = iStart + ITEMS_PER_PAGE;
 	if (iEnd > g_iMenuCount) iEnd = g_iMenuCount;
-	new szMenu[512], iLen, iPagesNum = (g_iMenuCount / 8 + ((g_iMenuCount % 8) ? 1 : 0));
+	new szMenu[512], iLen, iPagesNum = (g_iMenuCount / ITEMS_PER_PAGE + ((g_iMenuCount % ITEMS_PER_PAGE) ? 1 : 0));
 	
 	new iKeys = (1<<9), b = 0;
 	iLen = formatex(szMenu, charsmax(szMenu), "\rM\wOON JB \w| \wHats Menu \d%d\w|\d%d^n", iPos+1, iPagesNum);
@@ -379,11 +382,11 @@ public HatsMenu(id, iPos) {
 		iLen += formatex(szMenu[iLen], charsmax(szMenu)-iLen, "\r%d\d. \w%s^n", ++b, g_Hats[a-2]);
 	}
 	
-	for(new i = b; i < 8; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
+	for(new i = b; i < ITEMS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
 	
 	if(iEnd < g_iMenuCount)
 	{
-		iKeys |= (1<<8);
+		iKeys |= (1<<ITEMS_PER_PAGE);
 		formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n\r9\d. \w%s^n\r0\d. \w%s", "Next", iPos ? "Back" : "Exit");
 	}
 	
@@ -401,7 +404,7 @@ public Handle_HatsMenu(id, iKeys) {
 		case 9: return HatsMenu(id, --g_iMenuPosition[id]);
 		default:
 		{
-			new index = g_iMenuPosition[id] * 8 + iKeys;
+			new index = g_iMenuPosition[id] * ITEMS_PER_PAGE + iKeys;
 			
 			if(index >= g_iMenuCount)
 				return HatsMenu(id, g_iMenuPosition[id]);

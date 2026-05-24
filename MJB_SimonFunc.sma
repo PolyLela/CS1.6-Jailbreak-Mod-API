@@ -492,15 +492,15 @@ Show_PunishMenu(id, iPos)
 		return SimonMenu(id);
 	}
 	
-	new iStart = iPos * PLAYERS_PER_PAGE;
-	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - PLAYERS_PER_PAGE;
+	new iStart = iPos * ITEMS_PER_PAGE;
+	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - ITEMS_PER_PAGE;
 	if(iStart < 0) iStart = 0;
-	iStart -= (iStart % PLAYERS_PER_PAGE);
-	g_iMenuPosition[id] = iStart / PLAYERS_PER_PAGE;
-	new iEnd = iStart + PLAYERS_PER_PAGE;
+	iStart -= (iStart % ITEMS_PER_PAGE);
+	g_iMenuPosition[id] = iStart / ITEMS_PER_PAGE;
+	new iEnd = iStart + ITEMS_PER_PAGE;
 	if(iEnd > g_iMenuCount[id]) iEnd = g_iMenuCount[id];
 	
-	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / PLAYERS_PER_PAGE + ((g_iMenuCount[id] % PLAYERS_PER_PAGE) ? 1 : 0));
+	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / ITEMS_PER_PAGE + ((g_iMenuCount[id] % ITEMS_PER_PAGE) ? 1 : 0));
 	
 	iLen = formatex(szMenu, charsmax(szMenu), "\rM\wOON JB \r| \yPunish guards \w[%d|%d]^n^n", g_iMenuPosition[id] + 1, iPagesNum);
 	
@@ -514,7 +514,7 @@ Show_PunishMenu(id, iPos)
 		iLen += formatex(szMenu[iLen], charsmax(szMenu)-iLen, "\y[%d] \w%s^n", ++b, szName);
 	}
 	
-	for(new i = b; i < PLAYERS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
+	for(new i = b; i < ITEMS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
 	
 	if(iEnd < g_iMenuCount[id])
 	{
@@ -536,7 +536,7 @@ public Handle_PunishMenu(id, iKey)
 		case 9: return Show_PunishMenu(id, --g_iMenuPosition[id]);
 		default:
 		{
-			new index = g_iMenuPosition[id] * PLAYERS_PER_PAGE + iKey;
+			new index = g_iMenuPosition[id] * ITEMS_PER_PAGE + iKey;
 			
 			if(index >= g_iMenuCount[id])
 				return Show_PunishMenu(id, g_iMenuPosition[id]);
@@ -1119,15 +1119,15 @@ Show_WantedPrisonersMenu(id, iPos)
 		return SimonMenu(id);
 	}
 	
-	new iStart = iPos * PLAYERS_PER_PAGE;
-	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - PLAYERS_PER_PAGE;
+	new iStart = iPos * ITEMS_PER_PAGE;
+	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - ITEMS_PER_PAGE;
 	if(iStart < 0) iStart = 0;
-	iStart -= (iStart % PLAYERS_PER_PAGE);
-	g_iMenuPosition[id] = iStart / PLAYERS_PER_PAGE;
-	new iEnd = iStart + PLAYERS_PER_PAGE;
+	iStart -= (iStart % ITEMS_PER_PAGE);
+	g_iMenuPosition[id] = iStart / ITEMS_PER_PAGE;
+	new iEnd = iStart + ITEMS_PER_PAGE;
 	if(iEnd > g_iMenuCount[id]) iEnd = g_iMenuCount[id];
 	
-	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / PLAYERS_PER_PAGE + ((g_iMenuCount[id] % PLAYERS_PER_PAGE) ? 1 : 0));
+	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / ITEMS_PER_PAGE + ((g_iMenuCount[id] % ITEMS_PER_PAGE) ? 1 : 0));
 	
 	iLen = formatex(szMenu, charsmax(szMenu), "\rM\wOON JB \r| \yWanted Prisoners \w[%d|%d]^n^n", g_iMenuPosition[id] + 1, iPagesNum);
 	
@@ -1141,7 +1141,7 @@ Show_WantedPrisonersMenu(id, iPos)
 		iLen += formatex(szMenu[iLen], charsmax(szMenu)-iLen, "\y[%d] \w%s^n", ++b, szName);
 	}
 	
-	for(new i = b; i < PLAYERS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
+	for(new i = b; i < ITEMS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
 	
 	if(iEnd < g_iMenuCount[id])
 	{
@@ -1163,7 +1163,7 @@ public Handle_WantedPrisonersMenu(id, iKey)
 		case 9: return Show_WantedPrisonersMenu(id, --g_iMenuPosition[id]);
 		default:
 		{
-			new index = g_iMenuPosition[id] * PLAYERS_PER_PAGE + iKey;
+			new index = g_iMenuPosition[id] * ITEMS_PER_PAGE + iKey;
 			
 			if(index >= g_iMenuCount[id])
 				return Show_WantedPrisonersMenu(id, g_iMenuPosition[id]);
@@ -1256,15 +1256,15 @@ Show_FreeDayControlMenu(id, iPos)
 		return Show_ManagePrisonerMenu(id);
 	}
 	
-	new iStart = iPos * PLAYERS_PER_PAGE;
-	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - PLAYERS_PER_PAGE;
+	new iStart = iPos * ITEMS_PER_PAGE;
+	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - ITEMS_PER_PAGE;
 	if(iStart < 0) iStart = 0;
-	iStart -= (iStart % PLAYERS_PER_PAGE);
-	g_iMenuPosition[id] = iStart / PLAYERS_PER_PAGE;
-	new iEnd = iStart + PLAYERS_PER_PAGE;
+	iStart -= (iStart % ITEMS_PER_PAGE);
+	g_iMenuPosition[id] = iStart / ITEMS_PER_PAGE;
+	new iEnd = iStart + ITEMS_PER_PAGE;
 	if(iEnd > g_iMenuCount[id]) iEnd = g_iMenuCount[id];
 	
-	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / PLAYERS_PER_PAGE + ((g_iMenuCount[id] % PLAYERS_PER_PAGE) ? 1 : 0));
+	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / ITEMS_PER_PAGE + ((g_iMenuCount[id] % ITEMS_PER_PAGE) ? 1 : 0));
 	
 	iLen = formatex(szMenu, charsmax(szMenu), "\rM\wOON JB \r| \yFreeday Management \w[%d|%d]^n^n", g_iMenuPosition[id] + 1, iPagesNum);
 	
@@ -1277,7 +1277,7 @@ Show_FreeDayControlMenu(id, iPos)
 		iKeys |= (1<<b);
 		iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\y[%d] \w%s \r[%s]^n", ++b, szName, (mjb_get_state(tempid) == PRISONER_FREEDAY) ? "TAKE" : "GIVE");
 	}
-	for(new i = b; i < PLAYERS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
+	for(new i = b; i < ITEMS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
 	
 	if(iEnd < g_iMenuCount[id])
 	{
@@ -1298,7 +1298,7 @@ public Handle_FreeDayControlMenu(id, iKey)
 		case 9: return Show_FreeDayControlMenu(id, --g_iMenuPosition[id]);
 		default:
 		{
-			new index = g_iMenuPosition[id] * PLAYERS_PER_PAGE + iKey;
+			new index = g_iMenuPosition[id] * ITEMS_PER_PAGE + iKey;
 			
 			if(index >= g_iMenuCount[id])
 				return Show_FreeDayControlMenu(id, g_iMenuPosition[id]);
@@ -1368,15 +1368,15 @@ Show_VoiceControlMenu(id, iPos)
 		return Show_ManagePrisonerMenu(id);
 	}
 	
-	new iStart = iPos * PLAYERS_PER_PAGE;
-	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - PLAYERS_PER_PAGE;
+	new iStart = iPos * ITEMS_PER_PAGE;
+	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - ITEMS_PER_PAGE;
 	if(iStart < 0) iStart = 0;
-	iStart -= (iStart % PLAYERS_PER_PAGE);
-	g_iMenuPosition[id] = iStart / PLAYERS_PER_PAGE;
-	new iEnd = iStart + PLAYERS_PER_PAGE;
+	iStart -= (iStart % ITEMS_PER_PAGE);
+	g_iMenuPosition[id] = iStart / ITEMS_PER_PAGE;
+	new iEnd = iStart + ITEMS_PER_PAGE;
 	if(iEnd > g_iMenuCount[id]) iEnd = g_iMenuCount[id];
 	
-	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / PLAYERS_PER_PAGE + ((g_iMenuCount[id] % PLAYERS_PER_PAGE) ? 1 : 0));
+	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / ITEMS_PER_PAGE + ((g_iMenuCount[id] % ITEMS_PER_PAGE) ? 1 : 0));
 	
 	iLen = formatex(szMenu, charsmax(szMenu), "\rM\wOON JB \r| \yVoice Control \w[%d|%d]^n^n", g_iMenuPosition[id] + 1, iPagesNum);
 	
@@ -1393,7 +1393,7 @@ Show_VoiceControlMenu(id, iPos)
 			iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\y[%d] \w%s \r[%s]^n", ++b, szName, (mjb_can_speak(tempid)) ? "DISABLE" : "ENABLE");
 		}
 	}
-	for(new i = b; i < PLAYERS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
+	for(new i = b; i < ITEMS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
 	
 	if(iEnd < g_iMenuCount[id])
 	{
@@ -1414,7 +1414,7 @@ public Handle_VoiceControlMenu(id, iKey)
 		case 9: return Show_VoiceControlMenu(id, --g_iMenuPosition[id]);
 		default:
 		{
-			new index = g_iMenuPosition[id] * PLAYERS_PER_PAGE + iKey;
+			new index = g_iMenuPosition[id] * ITEMS_PER_PAGE + iKey;
 			
 			if(index >= g_iMenuCount[id])
 				return Show_VoiceControlMenu(id, g_iMenuPosition[id]);
@@ -1469,15 +1469,15 @@ Show_TreatPrisonerMenu(id, iPos)
 		return Show_ManagePrisonerMenu(id);
 	}
 	
-	new iStart = iPos * PLAYERS_PER_PAGE;
-	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - PLAYERS_PER_PAGE;
+	new iStart = iPos * ITEMS_PER_PAGE;
+	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - ITEMS_PER_PAGE;
 	if(iStart < 0) iStart = 0;
-	iStart -= (iStart % PLAYERS_PER_PAGE);
-	g_iMenuPosition[id] = iStart / PLAYERS_PER_PAGE;
-	new iEnd = iStart + PLAYERS_PER_PAGE;
+	iStart -= (iStart % ITEMS_PER_PAGE);
+	g_iMenuPosition[id] = iStart / ITEMS_PER_PAGE;
+	new iEnd = iStart + ITEMS_PER_PAGE;
 	if(iEnd > g_iMenuCount[id]) iEnd = g_iMenuCount[id];
 	
-	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / PLAYERS_PER_PAGE + ((g_iMenuCount[id] % PLAYERS_PER_PAGE) ? 1 : 0));
+	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / ITEMS_PER_PAGE + ((g_iMenuCount[id] % ITEMS_PER_PAGE) ? 1 : 0));
 	
 	iLen = formatex(szMenu, charsmax(szMenu), "\rM\wOON JB \r| \yHeal Prisoners \w[%d|%d]^n^n", g_iMenuPosition[id] + 1, iPagesNum);
 	
@@ -1495,7 +1495,7 @@ Show_TreatPrisonerMenu(id, iPos)
 		}
 		
 	}
-	for(new i = b; i < PLAYERS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
+	for(new i = b; i < ITEMS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
 	
 	if(iEnd < g_iMenuCount[id])
 	{
@@ -1516,7 +1516,7 @@ public Handle_TreatPrisonerMenu(id, iKey)
 		case 9: return Show_TreatPrisonerMenu(id, --g_iMenuPosition[id]);
 		default:
 		{
-			new index = g_iMenuPosition[id] * PLAYERS_PER_PAGE + iKey;
+			new index = g_iMenuPosition[id] * ITEMS_PER_PAGE + iKey;
 			
 			if(index >= g_iMenuCount[id])
 				return Show_TreatPrisonerMenu(id, g_iMenuPosition[id]);
@@ -1568,15 +1568,15 @@ Show_TransferSimonMenu(id, iPos)
 		return SimonMenu(id);
 	}
 	
-	new iStart = iPos * PLAYERS_PER_PAGE;
-	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - PLAYERS_PER_PAGE;
+	new iStart = iPos * ITEMS_PER_PAGE;
+	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - ITEMS_PER_PAGE;
 	if(iStart < 0) iStart = 0;
-	iStart -= (iStart % PLAYERS_PER_PAGE);
-	g_iMenuPosition[id] = iStart / PLAYERS_PER_PAGE;
-	new iEnd = iStart + PLAYERS_PER_PAGE;
+	iStart -= (iStart % ITEMS_PER_PAGE);
+	g_iMenuPosition[id] = iStart / ITEMS_PER_PAGE;
+	new iEnd = iStart + ITEMS_PER_PAGE;
 	if(iEnd > g_iMenuCount[id]) iEnd = g_iMenuCount[id];
 	
-	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / PLAYERS_PER_PAGE + ((g_iMenuCount[id] % PLAYERS_PER_PAGE) ? 1 : 0));
+	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / ITEMS_PER_PAGE + ((g_iMenuCount[id] % ITEMS_PER_PAGE) ? 1 : 0));
 	
 	iLen = formatex(szMenu, charsmax(szMenu), "\rM\wOON JB \r| \yTransfer Simon \w[%d|%d]^n^n", g_iMenuPosition[id] + 1, iPagesNum);
 	
@@ -1590,7 +1590,7 @@ Show_TransferSimonMenu(id, iPos)
 		iLen += formatex(szMenu[iLen], charsmax(szMenu)-iLen, "\y[%d] \w%s^n", ++b, szName);
 	}
 	
-	for(new i = b; i < PLAYERS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
+	for(new i = b; i < ITEMS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
 	
 	if(iEnd < g_iMenuCount[id])
 	{
@@ -1612,7 +1612,7 @@ public Handle_TransferSimonMenu(id, iKey)
 		case 9: return Show_TransferSimonMenu(id, --g_iMenuPosition[id]);
 		default:
 		{
-			new index = g_iMenuPosition[id] * PLAYERS_PER_PAGE + iKey;
+			new index = g_iMenuPosition[id] * ITEMS_PER_PAGE + iKey;
 			
 			if(index >= g_iMenuCount[id])
 				return Show_TransferSimonMenu(id, g_iMenuPosition[id]);

@@ -68,7 +68,7 @@
 
 #define MAX_PLAYERS 32
 #define MAX_DAYS 15
-#define PLAYERS_PER_PAGE 8
+#define ITEMS_PER_PAGE 8
 
 #define MAX_TIMERS 10
 
