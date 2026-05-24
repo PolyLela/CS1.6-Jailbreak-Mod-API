@@ -188,7 +188,7 @@ public cmdKick(id, level, cid)
 
 	new arg[32]
 	read_argv(1, arg, charsmax(arg))
-	new player = cmd_target(id, arg, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF)
+	new player = cmd_target(id, arg, CMDTARGET_ALLOW_SELF)
 	
 	if (!player)
 		return PLUGIN_HANDLED
@@ -281,6 +281,7 @@ public cmdUnban(id, level, cid)
 }
 
 /* amx_addban is a special command now.
+ * NEW UPDATE : if user doesnt have rcon it will do the same old process but instead of checking for immunity it will check for hierarchy
  * If a user with rcon uses it, it bans the user.  No questions asked.
  * If a user without rcon but with ADMIN_BAN uses it, it will scan the old
  * connection queue, and if it finds the info for a player in it, it will
@@ -342,7 +343,7 @@ public cmdAddBan(id, level, cid)
 				
 				if (equal(IP, arg))
 				{
-					if (Access & ADMIN_IMMUNITY)
+					if (hasRa)
 					{
 						console_print(id, "[AMXX] %s : %L", IP, id, "CLIENT_IMM", Name);
 						
@@ -365,7 +366,7 @@ public cmdAddBan(id, level, cid)
 				
 				if (equal(Auth, arg))
 				{
-					if (Access & ADMIN_IMMUNITY)
+					if (canAffectAccess(id, Access))
 					{
 						console_print(id, "[AMXX] %s : %L", Auth, id, "CLIENT_IMM", Name);
 						
@@ -424,7 +425,7 @@ public cmdBan(id, level, cid)
 	read_argv(2, minutes, charsmax(minutes))
 	read_argv(3, reason, charsmax(reason))
 	
-	new player = cmd_target(id, target, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_NO_BOTS | CMDTARGET_ALLOW_SELF)
+	new player = cmd_target(id, target,CMDTARGET_NO_BOTS | CMDTARGET_ALLOW_SELF)
 	
 	if (!player)
 		return PLUGIN_HANDLED
@@ -511,7 +512,7 @@ public cmdBanIP(id, level, cid)
 	read_argv(2, minutes, charsmax(minutes))
 	read_argv(3, reason, charsmax(reason))
 	
-	new player = cmd_target(id, target, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_NO_BOTS | CMDTARGET_ALLOW_SELF)
+	new player = cmd_target(id, target,CMDTARGET_NO_BOTS | CMDTARGET_ALLOW_SELF)
 	
 	if (!player)
 		return PLUGIN_HANDLED
@@ -597,7 +598,7 @@ public cmdSlay(id, level, cid)
 	
 	read_argv(1, arg, charsmax(arg))
 	
-	new player = cmd_target(id, arg, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE)
+	new player = cmd_target(id, arg,CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE)
 	
 	if (!player)
 		return PLUGIN_HANDLED
@@ -628,7 +629,7 @@ public cmdSlap(id, level, cid)
 	new arg[32]
 	
 	read_argv(1, arg, charsmax(arg))
-	new player = cmd_target(id, arg, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE)
+	new player = cmd_target(id, arg,CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE)
 	
 	if (!player)
 		return PLUGIN_HANDLED
@@ -1316,7 +1317,7 @@ public cmdNick(id, level, cid)
 	read_argv(1, arg1, charsmax(arg1))
 	read_argv(2, arg2, charsmax(arg2))
 
-	new player = cmd_target(id, arg1, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF)
+	new player = cmd_target(id, arg1,CMDTARGET_ALLOW_SELF)
 	
 	if (!player)
 		return PLUGIN_HANDLED

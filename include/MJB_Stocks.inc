@@ -127,6 +127,21 @@ public canAffect(id, iTarget) {
 	return MJB_False;
 }
 
+public canAffectAccess(id, iTargetAccess) {
+	if (!mjb_is_valid_player(id))
+		return MJB_False;
+	
+	if (hasRank(id, RANK_OWNER))
+		return MJB_True;
+
+	new rankId = get_user_rank_level(id);
+	new rankTarget = get_user_rank_level(0, iTargetAccess);
+	
+	if (rankId > rankTarget)
+		return MJB_True;
+	return MJB_False;
+}
+
 public hasRank(id, rank)
 {
 	if (!mjb_is_valid_player(id))
@@ -210,9 +225,10 @@ stock GetRankLevelStr(id, output[], len, iRankLevel = -1) {
 	}
 }
 
-stock get_user_rank_level(id)
+stock get_user_rank_level(id, flags=0)
 {
-	new flags = get_user_flags(id);
+	if (flags == 0 && mjb_is_valid_player(id))
+		new flags = get_user_flags(id);
 	
 	if ((flags & RANK_OWNER) == RANK_OWNER)
 		return RANK_LEVEL_OWNER;
