@@ -308,8 +308,10 @@ public HudMainInfo() {
 		}
 		return;
 	} else if (iPhase == PHASE_GAMEDAY_ACTIVE) {
-		iLen = format(szMessage, charsmax(szMessage), "Today Game: [SOON]^n");
-		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Game [SOON] will end in: d seconds!^n");
+		new data[DayModeData];
+		mjb_get_current_daymode();
+		iLen = format(szMessage, charsmax(szMessage), "Today Game: %s^n", data[DM_Name]);
+		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Game %s will end in: d seconds!^n", data[DM_Name]);
 		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "^n-During Game: All menus and shops are disabled^n");
 		iColor = {255, 255, 0};
 	} else if (iPhase == PHASE_SIMON_DISCONNECTED) {

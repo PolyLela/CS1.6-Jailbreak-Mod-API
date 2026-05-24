@@ -98,6 +98,14 @@ new const DayNames[][] = {
 /* =========================
    ENUMS
 ========================= */
+
+/* Dynamic Daymodes Registration */
+enum _:DayModeData {
+	DM_Name[32],
+	DM_UID[32],
+	DM_VoteNum
+};
+
 enum _:MeleeType
 {
     MELEE_FISTS = 0,

@@ -79,18 +79,16 @@ native mjb_get_user_melee(id);
  * @param name		Name of the mode.
  * @param uid		Unique Id String of The Mode.
  *
- * @return			Daymode index.
+ * @return		Daymode index.
  */
 native mjb_register_daymode(const name[], const uid[]); 
 
 /**
- * Ends gameday vote phase and start new phase based on param isVoted.
+ * Gets Data of Current Daymode (if gameday is active, if not it returns an empty buffer).
  *
- * @param vote	if 1 sets to PHASE_FREEDAY if 0 sets to PHASE_NORMAL or PHASE_SIMON_SELECT if 2 sets to PHASE_GAMEDAY_ACTIVE
- *
- * @noreturn
+ * @return		Daymode Data {Name, UID, VoteNum);
  */
-native mjb_end_gameday_vote(vote); 
+native mjb_get_current_daymode();
 
 /**
  * Blocks main menu.

@@ -9,13 +9,6 @@
 #define DAYMODE_FREEDAY 	-2
 #define DAYMODE_NORMALDAY	-1
 
-/* Dynamic Daymodes Registration */
-enum _:DayModeData {
-	DM_Name[32],
-	DM_UID[32],
-	DM_VoteNum
-};
-
 new Array:g_DayModes;
 
 /* Menu Related */
@@ -29,7 +22,7 @@ new g_iElectedDayMode = -1; // This variable stores the winning day mode after v
 new g_fwVoteResultsProcessed;
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
-	g_DayModes = ArrayCreate();
+	g_DayModes = ArrayCreate(DayModeData);
 	RegisterHookChain(RG_CBasePlayer_Spawn, "RG_PlayerSpawn_Post", true);
 	g_fwVoteResultsProcessed = CreateMultiForward("mjb_vote_results_processed", ET_IGNORE, FP_CELL, FP_STRING);
 	g_iVoteMenuId = register_menuid("Vote Menu ID");
@@ -44,6 +37,7 @@ public plugin_end() {
 public plugin_natives() {
 	register_library("MJB_Core");
 	register_native("mjb_register_daymode", "native_register_daymode");
+	register_native("mjb_get_current_daymode", "native_get_current_daymode");
 }
 
 public native_register_daymode(plugin, params) {
@@ -55,6 +49,19 @@ public native_register_daymode(plugin, params) {
 	ArrayPushArray(g_DayModes, data);
 	
 	return ArraySize(g_DayModes) - 1;
+}
+
+public native_get_current_daymode(plugin, params) {
+	new data[DayModeData] = {"", "", 0};
+	// there is no daymode elected (maybe when phase isnt vote or its off-bounds)
+	if (g_iElectedDayMode < 0 || g_iElectedDayMode > ArraySize(g_DayModes))
+		return data;
+		
+	if (mjb_get_phase() != PHASE_GAMEDAY_ACTIVE)
+		return data;
+		
+	ArrayGetArray(g_DayModes, g_iElectedDayMode, data);
+	return data;
 }
 
 /* Vote Handling Logic */
@@ -83,7 +90,11 @@ public ProcessVoteResults() {
 	if (candidateVotes == 0)
 		candidate = -1;
 	g_iElectedDayMode = candidate;
-	ArrayGetArray(g_DayModes, g_iElectedDayMode, data);
+	if (candidate >= 0) {
+		ArrayGetArray(g_DayModes, g_iElectedDayMode, data); // to prevent invalid indexes since no choosen == -1
+	} else {
+		data[DM_UID] = "";
+	}
 	new ret;
 	ExecuteForward(g_fwVoteResultsProcessed, ret, g_iElectedDayMode, data[DM_UID]);
 }
@@ -132,6 +143,7 @@ public mjb_phase_changed(iOldPhase, iNewPhase) {
 		InitVote();
 	} else if (iNewPhase == PHASE_GAMEDAY_VOTE_ENDED) {
 		Un_FreezeAndBlindAll();
+		show_menu(0, 0, "^n", 1);
 		ProcessVoteResults();
 	}
 }
