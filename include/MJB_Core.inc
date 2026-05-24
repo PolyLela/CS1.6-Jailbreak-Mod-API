@@ -77,12 +77,11 @@ native mjb_get_user_melee(id);
  * Registers a gameday mode.
  *
  * @param name		Name of the mode.
- * @param start		Start function.
- * @param end		End function.
+ * @param uid		Unique Id String of The Mode.
  *
- * @noreturn
+ * @return			Daymode index.
  */
-native mjb_register_daymode(name[], start[], end[]); 
+native mjb_register_daymode(const name[], const uid[]); 
 
 /**
  * Ends gameday vote phase and start new phase based on param isVoted.

@@ -41,6 +41,11 @@ public plugin_end() {
 }
 
 /* Dynamic Registration Logic */
+public plugin_natives() {
+	register_library("MJB_Core");
+	register_native("mjb_register_daymode", "native_register_daymode");
+}
+
 public native_register_daymode(plugin, params) {
 	new data[DayModeData];
 	get_string(1, data[DM_Name], charsmax(data[DM_Name]));
