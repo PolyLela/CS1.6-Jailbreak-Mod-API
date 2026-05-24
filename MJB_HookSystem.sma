@@ -64,11 +64,11 @@ public client_disconnected(id) {
 }
 
 public CanHook(id) {
-	return (mjb_is_valid_player(id) && mjb_is_player_alive(id) && hasRank(id, RANK_HOOK));
+	return (mjb_is_valid_player(id) && is_user_alive(id) && hasRank(id, RANK_HOOK));
 }
 
 public CanSHook(id) {
-	return (mjb_is_valid_player(id) && mjb_is_player_alive(id) && hasRank(id, RANK_HOOK) && hasRank(id, RANK_GOLD_ADMIN));
+	return (mjb_is_valid_player(id) && is_user_alive(id) && hasRank(id, RANK_HOOK) && hasRank(id, RANK_GOLD_ADMIN));
 }
 
 public HookOn(id) {
@@ -283,7 +283,7 @@ stock getTrailRGB(id, &iRed, &iGreen, &iBlue) {
 		iBlue = 255;
 		return
 	}
-	switch(mjb_get_team(id)) {
+	switch(GetTeam(id)) {
 		case PRISONER : {
 			iRed = TRAIL_P_RED;
 			iGreen = TRAIL_P_GREEN;

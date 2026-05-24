@@ -1,8 +1,8 @@
 #include <amxmodx> 
 #include <engine> 
 #include <fakemeta> 
-#include <hamsandwich> 
-#include <cstrike> 
+#include <hamsandwich>
+#include <reapi>
 #include <MJB_Core>
 
 #define MAX_NETS 2 
@@ -64,14 +64,12 @@ public plugin_init()
 	 
 	ball_speed = register_cvar("jb_ball_speed", "200.0") 
 	ball_distance = register_cvar("jb_ball_distance", "600")
-	 
-	register_logevent("EventRoundStart", 2, "1=Round_Start") //create or respawn ball
 	register_event("CurWeapon", "CurWeapon", "be") // speed
 	 
 	register_forward(FM_PlayerPreThink, "PlayerPreThink", 0) //building stage
 	register_forward(FM_Touch, "FwdTouch", 0) //goal checking
 	 
-	RegisterHam(Ham_ObjectCaps, "player", "FwdHamObjectCaps", 1) //kick ball logic
+	RegisterHookChain(RG_CBasePlayer_ObjectCaps, "RG_PlayerObjectCaps_Post", true);
 	 
 	register_think(g_szBallName, "FwdThinkBall") //ball logic there gotball logic too
 	register_touch(g_szBallName, "player", "FwdTouchPlayer")  //gotball logic up also
@@ -109,7 +107,7 @@ public CreateMenus()
 } 
 
 public CanOpenSoccerMenu(id) {
-	if (!mjb_is_valid_player(id) || !mjb_is_player_alive(id))
+	if (!mjb_is_valid_player(id) || !is_user_alive(id))
 		return MJB_False;
 	
 	if ((mjb_is_simon(id) && mjb_get_phase() == PHASE_NORMAL) || hasRank(id, RANK_CO_OWNER))
@@ -423,7 +421,7 @@ public HandleNetMenu(id, key)
 		
 public PlayerPreThink(id) 
 { 
-	if(!mjb_is_player_alive(id)) 
+	if(!is_user_alive(id)) 
 		return PLUGIN_CONTINUE 
 	 
 	if(pev(id, pev_button) & IN_USE && !(pev(id, pev_oldbuttons) & IN_USE) && g_buildingNet[id]) { 
@@ -465,7 +463,7 @@ public PlayerPreThink(id)
 
 public CurWeapon(id) 
 { 
-	if(!mjb_is_player_alive(id)) 
+	if(!is_user_alive(id)) 
 		return PLUGIN_CONTINUE 
 	if(is_valid_ent(gBall)) { 
 		static iOwner 
@@ -690,10 +688,13 @@ public SaveAll(id)
 	return PLUGIN_HANDLED 
 } 
  
-public EventRoundStart() 
+public mjb_phase_changed(iOldPhase, iNewPhase) 
 { 
+	if (iNewPhase != PHASE_DAY_STARTED)
+		return;
+		
 	if(!g_bNeedBall) 
-	return 
+		return;
 	 
 	if(!is_valid_ent(gBall)) 
 		CreateBall(0, g_vOrigin) 
@@ -708,9 +709,9 @@ public EventRoundStart()
 	} 
 } 
 
-public FwdHamObjectCaps(id) 
+public RG_PlayerObjectCaps_Post(id) 
 { 
-	if(pev_valid(gBall) && mjb_is_player_alive(id)) { 
+	if(pev_valid(gBall) && is_user_alive(id)) { 
 		static iOwner 
 		 
 		iOwner = pev(gBall, pev_iuser1) 
@@ -774,7 +775,7 @@ public FwdThinkBall(ent) {
 		static const Float:vVelocity[3] = { 1.0, 1.0, 0.0 } 
 		entity_get_vector( iOwner, EV_VEC_origin, vOwnerOrigin ) 
 		 
-		if(!mjb_is_player_alive(iOwner)) 
+		if(!is_user_alive(iOwner)) 
 		{ 
 			vOwnerOrigin[ 2 ] += 5.0 
 			 
@@ -788,7 +789,7 @@ public FwdThinkBall(ent) {
 		if(iSolid != SOLID_NOT) 
 		{ 
 			set_pev(ent, pev_solid, SOLID_NOT) 
-			set_hudmessage(255, 20, 20, -1.0, 0.4, 1, 1.0, 1.5, 0.1, 0.1, 2) 
+			set_hudmessage(255, 20, 20, -1.0, 0.4, 1, 1.0, 1.5, 0.1, 0.1, 3) 
 			show_hudmessage(iOwner, "** YOU HAVE THE BALL! **") 
 		} 
 		 
@@ -881,7 +882,6 @@ public Goal(iNet)
 	if (pev_valid(iNet) && g_Owner != 0) {
 		new ret;
 		ExecuteForward(g_fwScored, ret, g_Owner, gBall, pev(iNet, pev_iuser2));
-		MJB_Print(0, "goal %d team %s", pev(iNet, pev_iuser2), (pev(iNet, pev_iuser2) == BLUE) ? "BLUE" : "RED");
 	}
 	 
 	MoveBall(0) 

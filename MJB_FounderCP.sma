@@ -65,9 +65,9 @@ public HudTask(hudID) {
 		GetTeamStr(pl[i], szTeam, 31);
 		GetMGTStr(mjb_get_user_mg_team(pl[i]), szMGTeam, 31);
 		GetStateStr(pl[i], szState, 31);
-		iLen += formatex(szFormat[iLen], charsmax(szFormat) - iLen, "^n%s | %s | %s | %s%s | %s^n", szName, szTeam, szMGTeam, (mjb_is_user_in_duel(pl[i]) ? "D | " : ""),szState, mjb_is_player_alive(pl[i]) ? "ALIVE" : "DEAD");
+		iLen += formatex(szFormat[iLen], charsmax(szFormat) - iLen, "^n%s | %s | %s | %s%s | %s^n", szName, szTeam, szMGTeam, (mjb_is_user_in_duel(pl[i]) ? "D | " : ""),szState, is_user_alive(pl[i]) ? "ALIVE" : "DEAD");
 	}
 	iLen += formatex(szFormat[iLen], charsmax(szFormat) - iLen, "^n%d | %d | %s%s",mjb_get_day(), mjb_get_day_type(), (mjb_is_duel_running() ? "DUEL  | " : ""),GetPhaseStr(mjb_get_phase()));
-	set_hudmessage(75, 75, 75, 0.7, 0.1, 0, 0.0, 1.0);
+	set_hudmessage(75, 75, 75, 0.0, 0.7, 0, 0.0, 1.0, _, _, 4);
 	ShowSyncHudMsg(id, HudSync, "%s", szFormat);
 }

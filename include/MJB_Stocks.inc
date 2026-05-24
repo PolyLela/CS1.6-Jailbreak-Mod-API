@@ -74,6 +74,15 @@ stock GetTeamCount(iTeam, bool:bAliveOnly = true) {
 	return iTeamNum;
 }
 
+stock GetTeamStr(id, output[], len) {
+	switch(GetTeam(id)) {
+		case UNASSIGNED : copy(output, len, "UN");
+		case PRISONER : copy(output, len, "PR");
+		case GUARD : copy(output, len, "GR");
+		case SPECTATOR : copy(output, len, "SP");
+	}
+}
+
 stock GetStateStr(id, output[], len)
 {
 	copy(output, len, StateNames[mjb_get_state(id)]);

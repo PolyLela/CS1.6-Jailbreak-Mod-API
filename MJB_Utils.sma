@@ -18,6 +18,8 @@
 
 stock fm_set_entity_visibility(index, visible = 1) set_pev(index, pev_effects, visible == 1 ? pev(index, pev_effects) & ~EF_NODRAW : pev(index, pev_effects) | EF_NODRAW)
 
+new Trie:g_tViewModels, Trie:g_tWorldModels;
+
 /* Hat Variables */
 new g_Hats[][] = {
 	"Mono",
@@ -57,6 +59,9 @@ new Array:g_aFreedayPrisoners, Array:g_aWantedPrisoners;
 new g_FreedayHudSync, g_WantedHudSync, g_GeneralInfoHudSync, g_MainInfoHudSync;
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
+	/* Weapon Skins Events */
+	register_forward(FM_SetModel,"ChangeWorldModelSkin",1)
+	register_event("CurWeapon","ChangeWeaponSkin","be","1=1")
 	
 	/* Hud Damage */
 	register_message(get_user_msgid("Damage"), "Message_Damage");
@@ -79,9 +84,77 @@ public plugin_init() {
 	set_task(1.0, "HudMainInfo", TASK_HUD_MAIN_INFO, _, _, "b");
 }
 
+public plugin_end() {
+	ArrayDestroy(g_aFreedayPrisoners);
+	ArrayDestroy(g_aWantedPrisoners);
+	TrieDestroy(g_tViewModels);
+	TrieDestroy(g_tWorldModels);
+}        
+        
 public plugin_precache() {
 	precache_model("models/MOON_JB/Costumes/mjb_costumes.mdl");
 	precache_model("models/MOON_JB/Costumes/sheep.mdl");
+	
+	g_tViewModels = TrieCreate();
+	g_tWorldModels = TrieCreate();
+	
+	TrieSetString(g_tViewModels, "models/v_hegrenade.mdl", "models/MOON_JB/WeaponSkins/v_hegrenade.mdl");
+	TrieSetString(g_tViewModels, "models/v_m4a1.mdl", "models/MOON_JB/WeaponSkins/v_m4a1.mdl");
+	TrieSetString(g_tViewModels, "models/v_smokegrenade.mdl", "models/MOON_JB/WeaponSkins/v_smokegrenade.mdl");
+	TrieSetString(g_tViewModels, "models/v_ak47.mdl", "models/MOON_JB/WeaponSkins/v_ak47.mdl");
+	TrieSetString(g_tViewModels, "models/v_awp.mdl", "models/MOON_JB/WeaponSkins/v_awp.mdl");
+	TrieSetString(g_tViewModels, "models/v_m249.mdl", "models/MOON_JB/WeaponSkins/v_m249.mdl");
+	TrieSetString(g_tViewModels, "models/v_galil.mdl", "models/MOON_JB/WeaponSkins/v_galil.mdl");
+	TrieSetString(g_tViewModels, "models/v_mp5.mdl", "models/MOON_JB/WeaponSkins/v_mp5.mdl");
+	TrieSetString(g_tViewModels, "models/v_deagle.mdl", "models/MOON_JB/WeaponSkins/v_deagle.mdl");
+	TrieSetString(g_tViewModels, "models/v_flashbang.mdl", "models/MOON_JB/WeaponSkins/v_flashbang.mdl");
+	
+	TrieSetString(g_tWorldModels, "models/w_hegrenade.mdl", "models/MOON_JB/WeaponSkins/w_hegrenade.mdl");
+	TrieSetString(g_tWorldModels, "models/w_smokegrenade.mdl", "models/MOON_JB/WeaponSkins/w_smokegrenade.mdl");
+	TrieSetString(g_tWorldModels, "models/w_flashbang.mdl", "models/MOON_JB/WeaponSkins/w_flashbang.mdl");
+	
+	new szKey[32], szValue[64];
+	new Snapshot:snap = TrieSnapshotCreate(g_tViewModels);
+	for (new i = 0; i < TrieSnapshotLength(snap); i++) {
+		TrieSnapshotGetKey(snap, i, szKey, charsmax(szKey));
+		TrieGetString(g_tViewModels, szKey, szValue, charsmax(szValue));
+		precache_model(szValue);
+	}
+	szKey = "";
+	szValue = "";
+	snap = TrieSnapshotCreate(g_tWorldModels);
+	for (new i = 0; i < TrieSnapshotLength(snap); i++) {
+		TrieSnapshotGetKey(snap, i, szKey, charsmax(szKey));
+		TrieGetString(g_tWorldModels, szKey, szValue, charsmax(szValue));
+		precache_model(szValue);
+	}
+}
+
+public ChangeWorldModelSkin(ent,model[])
+{
+	if(!pev_valid(ent))
+	{
+		return FMRES_IGNORED
+	}
+	if (TrieKeyExists(g_tWorldModels, model)) {
+		new new_model[64];
+		TrieGetString(g_tWorldModels, model, new_model, charsmax(new_model));
+		engfunc(EngFunc_SetModel,ent,new_model)
+		return FMRES_SUPERCEDE
+	}
+	return FMRES_IGNORED
+}
+
+public ChangeWeaponSkin(id) {
+	if (!mjb_is_valid_player(id) || !is_user_alive(id))
+		return;
+	
+	new model[32], new_model[64];
+	pev(id, pev_viewmodel2, model, charsmax(model));
+	if (TrieKeyExists(g_tViewModels, model)) {
+		TrieGetString(g_tViewModels, model, new_model, charsmax(new_model));
+		set_pev(id, pev_viewmodel2, new_model);
+	}
 }
 
 /* Hud Freeday & Wanted Logic */
@@ -211,22 +284,39 @@ public HudMainInfo() {
 		iColor = {0, 255, 255};
 	} else if (iPhase == PHASE_SIMON_SELECT) {
 		new iTimeLeft = floatround(mjb_get_timer_timeleft(mjb_get_simon_timer_id()));
-		iLen = format(szMessage, charsmax(szMessage), "You have %d seconds to become simon^n", iTimeLeft);
-		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Command for taking it: /simon");
 		iColor = {0, 255, 255};
-		set_hudmessage(iColor[0], iColor[1], iColor[2], -1.0, 0.03, 0, 0.0, 1.0, 0.4, 0.4, CHANNEL_HUD_MAIN_INFO);
 		new pl[32], plnum;
 		get_players(pl, plnum, "h");
 		for (new i = 0; i < plnum; i++) {
-			if (!mjb_is_valid_player(pl[i]) || !is_user_alive(pl[i]) || GetTeam(pl[i]) != GUARD)
+			if (!mjb_is_valid_player(pl[i]))
 				continue;
-			ShowSyncHudMsg(pl[i], g_MainInfoHudSync, szMessage);	
+			if (is_user_alive(pl[i]) && GetTeam(pl[i]) == GUARD) {
+				iLen = format(szMessage, charsmax(szMessage), "You have %d seconds to become simon^n", iTimeLeft);
+				iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Command for taking it: /simon");
+				set_hudmessage(iColor[0], iColor[1], iColor[2], -1.0, 0.03, 0, 0.0, 1.0, 0.4, 0.4, CHANNEL_HUD_MAIN_INFO);
+				ShowSyncHudMsg(pl[i], g_MainInfoHudSync, szMessage);
+			} else {
+				iLen = format(szMessage, charsmax(szMessage), "Today is: Normalday^n");
+				iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Simon is not Selected^n");
+				iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "- Freeday starts in: %d", iTimeLeft);
+				set_hudmessage(iColor[0], iColor[1], iColor[2], 0.05, 0.15, 0, 0.0, 1.0, 0.4, 0.4, CHANNEL_HUD_MAIN_INFO);
+				ShowSyncHudMsg(pl[i], g_MainInfoHudSync, szMessage);
+			}
 		}
 		return;
 	} else if (iPhase == PHASE_GAMEDAY_ACTIVE) {
 		iLen = format(szMessage, charsmax(szMessage), "Today Game: [SOON]^n");
 		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Game [SOON] will end in: d seconds!^n");
 		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "^n-During Game: All menus and shops are disabled^n");
+		iColor = {255, 255, 0};
+	} else if (iPhase == PHASE_SIMON_DISCONNECTED) {
+		iLen = format(szMessage, charsmax(szMessage), "Simon Disconnected^n");
+		iColor = {128, 128, 128};
+	} else if (iPhase == PHASE_SIMON_KILLED) {
+		iLen = format(szMessage, charsmax(szMessage), "Simon is Killed^n");
+		iColor = {220, 20, 0};
+	} else if (iPhase == PHASE_SIMON_NOT_SELECTED) {
+		iLen = format(szMessage, charsmax(szMessage), "Simon is not Selected^n");
 		iColor = {255, 255, 0};
 	} else {
 		remove_task(TASK_HUD_MAIN_INFO);
