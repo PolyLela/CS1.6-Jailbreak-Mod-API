@@ -298,6 +298,13 @@ native mjb_get_free_timer_id();
 native mjb_get_simon_timer_id();
 
 /**
+ * Gets gameday vote timer id.
+ *
+ * @return	Vote timer id if running and if not returns -1.
+ */
+native mjb_get_vote_timer_id();
+
+/**
  * Start a new timer with duration.
  *
  * @param fDuration       Duration value in floating numbers.

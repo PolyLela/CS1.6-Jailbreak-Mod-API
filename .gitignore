@@ -4,6 +4,10 @@
 # Ignore compilers, launchers, executables
 *.exe
 
+# Ignore Removed and Unneeded files
+MJB_GameDay.sma
+OLD_MJB_DayCycleSystem.sma
+
 # Exclude MJB_ files
 !include/MJB_Core.inc
 !include/MJB_Consts.inc

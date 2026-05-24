@@ -11,7 +11,10 @@
 #include <MJB_Core>
 
 #define PLUGIN "Days State System FSM"
-#define DAY_END_TASK	7124
+#define DAY_END_TASK		7124
+#define FREEDAY_TIME		240.0
+#define SELECT_SIMON_TIME	30.0
+#define VOTE_TIME			15.0
 
 new const DayTypes[MAX_DAYS + 1] = {
     FREEDAY,
@@ -50,6 +53,7 @@ new bool:g_bManyFreeEnabled = true;
 
 new g_iFreedayTimer = -1;
 new g_iSimonTimer  = -1;
+new g_iVoteTimer  = -1;
 
 new g_fwPhaseChanged;
 public plugin_init()
@@ -158,6 +162,11 @@ public ChangePhase(newPhase)
 			if (!mjb_simon_exists()) ChangePhase(PHASE_SIMON_SELECT);
 			else ChangePhase(PHASE_NORMAL);
 		}
+
+		case PHASE_GAMEDAY_VOTE:
+		{
+			StartVoteTimer();
+		}
 	}
 	
 }
@@ -165,16 +174,31 @@ public ChangePhase(newPhase)
 /* =========================
    TIMER CONTROL
 ========================= */
+public StartVoteTimer()
+{
+	StopVoteTimer();
+	g_iVoteTimer = mjb_start_timer(VOTE_TIME);
+}
+
 public StartFreedayTimer()
 {
 	StopFreedayTimer();
-	g_iFreedayTimer = mjb_start_timer(240.0);
+	g_iFreedayTimer = mjb_start_timer(FREEDAY_TIME);
 }
 
 public StartSimonTimer()
 {
 	StopSimonTimer();
-	g_iSimonTimer = mjb_start_timer(30.0);
+	g_iSimonTimer = mjb_start_timer(SELECT_SIMON_TIME);
+}
+
+public StopVoteTimer()
+{
+	if (g_iVoteTimer != -1)
+	{
+		mjb_stop_timer(g_iVoteTimer);
+		g_iVoteTimer = -1;
+	}
 }
 
 public StopFreedayTimer()
@@ -199,6 +223,7 @@ public StopAllTimers()
 {
 	StopFreedayTimer();
 	StopSimonTimer();
+	StopVoteTimer();
 }
 
 /* =========================
@@ -246,6 +271,18 @@ public mjb_timer_ended(iTimer)
 		g_iSimonTimer = -1;
 		ChangePhase(PHASE_SELECT_ENDED);
 	}
+	else if (iTimer == g_iVoteTimer)
+	{
+		g_iVoteTimer = -1;
+		callfunc_begin("get_vote_results", "MJB_GameDayCore.amxx");
+		new result = callfunc_end();
+		if (result == -1) // then Normalday
+			ChangePhase(PHASE_GAMEDAY_NORMAL);
+		else if (result == 0)
+			ChangePhase(PHASE_FREEDAY);
+		else
+			ChangePhase(PHASE_GAMEDAY_ACTIVE);
+	}
 }
 
 public mjb_simon_set(id)
@@ -292,6 +329,7 @@ public plugin_natives() {
 	register_native("mjb_get_phase", "native_get_phase");
 	register_native("mjb_get_free_timer_id", "native_get_free_timer_id");
 	register_native("mjb_get_simon_timer_id", "native_get_simon_timer_id");
+	register_native("mjb_get_vote_timer_id", "native_get_vote_timer_id");
 	register_native("mjb_block_game_behaviour", "BlockGameBehaviour", 1);
 	register_native("mjb_unblock_game_behaviour", "UnblockGameBehaviour", 1);
 }
@@ -342,6 +380,10 @@ public native_get_free_timer_id() {
 
 public native_get_simon_timer_id() {
 	return g_iSimonTimer;
+}
+
+public native_get_vote_timer_id() {
+	return g_iVoteTimer;
 }
 
 public UnblockGameBehaviour() {
