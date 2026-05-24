@@ -273,15 +273,15 @@ public mjb_timer_ended(iTimer)
 	}
 	else if (iTimer == g_iVoteTimer)
 	{
-		g_iVoteTimer = -1;
-		callfunc_begin("get_vote_results", "MJB_GameDayCore.amxx");
-		new result = callfunc_end();
-		if (result == -1) // then Normalday
-			ChangePhase(PHASE_GAMEDAY_NORMAL);
-		else if (result == 0)
-			ChangePhase(PHASE_FREEDAY);
-		else
-			ChangePhase(PHASE_GAMEDAY_ACTIVE);
+		ChangePhase(PHASE_GAMEDAY_VOTE_ENDED)
+	}
+}
+
+public mjb_vote_results_processed(iResult) {
+	switch(iResult) {
+		case -1: ChangePhase(PHASE_GAMEDAY_NORMAL);
+		case  0: ChangePhase(PHASE_FREEDAY);
+		default: ChangePhase(PHASE_GAMEDAY_ACTIVE);
 	}
 }
 

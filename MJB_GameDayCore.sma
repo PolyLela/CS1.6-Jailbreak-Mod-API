@@ -5,19 +5,46 @@
 
 #define PLUGIN "GameDay Mode Core"
 
+new g_fwVoteResultsProcessed;
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	RegisterHookChain(RG_CBasePlayer_Spawn, "RG_PlayerSpawn_Post", true);
+	g_fwVoteResultsProcessed = CreateMultiForward("mjb_vote_results_processed", ET_IGNORE, FP_CELL);
 }
 
+/* Vote Handling Logic */
+public ProcessVoteResults() {
+	new ret;
+	ExecuteForward(g_fwVoteResultsProcessed, ret, -1);
+}
+
+/* Events Determining Processes */
 public RG_PlayerSpawn_Post(id) {
-	if (mjb_get_phase() == PHASE_GAMEDAY_VOTE)
+	if (mjb_get_phase() == PHASE_GAMEDAY_VOTE) {
 		FreezePlayer(id);
+		BlindPlayer(id);
+	}
 }
 
 public mjb_phase_changed(iOldPhase, iNewPhase) {
 	if (iNewPhase == PHASE_GAMEDAY_VOTE) {
 		FreezeAndBlindAll();
+	} else if (iNewPhase == PHASE_GAMEDAY_VOTE_ENDED) {
+		Un_FreezeAndBlindAll();
+		ProcessVoteResults();
+	}
+}
+
+/* Player Related Logic */
+public Un_FreezeAndBlindAll() {
+	new pl[32], plnum, id;
+	get_players(pl, plnum, "h");
+	for (new i = 0; i < plnum; i++) {
+		id = pl[i];
+		if (!mjb_is_valid_player(id) || !is_user_alive(id))
+			continue;
+		UnFreezePlayer(id);
+		UnBlindPlayer(id);
 	}
 }
 
@@ -43,7 +70,7 @@ public UnBlindPlayer(id) {
 
 public FreezePlayer(id) {
 	new flags = pev(id, pev_flags);
-	if (IsFreezed)
+	if (IsFreezed(id))
 		return;
 	flags |= FL_FROZEN;
 	set_pev(id, pev_flags, flags);
@@ -52,16 +79,16 @@ public FreezePlayer(id) {
 
 public UnFreezePlayer(id) {
 	new flags = pev(id, pev_flags);
-	if (!IsFreezed)
+	if (!IsFreezed(id))
 		return;
 	flags &= ~FL_FROZEN;
+	set_pev(id, pev_flags, flags);
 	set_member(id, m_flNextAttack, 0.0);
 }
 
 public bool:IsFreezed(id) {
-	return (flags & FL_FROZEN);
+	if (pev(id, pev_flags) & FL_FROZEN)
+		return true;
+	return false;
 }
 
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
-*/
