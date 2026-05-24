@@ -343,7 +343,7 @@ public cmdAddBan(id, level, cid)
 				
 				if (equal(IP, arg))
 				{
-					if (hasRa)
+					if (canAffectAccess(id, Access))
 					{
 						console_print(id, "[AMXX] %s : %L", IP, id, "CLIENT_IMM", Name);
 						
