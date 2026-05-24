@@ -17,7 +17,7 @@
 #define VOTE_TIME			15.0
 
 new const DayTypes[MAX_DAYS + 1] = {
-    FREEDAY,
+    -1,
     FREEDAY, NORMALDAY, NORMALDAY, NORMALDAY,
     GAMEDAY,
     NORMALDAY, NORMALDAY, NORMALDAY, NORMALDAY,
@@ -280,7 +280,6 @@ public mjb_timer_ended(iTimer)
 public mjb_vote_results_processed(iResult) {
 	switch(iResult) {
 		case -1: ChangePhase(PHASE_GAMEDAY_NORMAL);
-		case  0: ChangePhase(PHASE_FREEDAY);
 		default: ChangePhase(PHASE_GAMEDAY_ACTIVE);
 	}
 }
