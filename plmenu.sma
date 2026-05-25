@@ -357,7 +357,7 @@ displayBanMenu(id, pos)
 		i = g_menuPlayers[id][a];
 		get_user_name(i, name, charsmax(name));
 
-		if (is_user_bot(i) || (!canAffect(id, i) && id != i))
+		if (is_user_bot(i) || !canAffect(id, i) && id != i)
 		{
 			++b;
 
@@ -553,7 +553,7 @@ displaySlapMenu(id, pos)
 			get_user_team(i, team, charsmax(team));
 		}
 
-		if (!is_user_alive(i) || !(!canAffect(id, i) && id != i))
+		if (!is_user_alive(i) || !canAffect(id, i) && id != i)
 		{
 			++b;
 
@@ -700,7 +700,7 @@ displayKickMenu(id, pos)
 		i = g_menuPlayers[id][a];
 		get_user_name(i, name, charsmax(name));
 
-		if (!(!canAffect(id, i) && id != i))
+		if (!canAffect(id, i) && id != i)
 		{
 			++b;
 
@@ -980,7 +980,7 @@ displayTeamMenu(id, pos)
 			iteam = 3; // fix get_user_team returning 0 on spectators
 		}
 
-		if ((iteam == g_CSTeamiNumbers[g_menuOption[id] % 3]) || !(!canAffect(id, i) && id != i))
+		if ((iteam == g_CSTeamiNumbers[g_menuOption[id] % 3]) || !canAffect(id, i) && id != i)
 		{
 			++b;
 
@@ -1133,7 +1133,7 @@ displayClcmdMenu(id, pos)
 		i = g_menuPlayers[id][a];
 		get_user_name(i, name, charsmax(name));
 
-		if (!g_menuSelectNum[id] || !(!canAffect(id, i) && id != i))
+		if (!g_menuSelectNum[id] || !canAffect(id, i) && id != i)
 		{
 			++b;
 

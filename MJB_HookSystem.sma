@@ -64,11 +64,11 @@ public client_disconnected(id) {
 }
 
 public CanHook(id) {
-	return (mjb_is_valid_player(id) && is_user_alive(id) && hasRank(id, RANK_HOOK));
+	return (mjb_is_valid_player(id) && is_user_alive(id) && hasRank(id, RANK_HOOK) && mjb_get_phase() != PHASE_GAMEDAY_VOTE);
 }
 
 public CanSHook(id) {
-	return (mjb_is_valid_player(id) && is_user_alive(id) && hasRank(id, RANK_HOOK) && hasRank(id, RANK_GOLD_ADMIN));
+	return (mjb_is_valid_player(id) && is_user_alive(id) && hasRank(id, RANK_HOOK) && hasRank(id, RANK_GOLD_ADMIN) && mjb_get_phase() != PHASE_GAMEDAY_VOTE);
 }
 
 public HookOn(id) {

@@ -78,17 +78,25 @@ native mjb_get_user_melee(id);
  *
  * @param name		Name of the mode.
  * @param uid		Unique Id String of The Mode.
+ * @param time		Time of the daymode.
  *
  * @return		Daymode index.
  */
-native mjb_register_daymode(const name[], const uid[]); 
+native mjb_register_daymode(const name[], const uid[], const time); 
 
 /**
- * Gets Data of Current Daymode (if gameday is active, if not it returns an empty buffer).
+ * Wrties Data of Current Daymode.
  *
- * @return		Daymode Data {Name, UID, VoteNum);
+ * @return		True on success False on failure;
  */
-native mjb_get_current_daymode();
+native bool:mjb_get_current_daymode(data[DayModeData]);
+
+/**
+ * Gets DayMdoe Timer.
+ *
+ * @return		timer id on success if phase isnt active then -1;
+ */
+native mjb_get_daymode_timer();
 
 /**
  * Blocks main menu.

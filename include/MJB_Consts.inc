@@ -103,6 +103,7 @@ new const DayNames[][] = {
 enum _:DayModeData {
 	DM_Name[32],
 	DM_UID[32],
+	DM_Time,
 	DM_VoteNum
 };
 

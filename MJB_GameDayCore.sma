@@ -5,11 +5,8 @@
 
 #define PLUGIN "GameDay Mode Core"
 
-/* Static Daymodes */
-#define DAYMODE_FREEDAY 	-2
-#define DAYMODE_NORMALDAY	-1
-
 new Array:g_DayModes;
+new g_iDayModeTimer = -1;
 
 /* Menu Related */
 new g_iVoteMenuId, g_iMenuPosition[MAX_PLAYERS + 1];
@@ -20,11 +17,13 @@ new g_iElectedDayMode = -1; // This variable stores the winning day mode after v
 
 /* Forwards */
 new g_fwVoteResultsProcessed;
+new g_fwDayModeEnded;
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 	g_DayModes = ArrayCreate(DayModeData);
 	RegisterHookChain(RG_CBasePlayer_Spawn, "RG_PlayerSpawn_Post", true);
-	g_fwVoteResultsProcessed = CreateMultiForward("mjb_vote_results_processed", ET_IGNORE, FP_CELL, FP_STRING);
+	g_fwVoteResultsProcessed = CreateMultiForward("mjb_vote_results_processed", ET_IGNORE, FP_CELL, FP_ARRAY);
+	g_fwDayModeEnded = CreateMultiForward("mjb_daymode_ended", ET_IGNORE, FP_CELL, FP_ARRAY);
 	g_iVoteMenuId = register_menuid("Vote Menu ID");
 	register_menucmd(g_iVoteMenuId, 1023, "Handle_VoteMenu");
 }
@@ -38,12 +37,14 @@ public plugin_natives() {
 	register_library("MJB_Core");
 	register_native("mjb_register_daymode", "native_register_daymode");
 	register_native("mjb_get_current_daymode", "native_get_current_daymode");
+	register_native("mjb_get_daymode_timer", "native_get_daymode_timer");
 }
 
 public native_register_daymode(plugin, params) {
 	new data[DayModeData];
 	get_string(1, data[DM_Name], charsmax(data[DM_Name]));
 	get_string(2, data[DM_UID], charsmax(data[DM_UID]));
+	data[DM_Time] = get_param(3);
 	data[DM_VoteNum] = 0;
 	
 	ArrayPushArray(g_DayModes, data);
@@ -51,17 +52,53 @@ public native_register_daymode(plugin, params) {
 	return ArraySize(g_DayModes) - 1;
 }
 
-public native_get_current_daymode(plugin, params) {
-	new data[DayModeData] = {"", "", 0};
+public bool:native_get_current_daymode(plugin, params) {
+	new data[DayModeData] = {"", "", 0, 0};
 	// there is no daymode elected (maybe when phase isnt vote or its off-bounds)
-	if (g_iElectedDayMode < 0 || g_iElectedDayMode > ArraySize(g_DayModes))
-		return data;
+	if (g_iElectedDayMode < 0 || g_iElectedDayMode > ArraySize(g_DayModes)) {
+		return false;
+	}
 		
 	if (mjb_get_phase() != PHASE_GAMEDAY_ACTIVE)
-		return data;
+		return false;
 		
 	ArrayGetArray(g_DayModes, g_iElectedDayMode, data);
-	return data;
+	set_array(1, data, charsmax(data));
+	return true;
+}
+
+public native_get_daymode_timer() {
+	if (mjb_get_phase() != PHASE_GAMEDAY_ACTIVE)
+		return -1;
+	return g_iDayModeTimer;
+}
+
+/* Daymodes timer */
+public StartDayModeTimer(iTime)
+{
+	if (iTime == -1)
+		return;
+	
+	StopDayModeTimer();
+	g_iDayModeTimer = mjb_start_timer(float(iTime));
+}
+
+public StopDayModeTimer()
+{
+	if (g_iDayModeTimer != -1)
+	{
+		mjb_stop_timer(g_iDayModeTimer);
+		g_iDayModeTimer = -1;
+	}
+}
+
+public mjb_timer_ended(iTimerId) {
+	if (iTimerId == g_iDayModeTimer && mjb_get_phase() == PHASE_GAMEDAY_ACTIVE) {
+		new ret;
+		new data[DayModeData];
+		ArrayGetArray(g_DayModes, g_iElectedDayMode, data);
+		ExecuteForward(g_fwDayModeEnded, ret, g_iElectedDayMode, data);
+	}
 }
 
 /* Vote Handling Logic */
@@ -92,11 +129,12 @@ public ProcessVoteResults() {
 	g_iElectedDayMode = candidate;
 	if (candidate >= 0) {
 		ArrayGetArray(g_DayModes, g_iElectedDayMode, data); // to prevent invalid indexes since no choosen == -1
+		StartDayModeTimer(data[DM_Time]);
 	} else {
 		data[DM_UID] = "";
 	}
 	new ret;
-	ExecuteForward(g_fwVoteResultsProcessed, ret, g_iElectedDayMode, data[DM_UID]);
+	ExecuteForward(g_fwVoteResultsProcessed, ret, g_iElectedDayMode, data);
 }
 
 public ResetDayModesVoteNum() {

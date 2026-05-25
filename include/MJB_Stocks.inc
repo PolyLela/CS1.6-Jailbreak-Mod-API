@@ -228,7 +228,7 @@ stock GetRankLevelStr(id, output[], len, iRankLevel = -1) {
 stock get_user_rank_level(id, flags=0)
 {
 	if (flags == 0 && mjb_is_valid_player(id))
-		new flags = get_user_flags(id);
+		flags = get_user_flags(id);
 	
 	if ((flags & RANK_OWNER) == RANK_OWNER)
 		return RANK_LEVEL_OWNER;
@@ -314,6 +314,30 @@ stock ham_strip_weapon_name(pPlayer, const szWeaponName[])
 
 #if defined _fakemeta_included
 #if !defined _fakemeta_util_included
+stock CREATE_SPRITE(Float:vecOrigin[3], pSptite, iWidth, iBrightness)
+{
+	engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, vecOrigin, 0);
+	write_byte(TE_SPRITE);
+	engfunc(EngFunc_WriteCoord, vecOrigin[0]);
+	engfunc(EngFunc_WriteCoord, vecOrigin[1]);
+	engfunc(EngFunc_WriteCoord, vecOrigin[2]);
+	write_short(pSptite);
+	write_byte(iWidth);
+	write_byte(iBrightness);
+	message_end();
+}
+
+stock CREATE_WORLDDECAL(Float:vecOrigin[3], pDecal)
+{
+	message_begin(MSG_BROADCAST, SVC_TEMPENTITY);
+	write_byte(TE_WORLDDECAL);
+	engfunc(EngFunc_WriteCoord, vecOrigin[0]);
+	engfunc(EngFunc_WriteCoord, vecOrigin[1]);
+	engfunc(EngFunc_WriteCoord, vecOrigin[2]);
+	write_byte(pDecal);
+	message_end();
+}
+
 stock CREATE_BEAMCYLINDER(Float:vecOrigin[3], iRadius, pSprite, iStartFrame = 0, iFrameRate = 0, iLife, iWidth, iAmplitude = 0, iRed, iGreen, iBlue, iBrightness, iScrollSpeed = 0)
 {
 	engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, vecOrigin, 0);

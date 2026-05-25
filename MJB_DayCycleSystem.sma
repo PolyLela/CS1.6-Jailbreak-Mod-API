@@ -275,6 +275,10 @@ public mjb_timer_ended(iTimer)
 	{
 		ChangePhase(PHASE_GAMEDAY_VOTE_ENDED)
 	}
+	else if (iTimer == mjb_get_daymode_timer())
+	{
+		rg_round_end(5.0, WINSTATUS_NONE, ROUND_GAME_OVER, _, _, true);
+	}
 }
 
 public mjb_vote_results_processed(iResult) {

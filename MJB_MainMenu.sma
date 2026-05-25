@@ -107,15 +107,10 @@ public Handle_MainMenu(id, iKeys) {
 		return PLUGIN_HANDLED;
 	switch(iKeys) {
 		case 0: { 
-			if (mjb_is_user_in_duel(id)) {
-				MJB_Print(id, "!nYou can't access this command you are in a duel");
-				return PLUGIN_HANDLED;
-			}
 			client_cmd(id, "say /hats");
 		}
 		case 1: {
-			if (mjb_is_user_in_duel(id)) {
-				MJB_Print(id, "!nYou can't access this command you are in a duel");
+			if (mjb_is_user_in_duel(id) || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE) {
 				return PLUGIN_HANDLED;
 			}
 			client_cmd(id, "say /shop");
@@ -124,8 +119,7 @@ public Handle_MainMenu(id, iKeys) {
 			return TeamMenu(id);
 		}
 		case 3: {
-			if (mjb_is_user_in_duel(id)) {
-				MJB_Print(id, "!nYou can't access this command you are in a duel");
+			if (mjb_is_user_in_duel(id) || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE) {
 				return PLUGIN_HANDLED;
 			}
 			client_cmd(id, "say /pmodmenu");
@@ -134,15 +128,13 @@ public Handle_MainMenu(id, iKeys) {
 			client_cmd(id, "say /paymentinfo");
 		}
 		case 5: { 
-			if (mjb_is_user_in_duel(id)) {
-				MJB_Print(id, "!nYou can't access this command you are in a duel");
+			if (mjb_is_user_in_duel(id) || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE) {
 				return PLUGIN_HANDLED;
 			}
 			client_cmd(id, "say /vipmenu");
 		}
 		case 6: { 
-			if (mjb_is_user_in_duel(id)) {
-				MJB_Print(id, "!nYou can't access this command you are in a duel");
+			if (mjb_is_user_in_duel(id) || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE) {
 				return PLUGIN_HANDLED;
 			}
 			client_cmd(id, "say /svipmenu");
@@ -151,8 +143,7 @@ public Handle_MainMenu(id, iKeys) {
 			client_cmd(id, "say /prices");
 		}
 		case 8: {
-			if (mjb_is_user_in_duel(id)) {
-				MJB_Print(id, "!nYou can't access this command you are in a duel");
+			if (mjb_is_user_in_duel(id) || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_GAMEDAY_ACTIVE) {
 				return PLUGIN_HANDLED;
 			}
 			if (!mjb_simon_exists())
