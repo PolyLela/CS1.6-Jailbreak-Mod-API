@@ -84,7 +84,7 @@ public Show_WelcomeMsg(id){
 		tempid = pl[i];
 		if (!mjb_is_valid_player(tempid) || tempid == id)
 			continue;
-		set_hudmessage(0, 255, 255, -1.0, 0.12, 0, 0.0, 3.0, 0.3, 0.5, 3);
+		set_hudmessage(0, 255, 255, -1.0, 0.12, 0, 0.0, 3.0, 0.3, 0.5, 2);
 		show_hudmessage(tempid, "Vip Client %s Connected On The Server", name)
 	}
 }
@@ -251,9 +251,9 @@ public Handle_VIPMenu(id, iKeys){
 		{
 			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
-			set_pev(id, pev_health, 170.0);
-			set_pev(id, pev_armorvalue, 130.0);
-			MJB_Print(id, "!gYou got !tHP!g:!t170 !gAnd !tAP!g:!t130");
+			set_pev(id, pev_health, pev(id, pev_health) + 70.0);
+			set_pev(id, pev_armorvalue, pev(id, pev_health) + 30.0);
+			MJB_Print(id, "!gYou got !tHP!g:!t70 !gAnd !tAP!g:!t30");
 			g_iMenuChooseCount[id][COUNT_VIPMENU]++;
 		}
 		case 3:
@@ -341,9 +341,9 @@ public Handle_SVIPMenu(id, iKeys){
 		{
 			if (!is_user_alive(id))
 				return PLUGIN_HANDLED;
-			set_pev(id, pev_health, 170.0);
-			set_pev(id, pev_armorvalue, 130.0);
-			MJB_Print(id, "!gYou got !tHP!g:!t170 !gAnd !tAP!g:!t130");
+			set_pev(id, pev_health, pev(id, pev_health) + 70.0);
+			set_pev(id, pev_armorvalue, pev(id, pev_health) + 30.0);
+			MJB_Print(id, "!gYou got !tHP!g:!t70 !gAnd !tAP!g:!t30");
 			g_iMenuChooseCount[id][COUNT_SVIPMENU]++;
 		}
 		case 2:
