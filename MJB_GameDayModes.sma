@@ -267,6 +267,17 @@ Ringolevio_Init() {
 			}
 			case GUARD:
 			{
+				message_begin(MSG_ONE, MsgId_WeaponList, _, i);
+				write_string("mjb_dm_wpn_candycane");
+				write_byte(-1); // no primary ammo
+				write_byte(-1);
+				write_byte(-1); // no secondary ammo
+				write_byte(-1);
+				write_byte(2);  // knife slot
+				write_byte(1);  // position
+				write_byte(CSW_KNIFE);
+				write_byte(0);
+				message_end();
 				static iszViewModel, iszWeaponModel;
 				if(iszViewModel || (iszViewModel = engfunc(EngFunc_AllocString,     "models/MOON_JB/DayModes/v_candy_cane.mdl"))) set_pev_string(i, pev_viewmodel2, iszViewModel);
 				if(iszWeaponModel || (iszWeaponModel = engfunc(EngFunc_AllocString, "models/MOON_JB/DayModes/p_candy_cane.mdl"))) set_pev_string(i, pev_weaponmodel2, iszWeaponModel);
@@ -286,6 +297,7 @@ Ringolevio_Precache_Resources() {
 	engfunc(EngFunc_PrecacheSound, "MOON_JB/DayModes/defrost_player.wav");
 	engfunc(EngFunc_PrecacheSound, "MOON_JB/DayModes/freeze_player.wav");
 	engfunc(EngFunc_PrecacheModel, "sprites/MOON_JB/death_timer.spr");
+	engfunc(EngFunc_PrecacheGeneric, "sprites/MOON_JB/wpn_candycane.spr");
 	g_pSpriteFrost = engfunc(EngFunc_PrecacheModel, "sprites/frostgib.spr");
 	g_pModelFrost = engfunc(EngFunc_PrecacheModel, "models/MOON_JB/DayModes/frostgibs.mdl");
 }
