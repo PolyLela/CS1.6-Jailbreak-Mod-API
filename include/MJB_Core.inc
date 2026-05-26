@@ -14,6 +14,7 @@
  * ============================================================
  */
 
+native mjb_get_door_state();
 /**
  * Blocks default game behaviour in some functions.
  *

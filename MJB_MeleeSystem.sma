@@ -201,7 +201,6 @@ public native_set_user_melee() {
 	if (iType <= 0 || iType >= sizeof(g_Melee)) {
 		g_iPlayerMelee[id] = 0;
 		fm_switch_to_knife(id);
-		MJB_Print(0, "0aaaaaaaaaaaaaaaaaaaa");
 		return;
 	} 
 	g_iPlayerMelee[id] = iType;
@@ -317,7 +316,6 @@ public OnPlayerTraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], tra
 	} 
 	
 	new bool:bothArePrisoners = (GetTeam(victim) == PRISONER && GetTeam(attacker) == PRISONER);
-	if (bothArePrisoners) MJB_Print(0, "DEBUG: TEAMMATE FF TRACEATTACK");
 	new bool:bothAreBoxing = (mjb_get_state(victim) == PRISONER_BOXING && mjb_get_state(attacker) == PRISONER_BOXING);
 	new bool:sameMGTeam = (mjb_get_user_mg_team(victim) == mjb_get_user_mg_team(attacker));
 	
@@ -361,26 +359,6 @@ public OnPlayerTraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], tra
 			Bleed(victim);
 		}
 	}
-	
-	/*if(g_bBoxingStatus && IsSetBit(g_iBitUserBoxing, iAttacker))
-	{
-		if(g_iBoxingGame && IsSetBit(g_iBitUserBoxing, iVictim))
-		{
-			if(g_iBoxingGame == 2 && g_iBoxingUserTeam[iVictim] == g_iBoxingUserTeam[iAttacker]) return HAM_SUPERCEDE;
-
-			if(get_pdata_int(iVictim, m_LastHitGroup, linux_diff_player) == HIT_HEAD)
-			{
-				fDamage = 22.0;
-				UTIL_ScreenShake(iVictim, (1<<15), (1<<14), (1<<15));
-				UTIL_ScreenFade(iVictim, (1<<13), (1<<13), 0, 0, 0, 0, 245);
-				emit_sound(iVictim, CHAN_AUTO, "jb_engine/boxing/super_hit.wav", VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
-			}
-			else fDamage = 15.0;
-			SetHamParamFloat(3, fDamage);
-			return HC_CONTINUE;
-		}
-		return HAM_SUPERCEDE;
-	}*/
 
 	return HC_CONTINUE;
 }
@@ -394,21 +372,16 @@ public OnPlayerTakeDamage_Pre(victim, inflictor, attacker, Float:damage, damageb
 	new vicMeleeType = GetUserMelee(victim);
 	
 	new bool:bothArePrisoners = (GetTeam(victim) == PRISONER && GetTeam(attacker) == PRISONER);
-	if (bothArePrisoners) MJB_Print(0, "DEBUG: OK1");
 	new bool:sameMGTeam = (mjb_get_user_mg_team(victim) == mjb_get_user_mg_team(attacker));
-	if (!sameMGTeam) MJB_Print(0, "DEBUG: OK2");
 	new bool:bothHasBoxingGloves = (((meleeType == MELEE_BOXING_BLUE || meleeType == MELEE_BOXING_RED) && get_user_weapon(attacker) == CSW_KNIFE) && ((vicMeleeType == MELEE_BOXING_BLUE || vicMeleeType == MELEE_BOXING_RED) && get_user_weapon(victim) == CSW_KNIFE));
-	if (bothHasBoxingGloves) MJB_Print(0, "DEBUG: OK3");
 	
 	if (g_bFreezed[victim]) 
 	{
-		MJB_Print(attacker, "Player Still freezed");
 		SetHookChainReturn(ATYPE_INTEGER, 0);
 		return HC_SUPERCEDE;
 	}
 	
 	if (bothArePrisoners && !sameMGTeam && bothHasBoxingGloves) {
-		MJB_Print(0, "DEBUG: OK4");
 		if (get_member(victim, m_LastHitGroup) == HIT_HEAD)
 		{
 			damage = 22.0;

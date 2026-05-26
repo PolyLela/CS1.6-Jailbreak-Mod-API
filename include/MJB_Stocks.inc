@@ -67,7 +67,7 @@ stock GetTeam(id)
 stock GetTeamCount(iTeam, bool:bAliveOnly = true) {
 	new iTeamNum = 0;
 	for (new id = 1; id <= MAX_PLAYERS; id++) {
-		if (!mjb_is_valid_player(id) || GetTeam(id) != iTeam || (bAliveOnly && !is_user_alive(id)))
+		if (!mjb_is_valid_player(id) || (iTeam >= 0 && GetTeam(id) != iTeam) || (bAliveOnly && !is_user_alive(id)))
 			continue;
 		iTeamNum++;
 	}

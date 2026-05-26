@@ -47,6 +47,7 @@ public plugin_init() {
 
 	RegisterHookChain(RG_CBasePlayer_TraceAttack, "OnPlayerTraceAttack_Pre", false);
 	RegisterHookChain(RG_CBasePlayer_Killed, "OnPlayerKilled_Pre", false);
+	RegisterHookChain(RG_CBasePlayer_Killed, "OnPlayerKilled_Post", true);
 	
 	g_fwUserSetDuel = CreateMultiForward("mjb_user_set_in_duel", ET_IGNORE, FP_CELL);
 	
@@ -81,7 +82,7 @@ public plugin_precache() {
 	g_pSpriteDuelBlue = precache_model("sprites/MOON_JB/duel_blue.spr");
 	g_pSpriteWave = precache_model("sprites/shockwave.spr");
 	precache_sound("MOON_JB/Duel/nasheed.mp3");
-	precache_sound("MOON_JB/Duel/badboys.mp3");
+	//precache_sound("MOON_JB/Duel/badboys.mp3");
 }
 
 public plugin_natives() {
@@ -187,7 +188,18 @@ public OnPlayerTraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], tra
 	return HC_CONTINUE;
 }
 
+/* This removes items from dead dueller before dying and its seperated from clearduel logic*/
 public OnPlayerKilled_Pre(victim, attacker) {
+	if (!isDuelRunning())
+		return;
+	
+	if (!isUserDuel(victim))
+		return;
+	
+	rg_remove_all_items(victim);
+}
+
+public OnPlayerKilled_Post(victim, attacker) {
 	if (!isDuelRunning())
 		return;
 	
@@ -230,15 +242,8 @@ public SetUsersDuel(iDuellerT, iDuellerCT) {
 	
 	if (iDuellerT == iDuellerCT || GetTeam(iDuellerT) != PRISONER || GetTeam(iDuellerCT) != GUARD)
 		return 0;
-	
-	switch(random(1)) {
-		case 0 : {
-			client_cmd(0, "mp3 play sound/MOON_JB/Duel/nasheed.mp3");
-		}
-		case 1: {
-			client_cmd(0, "mp3 play sound/MOON_JB/Duel/badboys.mp3");
-		}
-	}
+
+	client_cmd(0, "mp3 play sound/MOON_JB/Duel/nasheed.mp3");
 	g_iDuellerT = iDuellerT;
 	g_iDuellerCT = iDuellerCT;
 	rg_reset_maxspeed(g_iDuellerCT);
@@ -324,7 +329,6 @@ public RemoveAndSaveWeapons(id) {
 	pev(id, pev_gravity, g_fCachedGravityValue[id]);
 	mjb_set_user_melee(id);
 	set_pev(id, pev_gravity, 1.0);
-	MJB_Print(id, "cached melee : %d", g_iCachedMeleeIndex[id]);
 	rg_remove_all_items(id);
 	
 }
@@ -534,15 +538,15 @@ Show_ChooseGuardMenu(id, iPos)
 		return PLUGIN_HANDLED;
 	}
 	
-	new iStart = iPos * PLAYERS_PER_PAGE;
-	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - PLAYERS_PER_PAGE;
+	new iStart = iPos * ITEMS_PER_PAGE;
+	if(iStart >= g_iMenuCount[id]) iStart = g_iMenuCount[id] - ITEMS_PER_PAGE;
 	if(iStart < 0) iStart = 0;
-	iStart -= (iStart % PLAYERS_PER_PAGE);
-	g_iMenuPosition[id] = iStart / PLAYERS_PER_PAGE;
-	new iEnd = iStart + PLAYERS_PER_PAGE;
+	iStart -= (iStart % ITEMS_PER_PAGE);
+	g_iMenuPosition[id] = iStart / ITEMS_PER_PAGE;
+	new iEnd = iStart + ITEMS_PER_PAGE;
 	if(iEnd > g_iMenuCount[id]) iEnd = g_iMenuCount[id];
 	
-	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / PLAYERS_PER_PAGE + ((g_iMenuCount[id] % PLAYERS_PER_PAGE) ? 1 : 0));
+	new szMenu[512], iLen, iPagesNum = (g_iMenuCount[id] / ITEMS_PER_PAGE + ((g_iMenuCount[id] % ITEMS_PER_PAGE) ? 1 : 0));
 	
 	iLen = formatex(szMenu, charsmax(szMenu), "\rM\wOON JB \r| \yChoose a Guard\w[%d|%d]^n^n", g_iMenuPosition[id] + 1, iPagesNum);
 	
@@ -556,7 +560,7 @@ Show_ChooseGuardMenu(id, iPos)
 		iLen += formatex(szMenu[iLen], charsmax(szMenu)-iLen, "\y[%d] \w%s^n", ++b, szName);
 	}
 	
-	for(new i = b; i < PLAYERS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
+	for(new i = b; i < ITEMS_PER_PAGE; i++) iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
 	
 	if(iEnd < g_iMenuCount[id])
 	{
@@ -578,7 +582,7 @@ public Handle_ChooseGuardMenu(id, iKey)
 		case 9: return Show_ChooseGuardMenu(id, --g_iMenuPosition[id]);
 		default:
 		{
-			new index = g_iMenuPosition[id] * PLAYERS_PER_PAGE + iKey;
+			new index = g_iMenuPosition[id] * ITEMS_PER_PAGE + iKey;
 			
 			if(index >= g_iMenuCount[id])
 				return Show_ChooseGuardMenu(id, g_iMenuPosition[id]);

@@ -12,13 +12,14 @@
 
 #define PLUGIN "Days State System FSM"
 #define DAY_END_TASK		7124
+#define TASK_TOGGLE_CELL	2174
 #define FREEDAY_TIME		240.0
 #define SELECT_SIMON_TIME	30.0
 #define VOTE_TIME			15.0
 
 new const DayTypes[MAX_DAYS + 1] = {
     -1,
-    FREEDAY, NORMALDAY, NORMALDAY, NORMALDAY,
+    FREEDAY, GAMEDAY, NORMALDAY, NORMALDAY,
     GAMEDAY,
     NORMALDAY, NORMALDAY, NORMALDAY, NORMALDAY,
     NORMALDAY, NORMALDAY,
@@ -107,12 +108,14 @@ public ChangePhase(newPhase)
 		{
 			StopSimonTimer();
 			StartFreedayTimer();
-			mjb_open_cell();
+			if (task_exists(TASK_TOGGLE_CELL)) remove_task(TASK_TOGGLE_CELL);
+			set_task(0.3, "TaskOpenCell", TASK_TOGGLE_CELL)
 		}
 		
 		case PHASE_FREE_ENDED:
 		{
-			mjb_close_cell();
+			if (task_exists(TASK_TOGGLE_CELL)) remove_task(TASK_TOGGLE_CELL);
+			set_task(0.3, "TaskCloseCell", TASK_TOGGLE_CELL)
 			
 			if (!mjb_simon_exists())
 				ChangePhase(PHASE_SIMON_SELECT);
@@ -275,10 +278,6 @@ public mjb_timer_ended(iTimer)
 	{
 		ChangePhase(PHASE_GAMEDAY_VOTE_ENDED)
 	}
-	else if (iTimer == mjb_get_daymode_timer())
-	{
-		rg_round_end(5.0, WINSTATUS_NONE, ROUND_GAME_OVER, _, _, true);
-	}
 }
 
 public mjb_vote_results_processed(iResult) {
@@ -286,6 +285,27 @@ public mjb_vote_results_processed(iResult) {
 		case -1: ChangePhase(PHASE_GAMEDAY_NORMAL);
 		default: ChangePhase(PHASE_GAMEDAY_ACTIVE);
 	}
+}
+
+public mjb_daymode_ended(iDayMode, DayModeUID[], iWinTeam) {
+	new WinStatus:ws, ScenarioEventEndRound:rg;
+	switch (iWinTeam) {
+		case PRISONER: {
+			ws = WINSTATUS_TERRORISTS;
+			rg = ROUND_TERRORISTS_WIN;
+			
+		}
+		case GUARD: {
+			ws = WINSTATUS_CTS;
+			rg = ROUND_CTS_WIN;
+			
+		}
+		default: {
+			ws = WINSTATUS_DRAW
+			rg = ROUND_GAME_OVER
+		}
+	}
+	rg_round_end(5.0, ws, rg, _, _, true);
 }
 
 public mjb_simon_set(id)
@@ -400,4 +420,12 @@ public BlockGameBehaviour() {
 public HamHook_EntityBlock(iEntity, id)
 {
 	return HAM_SUPERCEDE;
+}
+
+public TaskOpenCell() {
+	mjb_open_cell()
+}
+
+public TaskCloseCell() {
+	mjb_close_cell()
 }

@@ -54,9 +54,6 @@ new g_iHatEnt[MAX_PLAYERS + 1];
 new g_iMenuPosition[MAX_PLAYERS + 1];
 new const g_iMenuCount = sizeof(g_Hats) + 2;
 
-/* Hud Damage Variablese */
-new g_iLastAttacker[MAX_PLAYERS + 1];
-
 /* Hud Freeday & Wanted */
 new Array:g_aFreedayPrisoners, Array:g_aWantedPrisoners;
 new g_FreedayHudSync, g_WantedHudSync, g_GeneralInfoHudSync, g_MainInfoHudSync;
@@ -67,8 +64,7 @@ public plugin_init() {
 	register_event("CurWeapon","ChangeWeaponSkin","be","1=1")
 	
 	/* Hud Damage */
-	register_message(get_user_msgid("Damage"), "Message_Damage");
-	RegisterHookChain(RG_CBasePlayer_TakeDamage, "HudDamage", true);
+	RegisterHookChain(RG_CBasePlayer_TakeDamage, "RG_TakeDamage_Post", true);
 	
 	/* Hats */
 	register_clcmd("say /hats", "Cmd_HatsMenu");
@@ -257,7 +253,7 @@ public HudGeneralInfo() {
 	iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Date : [%s]^n", szDate);
 	iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "--------------------^n");
 	iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Prisoners - [%d / %d]^n", GetTeamCount(PRISONER, true), GetTeamCount(PRISONER, false));
-	iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "JbGuards - [%d / %d]^n", GetTeamCount(GUARD, true), GetTeamCount(GUARD, false));
+	iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Guards - [%d / %d]^n", GetTeamCount(GUARD, true), GetTeamCount(GUARD, false));
 	iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Players - [%d / %d]^n", GetTeamCount(GUARD, false) + GetTeamCount(PRISONER, false), MAX_PLAYERS);
 	iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "--------------------^n");
 	iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "%s^n", szDiscord);
@@ -331,22 +327,15 @@ public HudMainInfo() {
 }
 
 /* Hud Damage Logic */
-public HudDamage(victim, inflictor, attacker, Float:damage, damagebits){
+public RG_TakeDamage_Post(victim, inflictor, attacker, Float:damage, damagebits){
 	if (victim == attacker || !mjb_is_valid_player(attacker))
 		return;
-	g_iLastAttacker[victim] = attacker;
-}
-
-public Message_Damage(iMsgId, iDest, victim) {
-	new attacker = g_iLastAttacker[victim];
-	if (!mjb_is_valid_player(attacker))
-		return;
-	new damage = get_msg_arg_int(2);
-	if (damage <= 0)
+		
+	if (damage <= 0.0)
 		return;
 	new Float:Xfloat = random_float(0.25, 0.55), Float:Yfloat = random_float(0.25, 0.55);
-	set_hudmessage(0, 255, 255, Xfloat, Yfloat, 0, 3.0, 3.0, 0.1, 1.0);
-	show_hudmessage(attacker, "%d", damage);
+	set_hudmessage(255, 255, 0, Xfloat, Yfloat, 0, 3.0, 3.0, 0.1, 1.0);
+	show_hudmessage(attacker, "%d", floatround(damage));
 }
 
 /* Hat Logic */

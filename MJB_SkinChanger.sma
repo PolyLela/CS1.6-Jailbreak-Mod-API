@@ -291,7 +291,6 @@ GetDesiredSkin(id, model[], len, &body, &skin)
 	// ================= GUARD =================
 	if(team == GUARD)
 	{
-		MJB_Print(id, "2 Should work");
 		if(mjb_is_simon(id))
 		{
 			copy(model, len, szSimonModel);
