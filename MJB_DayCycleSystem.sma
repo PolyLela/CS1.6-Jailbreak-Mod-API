@@ -71,7 +71,7 @@ public plugin_init()
 }
 
 public plugin_precache() {
-	precache_model("models/MOON_JB/MOON_JB_v_round_sound.mdl");
+	precache_model("models/MOON_JB/new_v_round_sound.mdl");
 }
 
 /* =========================
@@ -254,7 +254,7 @@ public DayEnd() {
 			continue;
 		client_cmd(i, "mp3 stop");
 		static iszViewModel = 0; //get the model one time
-		if(iszViewModel || (iszViewModel = engfunc(EngFunc_AllocString, "models/MOON_JB/MOON_JB_v_round_sound.mdl")))
+		if(iszViewModel || (iszViewModel = engfunc(EngFunc_AllocString, "models/MOON_JB/new_v_round_sound.mdl")))
 			set_pev_string(i, pev_viewmodel2, iszViewModel);
 		set_member(i, m_flNextAttack);
 		UTIL_WeaponAnimation(i, 0);

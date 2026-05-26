@@ -149,6 +149,7 @@ new const g_Melee[MeleeType][MeleeData] =
 new g_iPlayerMelee[MAX_PLAYERS + 1];
 new bool:g_bFreezed[MAX_PLAYERS + 1];
 new exploSpr;
+new g_fwUpdateSkinPre;
 /* =========================
    PLUGIN LIFECYCLE
 ========================= */
@@ -163,6 +164,7 @@ public plugin_init()
 	RegisterHam(Ham_Weapon_PrimaryAttack, "weapon_knife", "Ham_Melee_PrimaryAttack_Post", 1);
 	RegisterHam(Ham_Weapon_SecondaryAttack, "weapon_knife", "Ham_Melee_SecondaryAttack_Post", 1);
 	register_forward(FM_EmitSound, "FakeMeta_EmitSound", false);
+	g_fwUpdateSkinPre = CreateMultiForward("mjb_update_melee_pre", ET_STOP, FP_CELL, FP_CELL);
 }
 
 public plugin_precache()
@@ -442,11 +444,11 @@ public GetMeleeSound(m, const sample[])
 
 public UpdateMelee(id)
 {
-	new data[DayModeData];
-	if (mjb_get_current_daymode(data) && equal(data[DM_UID], "ringolevio_day"))
-		return;
 	new m = GetPlayerMelee(id);
-	
+	new ret;
+	ExecuteForward(g_fwUpdateSkinPre, ret, id, m);
+	if (ret == PLUGIN_HANDLED)
+		return;
 	set_pev(id, pev_viewmodel2, g_Melee[m][MELEE_V_MODEL]);
 	set_pev(id, pev_weaponmodel2, g_Melee[m][MELEE_P_MODEL]);
 }

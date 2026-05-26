@@ -96,7 +96,7 @@ public StopDayModeTimer()
 
 public mjb_timer_ended(iTimerId) {
 	if (iTimerId == g_iDayModeTimer) {
-		EndDayMode(0);
+		EndDayMode(GetTeamCount(PRISONER, true) ? PRISONER : GUARD);
 	}
 }
 

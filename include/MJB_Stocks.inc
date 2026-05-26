@@ -340,6 +340,46 @@ stock CREATE_KILLPLAYERATTACHMENTS(pPlayer)
 	message_end();
 }
 
+stock CREATE_SPRITETRAIL(const Float:fOrigin[3], pSprite, iCount, iLife, iScale, iVelocityAlongVector, iRandomVelocity)
+{
+	message_begin(MSG_BROADCAST, SVC_TEMPENTITY);
+	write_byte(TE_SPRITETRAIL);
+	engfunc(EngFunc_WriteCoord, fOrigin[0]);
+	engfunc(EngFunc_WriteCoord, fOrigin[1]);
+	engfunc(EngFunc_WriteCoord, fOrigin[2]);
+	engfunc(EngFunc_WriteCoord, fOrigin[0]);
+	engfunc(EngFunc_WriteCoord, fOrigin[1]);
+	engfunc(EngFunc_WriteCoord, fOrigin[2]);
+	write_short(pSprite);
+	write_byte(iCount);
+	write_byte(iLife); // 0.1's
+	write_byte(iScale);
+	write_byte(iVelocityAlongVector);
+	write_byte(iRandomVelocity);
+	message_end(); 
+}
+
+stock CREATE_BREAKMODEL(const Float:fOrigin[3], Float:fSize[3] = {16.0, 16.0, 16.0}, Float:fVelocity[3] = {25.0, 25.0, 25.0}, iRandomVelocity, pModel, iCount, iLife, iFlags)
+{
+	message_begin(MSG_BROADCAST, SVC_TEMPENTITY);
+	write_byte(TE_BREAKMODEL);
+	engfunc(EngFunc_WriteCoord, fOrigin[0]);
+	engfunc(EngFunc_WriteCoord, fOrigin[1]);
+	engfunc(EngFunc_WriteCoord, fOrigin[2] + 24);
+	engfunc(EngFunc_WriteCoord, fSize[0]);
+	engfunc(EngFunc_WriteCoord, fSize[1]);
+	engfunc(EngFunc_WriteCoord, fSize[2]);
+	engfunc(EngFunc_WriteCoord, fVelocity[0]);
+	engfunc(EngFunc_WriteCoord, fVelocity[1]);
+	engfunc(EngFunc_WriteCoord, fVelocity[2]);
+	write_byte(iRandomVelocity);
+	write_short(pModel);
+	write_byte(iCount); // 0.1's
+	write_byte(iLife); // 0.1's
+	write_byte(iFlags);
+	message_end();
+}
+
 #if defined _hamsandwich_included
 stock ham_strip_weapon_name(pPlayer, const szWeaponName[])
 {
