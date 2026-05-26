@@ -1,6 +1,5 @@
 #include <amxmodx>
 #include <fakemeta>
-#include <fun>
 #include <MJB_Core>
 
 #define PLUGIN "Hook System"
@@ -78,7 +77,7 @@ public HookOn(id) {
 	g_bIsHooking[id] = true;
 	get_user_origin(id, g_iHookOrigin[id], 3);
 	CreateHookEffects(id, g_iHookOrigin[id]);
-	set_user_rendering(id, kRenderFxGlowShell,  random_num( 0,255 ),  random_num( 0,255 ),  random_num( 0,255 ), kRenderNormal, 16 )
+	fm_set_user_rendering(id, kRenderFxGlowShell,  random_float( 0.0,255.0 ),  random_float( 0.0,255.0 ),  random_float( 0.0,255.0 ), kRenderNormal, 16.0 )
 	emit_sound(id, CHAN_STATIC, "MOON_JB/Hook/lightning_hook.wav", VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
 	set_task(0.1, "HookThink", id + HOOK_TASK, _, _, "ab");
 	HookThink(id + HOOK_TASK);
@@ -92,8 +91,8 @@ public SHookOn(id) {
 	g_bIsSHooking[id] = true;
 	get_user_origin(id, g_iHookOrigin[id], 3);
 	CreateSHookEffects(id, g_iHookOrigin[id]);
-	new iValue = random_num( 200,255 );
-	set_user_rendering(id, kRenderFxGlowShell, iValue,  iValue,  iValue, kRenderNormal, 16 )
+	new Float:fValue = random_float( 200.0,255.0 );
+	fm_set_user_rendering(id, kRenderFxGlowShell, fValue,  fValue,  fValue, kRenderNormal, 16.0 )
 	emit_sound(id, CHAN_STATIC, "MOON_JB/Hook/hook_rope.wav", VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
 	set_task(0.1, "SHookThink", id + SHOOK_TASK, _, _, "ab");
 	SHookThink(id + SHOOK_TASK);
@@ -156,7 +155,7 @@ public SHookThink(taskid) {
 
 public HookOff(id) {
 	RemoveBeam(id);
-	set_user_rendering(id, kRenderFxGlowShell, 0, 0, 0, kRenderNormal, 16 )
+	fm_set_user_rendering(id, kRenderFxGlowShell, 0.0, 0.0, 0.0, kRenderNormal, 16.0 )
 	g_bIsHooking[id] = false;
 	if (task_exists(id + HOOK_TASK)) remove_task(id + HOOK_TASK);
 	return PLUGIN_HANDLED;
@@ -164,7 +163,7 @@ public HookOff(id) {
 
 public SHookOff(id) {
 	RemoveBeam(id);
-	set_user_rendering(id, kRenderFxGlowShell, 0, 0, 0, kRenderNormal, 16 )
+	fm_set_user_rendering(id, kRenderFxGlowShell, 0.0, 0.0, 0.0, kRenderNormal, 16.0 )
 	g_bIsSHooking[id] = false;
 	if (task_exists(id + SHOOK_TASK)) remove_task(id + SHOOK_TASK);
 	return PLUGIN_HANDLED;

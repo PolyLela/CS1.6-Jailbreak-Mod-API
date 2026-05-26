@@ -309,6 +309,18 @@ stock set_user_drug(id, iToggle = 0)
 	}
 }
 
+stock fm_set_user_rendering(id, iRenderFx, Float:flRed, Float:flGreen, Float:flBlue, iRenderMode,  Float:flRenderAmt)
+{
+	new Float:fRenderColor[3];
+	fRenderColor[0] = flRed;
+	fRenderColor[1] = flGreen;
+	fRenderColor[2] = flBlue;
+	set_pev(id, pev_renderfx, iRenderFx);
+	set_pev(id, pev_rendercolor, fRenderColor);
+	set_pev(id, pev_rendermode, iRenderMode);
+	set_pev(id, pev_renderamt, flRenderAmt);
+}
+
 stock CREATE_PLAYERATTACHMENT(pPlayer, iHeight = 50, pSprite, iLife)
 {
 	message_begin(MSG_ALL, SVC_TEMPENTITY);
