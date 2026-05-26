@@ -55,13 +55,14 @@ public plugin_precache() {
 }
 
 register_daymodes() {
-	mjb_register_daymode("Sparta Day", "sparta_day", 187);
-	mjb_register_daymode("Predator Day", "pred_day", 187);
-	mjb_register_daymode("Birth Day", "birth_day", 187);
-	mjb_register_daymode("Boxing Day", "boxing_day", 187);
-	mjb_register_daymode("Space Day", "space_day", 187);
-	mjb_register_daymode("Ringolevio Day", "ringolevio_day", 192);
-	mjb_register_daymode("Zmurka Day", "zmurka_day", 187);
+	mjb_register_daymode("Sparta Day", "sparta_day", 187, WINSTATUS_TERRORISTS);
+	mjb_register_daymode("Prisedent Day", "prisedent_day", 200, WINSTATUS_DRAW);
+	mjb_register_daymode("Birth Day", "birth_day", 187, WINSTATUS_TERRORISTS);
+	mjb_register_daymode("Boxing Day", "boxing_day", 200, WINSTATUS_DRAW);
+	mjb_register_daymode("Space Day", "space_day", 187, WINSTATUS_DRAW);
+	mjb_register_daymode("Ringolevio Day", "ringolevio_day", 192, WINSTATUS_TERRORISTS);
+	mjb_register_daymode("Predator Day", "pred_day", 240, WINSTATUS_CTS);
+	mjb_register_daymode("Zmurka Day", "zmurka_day", 240, WINSTATUS_TERRORISTS);
 }
 
 register_events() {
@@ -139,11 +140,11 @@ public mjb_vote_results_processed(iDayMode, DayModeUID[]) {
 	}
 }
 
-public mjb_daymode_ended(iDayMode, DayModeUID[], iWinTeam) {
+public mjb_daymode_ended(iDayMode, DayModeUID[], WinStatus:WinTeam) {
 	if (equal(DayModeUID, "birth_day")) {
-		Birthday_End(iWinTeam);
+		Birthday_End(WinTeam);
 	} else if (equal(DayModeUID, "ringolevio_day")) {
-		Ringolevio_End(iWinTeam);
+		Ringolevio_End(WinTeam);
 	}
 }
 /*===== <- Events <- =====*///}
@@ -227,7 +228,7 @@ public Birthday_Callback_FM_SetModel(iEntity, const szModel[]) {
 	return FMRES_IGNORED;
 }
 
-Birthday_End(iWinTeam) {
+Birthday_End(WinStatus:WinTeam) {
 	mjb_unblock_game_behaviour();
 	DisableHamForward(g_iGrenadeTouchForward);
 	unregister_forward(FM_SetModel, g_iFakeMetaSetModel, true);
@@ -237,7 +238,7 @@ Birthday_End(iWinTeam) {
 				if(!mjb_is_valid_player(i) || !is_user_alive(i) || GetTeam(i) != GUARD)
 					continue;
 		
-				if(iWinTeam) rg_remove_all_items(i);
+				if(WinTeam == WINSTATUS_CTS) rg_remove_all_items(i);
 				else ExecuteHamB(Ham_Killed, i, i, 0);
 			}
 	while((iEntity = engfunc(EngFunc_FindEntityByString, iEntity, "classname", "grenade")))
@@ -437,7 +438,7 @@ public ringolevio_create_death_timer(id, Float:vecOrigin[3])
 	set_pev(g_iUserEntityTimer[id], pev_movetype, MOVETYPE_NONE);
 }
 
-Ringolevio_End(iWinTeam) {
+Ringolevio_End(WinStatus:WinTeam) {
 	mjb_close_cell();
 	mjb_unblock_game_behaviour();
 	DisableHamForward(g_iTraceAttack);
@@ -457,7 +458,7 @@ Ringolevio_End(iWinTeam) {
 			}
 			case GUARD:
 			{
-				if(iWinTeam) rg_remove_all_items(i);
+				if(WinTeam == WINSTATUS_CTS) rg_remove_all_items(i);
 				else ExecuteHamB(Ham_Killed, i, i, 0);
 			}
 		}

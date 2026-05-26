@@ -48,6 +48,7 @@ public native_register_daymode(plugin, params) {
 	get_string(1, data[DM_Name], charsmax(data[DM_Name]));
 	get_string(2, data[DM_UID], charsmax(data[DM_UID]));
 	data[DM_Time] = get_param(3);
+	data[DM_TimeOverWS] = WinStatus:get_param(4);
 	
 	ArrayPushArray(g_DayModes, data);
 	
@@ -96,11 +97,18 @@ public StopDayModeTimer()
 
 public mjb_timer_ended(iTimerId) {
 	if (iTimerId == g_iDayModeTimer) {
-		EndDayMode(GetTeamCount(PRISONER, true) ? PRISONER : GUARD);
+		new data[DayModeData], WinStatus:TimeOverWS;
+		ArrayGetArray(g_DayModes, g_iElectedDayMode, data);
+		/* This is overchecking to ensure nothing goes wrong */
+		if (g_iElectedDayMode == -1 || data[DM_TimeOverWS] < WINSTATUS_NONE || data[DM_TimeOverWS] >= WinStatus)
+			TimeOverWS = WINSTATUS_NONE;
+		else
+			TimeOverWS = data[DM_TimeOverWS];
+		EndDayMode(TimeOverWS);
 	}
 }
 
-public EndDayMode(iWinTeam) {
+public EndDayMode(WinStatus:WinTeam) {
 	if (g_iElectedDayMode < 0 || g_iElectedDayMode >= ArraySize(g_DayModes)) {
 		return
 	}
@@ -108,7 +116,7 @@ public EndDayMode(iWinTeam) {
 	new ret;
 	new data[DayModeData];
 	ArrayGetArray(g_DayModes, g_iElectedDayMode, data);
-	ExecuteForward(g_fwDayModeEnded, ret, g_iElectedDayMode, data[DM_UID], iWinTeam); // basic win condition if there is any alive prisoner then prisoners won else guards won
+	ExecuteForward(g_fwDayModeEnded, ret, g_iElectedDayMode, data[DM_UID], WinTeam); // basic win condition if there is any alive prisoner then prisoners won else guards won
 	ResetDayModesVoteNum();
 	g_iElectedDayMode = -1;
 }
@@ -216,7 +224,7 @@ public mjb_phase_changed(iOldPhase, iNewPhase) {
 		show_menu(0, 0, "^n", 1);
 		ProcessVoteResults();
 	} else if (iOldPhase == PHASE_GAMEDAY_ACTIVE && iNewPhase == PHASE_DAY_ENDED) {
-		EndDayMode(GetTeamCount(PRISONER, true) ? PRISONER : GUARD);
+		EndDayMode(GetTeamCount(PRISONER, true) ? WINSTATUS_TERRORISTS : WINSTATUS_CTS);
 	}
 }
 

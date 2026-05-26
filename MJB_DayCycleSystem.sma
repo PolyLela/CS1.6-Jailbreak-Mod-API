@@ -287,25 +287,22 @@ public mjb_vote_results_processed(iResult) {
 	}
 }
 
-public mjb_daymode_ended(iDayMode, DayModeUID[], iWinTeam) {
-	new WinStatus:ws, ScenarioEventEndRound:rg;
-	switch (iWinTeam) {
-		case PRISONER: {
-			ws = WINSTATUS_TERRORISTS;
+public mjb_daymode_ended(iDayMode, DayModeUID[], WinStatus:WinTeam) {
+	new ScenarioEventEndRound:rg;
+	switch (WinTeam) {
+		case WINSTATUS_TERRORISTS: {
 			rg = ROUND_TERRORISTS_WIN;
 			
 		}
-		case GUARD: {
-			ws = WINSTATUS_CTS;
+		case WINSTATUS_CTS: {
 			rg = ROUND_CTS_WIN;
 			
 		}
 		default: {
-			ws = WINSTATUS_DRAW
 			rg = ROUND_GAME_OVER
 		}
 	}
-	rg_round_end(5.0, ws, rg, _, _, true);
+	rg_round_end(5.0, WinTeam, rg, _, _, true);
 }
 
 public mjb_simon_set(id)

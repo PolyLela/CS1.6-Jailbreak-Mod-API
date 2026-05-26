@@ -77,13 +77,14 @@ native mjb_get_user_melee(id);
 /**
  * Registers a gameday mode.
  *
- * @param name		Name of the mode.
- * @param uid		Unique Id String of The Mode.
- * @param time		Time of the daymode.
+ * @param name					Name of the mode.
+ * @param uid					Unique Id String of The Mode.
+ * @param time					Time of the daymode.
+ * @param WinStatus:TimeOverWS	Determines Who win or what when timer ends.
  *
  * @return		Daymode index.
  */
-native mjb_register_daymode(const name[], const uid[], const time); 
+native mjb_register_daymode(const name[], const uid[], const time, const WinStatus:TimeOverWS); 
 
 /**
  * Wrties Data of Current Daymode.
