@@ -263,6 +263,37 @@ stock get_user_rank_level(id, flags=0)
 	return RANK_LEVEL_NONE;
 }
 
+stock BlindPlayer(id) {
+	UTIL_ScreenFade(id, 0, 0, 4, 0, 0, 0, 255);
+}
+
+stock UnBlindPlayer(id) {
+	UTIL_ScreenFade(id, 512, 512, 0, 0, 0, 0, 255, 1);
+}
+
+stock FreezePlayer(id) {
+	new flags = pev(id, pev_flags);
+	if (IsFreezed(id))
+		return;
+	flags |= FL_FROZEN;
+	set_pev(id, pev_flags, flags);
+	set_member(id, m_flNextAttack, get_gametime() + 999.0);
+}
+
+stock UnFreezePlayer(id) {
+	new flags = pev(id, pev_flags);
+	if (!IsFreezed(id))
+		return;
+	flags &= ~FL_FROZEN;
+	set_pev(id, pev_flags, flags);
+	set_member(id, m_flNextAttack, get_gametime());
+}
+
+stock bool:IsFreezed(id) {
+	if (pev(id, pev_flags) & FL_FROZEN)
+		return true;
+	return false;
+}
 stock set_user_drug(id, iToggle = 0) 
 {
 	if (iToggle) {

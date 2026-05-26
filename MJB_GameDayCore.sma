@@ -329,36 +329,3 @@ ShowVoteMenuAll(bool:init=false) {
 		CmdVoteMenu(id);
 	}
 }
-
-public BlindPlayer(id) {
-	UTIL_ScreenFade(id, 0, 0, 4, 0, 0, 0, 255);
-}
-
-public UnBlindPlayer(id) {
-	UTIL_ScreenFade(id, 512, 512, 0, 0, 0, 0, 255, 1);
-}
-
-public FreezePlayer(id) {
-	new flags = pev(id, pev_flags);
-	if (IsFreezed(id))
-		return;
-	flags |= FL_FROZEN;
-	set_pev(id, pev_flags, flags);
-	set_member(id, m_flNextAttack, get_gametime() + mjb_get_timer_timeleft(mjb_get_vote_timer_id()));
-}
-
-public UnFreezePlayer(id) {
-	new flags = pev(id, pev_flags);
-	if (!IsFreezed(id))
-		return;
-	flags &= ~FL_FROZEN;
-	set_pev(id, pev_flags, flags);
-	set_member(id, m_flNextAttack, get_gametime());
-}
-
-public bool:IsFreezed(id) {
-	if (pev(id, pev_flags) & FL_FROZEN)
-		return true;
-	return false;
-}
-
