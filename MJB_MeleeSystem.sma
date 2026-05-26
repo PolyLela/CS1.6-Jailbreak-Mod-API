@@ -442,6 +442,9 @@ public GetMeleeSound(m, const sample[])
 
 public UpdateMelee(id)
 {
+	new data[DayModeData];
+	if (mjb_get_current_daymode(data) && equal(data[DM_UID], "ringolevio_day"))
+		return;
 	new m = GetPlayerMelee(id);
 	
 	set_pev(id, pev_viewmodel2, g_Melee[m][MELEE_V_MODEL]);
