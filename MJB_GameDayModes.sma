@@ -11,12 +11,16 @@
 #define MsgId_WeaponList 78
 
 /* Event Handlers */
-new HamHook:g_iGrenadeTouchForward, HamHook:g_iTraceAttack;
+new HamHook:g_iGrenadeTouchForward, HamHook:g_iTraceAttackPre, HamHook:g_iTakeDamagePre;
 //HamHook:g_iKilledPost;
 new g_iFakeMetaSetModel;
 new g_iFakeMetaAddToFullPack, g_iFakeMetaCheckVisibility;
 
 /*===== -> DayModes Variables -> =====*///{
+/* President Day */
+#define WAIT_TIME 15.0
+new g_iWaitForGuardsTimer = -1;
+
 /* Birth Day */
 new g_CakeModel[][] = {
 	"models/MOON_JB/DayModes/v_cake.mdl",
@@ -62,14 +66,25 @@ register_daymodes() {
 	mjb_register_daymode("Space Day", "space_day", 187, WINSTATUS_DRAW);
 	mjb_register_daymode("Ringolevio Day", "ringolevio_day", 192, WINSTATUS_TERRORISTS);
 	mjb_register_daymode("Predator Day", "pred_day", 240, WINSTATUS_CTS);
-	mjb_register_daymode("Zmurka Day", "zmurka_day", 240, WINSTATUS_TERRORISTS);
+	mjb_register_daymode("Hide N Seek Day", "zmurka_day", 240, WINSTATUS_TERRORISTS);
 }
 
 register_events() {
 	register_clcmd("mjb_dm_wpn_cake", "ClCmd_WpnCake");
 	DisableHamForward(g_iGrenadeTouchForward = RegisterHam(Ham_Touch, "grenade", "HamHook_Touch_Grenade_Post", true));
-	DisableHamForward(g_iTraceAttack = RegisterHam(Ham_TraceAttack, "player", "Ham_TraceAttack_Pre", 0));
+	DisableHamForward(g_iTraceAttackPre = RegisterHam(Ham_TraceAttack, "player", "Ham_TraceAttack_Pre", 0));
+	DisableHamForward(g_iTakeDamagePre = RegisterHam(Ham_TakeDamage, "player", "Ham_TakeDamage_Pre", 0));
 	//DisableHamForward(g_iKilledPost = RegisterHam(Ham_Killed, "player", "Ham_PlayerKilled_Post", 1));
+}
+
+public plugin_natives() {
+	register_library("MJB_Core");
+	
+	register_native("mjb_dm_get_wait_timerid", "native_dm_get_wait_timerid");
+}
+
+public native_dm_get_wait_timerid() {
+	return g_iWaitForGuardsTimer;
 }
 
 /*===== <- Plugin Initializer <- =====*///}
@@ -121,10 +136,20 @@ public Ham_TraceAttack_Pre(iVictim, iAttacker, Float:fDamage, Float:vecDirection
 {
 	if (IsDayUID("ringolevio_day"))
 		return Ringolevio_TraceAttack_Pre(iVictim, iAttacker, fDamage, vecDirection, iTrace, iBitDamage);
+	else if (IsDayUID("prisedent_day"))
+		return President_TraceAttack_Pre(iVictim, iAttacker, fDamage, vecDirection, iTrace, iBitDamage);
 	return HAM_IGNORED;
 }
 
-public mjb_update_melee_pre(id, iMelee) {
+public Ham_TakeDamage_Pre(iVictim, iInflictor, iAttacker, Float:fDamage, damagebits)
+{
+	if (IsDayUID("prisedent_day"))
+		return President_TakeDamage_Pre(iVictim, iInflictor, iAttacker, fDamage, damagebits);
+	return HAM_IGNORED;
+}
+
+public mjb_update_melee_pre(id, iMelee) 
+{
 	if (IsDayUID("ringolevio_day"))
 		return Ringolevio_UpdateMelee_Pre(id, iMelee);
 	return PLUGIN_CONTINUE;
@@ -132,11 +157,19 @@ public mjb_update_melee_pre(id, iMelee) {
 
 //public Ham_PlayerKilled_Post(iVictim, iAttacker, iGib);
 
+public mjb_timer_ended(iTimerId) 
+{
+	if (IsDayUID("prisedent_day"))
+		President_WaitTimerEnded(iTimerId);
+}
+
 public mjb_vote_results_processed(iDayMode, DayModeUID[]) {
 	if (equal(DayModeUID, "birth_day")) {
 		Birthday_Init();
 	} else if (equal(DayModeUID, "ringolevio_day")) {
 		Ringolevio_Init();
+	} else if (equal(DayModeUID, "prisedent_day")) {
+		President_Init();
 	}
 }
 
@@ -145,9 +178,118 @@ public mjb_daymode_ended(iDayMode, DayModeUID[], WinStatus:WinTeam) {
 		Birthday_End(WinTeam);
 	} else if (equal(DayModeUID, "ringolevio_day")) {
 		Ringolevio_End(WinTeam);
+	} else if (equal(DayModeUID, "prisedent_day")) {
+		President_End();
 	}
 }
 /*===== <- Events <- =====*///}
+
+/*===== -> President day Block -> =====*///{
+President_Init() {
+	for (new i = 1; i <= MAX_PLAYERS; i++) {
+		if (!mjb_is_valid_player(i) || !is_user_alive(i))
+			continue;
+		rg_remove_all_items(i, false);
+		rg_give_item(i, "weapon_knife");
+		set_pev(i, pev_armorvalue, 0.0);
+		mjb_open_cell();
+		StartWaitTimer();
+		switch(GetTeam(i)) {
+			case PRISONER: {
+				set_task(0.1, "TaskFreezeAndBlind", i+1724);
+			}
+			case GUARD: {
+				rg_give_item(i, "weapon_ak47", GT_APPEND);
+				rg_give_item(i, "weapon_awp", GT_APPEND);
+				rg_give_item(i, "weapon_m4a1", GT_APPEND);
+				rg_give_item(i, "weapon_deagle", GT_APPEND);
+				rg_set_user_bpammo(i, WEAPON_AK47, 5000);
+				rg_set_user_bpammo(i, WEAPON_AWP, 5000);
+				rg_set_user_bpammo(i, WEAPON_M4A1, 5000);
+				rg_set_user_bpammo(i, WEAPON_DEAGLE, 5000);
+				set_pev(i, pev_health, 511.0);
+			}
+		}
+	}
+	mjb_block_game_behaviour();
+	EnableHamForward(g_iTraceAttackPre);
+	EnableHamForward(g_iTakeDamagePre);
+}
+
+public TaskFreezeAndBlind(taskid) {
+	new id = taskid-1724
+	BlindPlayer(id);
+	FreezePlayer(id);
+}
+
+StartWaitTimer()
+{
+	StopWaitTimer();
+	g_iWaitForGuardsTimer = mjb_start_timer(WAIT_TIME);
+}
+
+StopWaitTimer()
+{
+	if (g_iWaitForGuardsTimer != -1)
+	{
+		mjb_stop_timer(g_iWaitForGuardsTimer);
+		g_iWaitForGuardsTimer = -1;
+	}
+}
+public President_TraceAttack_Pre(iVictim, iAttacker, Float:fDamage, Float:vecDirection[3], iTrace, iBitDamage) {
+	if (GetTeam(iVictim) == PRISONER && GetTeam(iAttacker) == GUARD && mjb_is_timer_running(g_iWaitForGuardsTimer))
+		return HAM_SUPERCEDE;
+	return HAM_IGNORED;
+}
+
+public President_TakeDamage_Pre(iVictim, iInflictor, iAttacker, Float:fDamage, damagebits) {
+	if (GetTeam(iVictim) == PRISONER && GetTeam(iAttacker) == GUARD && mjb_is_timer_running(g_iWaitForGuardsTimer))
+		return HAM_SUPERCEDE;
+	return HAM_IGNORED;
+}
+
+public President_WaitTimerEnded(iTimerId) {
+	if (iTimerId == g_iWaitForGuardsTimer) {
+		for (new i = 0; i <= MAX_PLAYERS; i++) {
+			if (!mjb_is_valid_player(i) || GetTeam(i) != PRISONER)
+				continue;
+			UnBlindPlayer(i);
+			if (is_user_alive(i)) {
+				UnFreezePlayer(i);
+				rg_give_item(i, "weapon_ak47", GT_APPEND);
+				rg_give_item(i, "weapon_awp", GT_APPEND);
+				rg_give_item(i, "weapon_m4a1", GT_APPEND);
+				rg_give_item(i, "weapon_deagle", GT_APPEND);
+				rg_set_user_bpammo(i, WEAPON_AK47, 5000);
+				rg_set_user_bpammo(i, WEAPON_AWP, 5000);
+				rg_set_user_bpammo(i, WEAPON_M4A1, 5000);
+				rg_set_user_bpammo(i, WEAPON_DEAGLE, 5000);
+			}
+		}
+	}
+}
+
+President_End() {
+	for (new i = 1; i <= MAX_PLAYERS; i++) {
+		if (!mjb_is_valid_player(i) || !is_user_alive(i))
+			continue;
+		rg_remove_all_items(i, false);
+		rg_give_item(i, "weapon_knife");
+		set_pev(i, pev_armorvalue, 0.0);
+		if (GetTeam(i) == PRISONER) {
+			if (mjb_is_timer_running(g_iWaitForGuardsTimer)) {
+				UnBlindPlayer(i);
+				UnFreezePlayer(i);
+			}
+		}
+	}
+	StopWaitTimer();
+	mjb_unblock_game_behaviour();
+	DisableHamForward(g_iTraceAttackPre);
+	DisableHamForward(g_iTakeDamagePre);
+}
+
+/*===== <- President day Block <- =====*///}
 
 /*===== -> Birthday Block -> =====*///{
 Birthday_Init() {
@@ -287,7 +429,7 @@ Ringolevio_Init() {
 		}
 	}
 	mjb_block_game_behaviour();
-	EnableHamForward(g_iTraceAttack);
+	EnableHamForward(g_iTraceAttackPre);
 	g_iFakeMetaAddToFullPack = register_forward(FM_AddToFullPack, "FakeMeta_AddToFullPack_Post", 1);
 	g_iFakeMetaCheckVisibility = register_forward(FM_CheckVisibility, "FakeMeta_CheckVisibility", 0);
 }
@@ -441,7 +583,7 @@ public ringolevio_create_death_timer(id, Float:vecOrigin[3])
 Ringolevio_End(WinStatus:WinTeam) {
 	mjb_close_cell();
 	mjb_unblock_game_behaviour();
-	DisableHamForward(g_iTraceAttack);
+	DisableHamForward(g_iTraceAttackPre);
 	unregister_forward(FM_AddToFullPack, g_iFakeMetaAddToFullPack, 1);
 	unregister_forward(FM_CheckVisibility, g_iFakeMetaCheckVisibility, 0);
 	for(new i = 1; i <= MAX_PLAYERS; i++)
@@ -477,3 +619,6 @@ stock IsDayUID(const uid[]) {
 	return true;
 }
 /*===== <- Stocks <- =====*///}
+/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
+*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
+*/

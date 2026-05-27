@@ -77,8 +77,8 @@ public ResetAllAddJumps() {
 public GetMaxJumps(id) {
 	new iRankLevel = get_user_rank_level(id);
 	new iMaxJumps = 0;
-	if (iRankLevel >= RANK_LEVEL_ADMIN) {
-		iMaxJumps = 0
+	if (hasRank(id, RANK_ADMIN)) {
+		iMaxJumps = 1;
 		if (iRankLevel == RANK_LEVEL_OWNER)
 			iMaxJumps++;
 		if (iRankLevel >= RANK_LEVEL_ADMINISTRATOR)
@@ -97,6 +97,3 @@ public GetMaxJumps(id) {
 	iMaxJumps += g_iAddJumps[id];
 	return iMaxJumps;
 }
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
-*/

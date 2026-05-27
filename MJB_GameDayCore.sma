@@ -210,10 +210,15 @@ public mjb_timer_ticked(iTimerId, Float:fTimeleft) {
 
 public RG_PlayerSpawn_Post(id) {
 	if (mjb_get_phase() == PHASE_GAMEDAY_VOTE) {
-		FreezePlayer(id);
-		BlindPlayer(id);
-		CmdVoteMenu(id);
+		set_task(0.1, "TaskFreeze", id +9213);
 	}
+}
+
+public TaskFreeze(taskid) {
+	new id = taskid - 9213;
+	BlindPlayer(id);
+	FreezePlayer(id);
+	CmdVoteMenu(id);
 }
 
 public mjb_phase_changed(iOldPhase, iNewPhase) {

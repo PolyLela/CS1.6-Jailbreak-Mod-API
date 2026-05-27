@@ -1,7 +1,3 @@
-/*
-	Make Syringe
-*/
-
 #include <amxmodx>
 #include <fakemeta>
 #include <reapi>
@@ -57,15 +53,19 @@ public Hook_Say(id) {
 }
 
 public Hook_ChooseTeam(id) {
-	MainMenu(id);
-	return PLUGIN_HANDLED;
+	return MainMenu(id);
 }
 
 public PostPlayerSpawn(id) {
 	if (!is_user_alive(id) || get_user_team(id) != GUARD || mjb_get_day_type() == GAMEDAY)
 		return;
 
-	WeaponsMenu(id);
+	set_task(0.1, "ShowWeaponMenu", id+1324);
+}
+
+public ShowWeaponMenu(taskid) {
+	new id = taskid - 1324;
+	return WeaponsMenu(id);
 }
 
 /* Rules */

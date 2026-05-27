@@ -1096,7 +1096,7 @@ public Cmd_WantedPrisonersMenu(id)
 	
 	for(new i = 0; i < iPlayersNum; i++)
 	{
-		if (pl[i] == id || !mjb_is_valid_player(pl[i]) || GetTeam(pl[i]) != PRISONER || mjb_get_state(pl[i]) != PRISONER_WANTED)
+		if (!mjb_is_valid_player(pl[i]) || GetTeam(pl[i]) != PRISONER || mjb_get_state(pl[i]) != PRISONER_WANTED)
 			continue;
 	
 		g_iMenuPlayers[id][j++] = pl[i];
@@ -1184,11 +1184,11 @@ public Show_ManagePrisonerMenu(id) {
 	show_menu(id, 0, "^n", 1);
 	new szMenu[512], iKeys, iLen = formatex(szMenu, charsmax(szMenu), "\r\wMOON JB \r| \yPrisoner Management^n^n", id);
 	
-	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r1\d. \yGive\w/\rTake \wFree day^n", id);
+	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r1\d. \wGive/Take Free day^n", id);
 	iKeys |= (1<<0);
 	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r2\d. \wHeal prisoners^n", id);
 	iKeys |= (1<<1);
-	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r3\d. \yMute\w/\rUnmute \wprisoners Voice^n^n^n^n^n^n^n", id);
+	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r3\d. \wMute/Unmute prisoners Voice^n^n^n^n^n^n^n", id);
 	iKeys |= (1<<2);
 	
 	formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n\r0\d. \wExit", id);
@@ -1228,7 +1228,7 @@ public Cmd_FreeDayControlMenu(id) {
 	
 	for(new i = 0; i < iPlayersNum; i++)
 	{
-		if(pl[i] == id || !mjb_is_valid_player(pl[i]) || GetTeam(pl[i]) != PRISONER || (mjb_get_state(pl[i]) != NORMAL && mjb_get_state(pl[i]) != PRISONER_FREEDAY)) 
+		if(!mjb_is_valid_player(pl[i]) || GetTeam(pl[i]) != PRISONER || mjb_get_state(pl[i]) == PRISONER_WANTED || mjb_get_state(pl[i]) == PRISONER_LAST) 
 			continue;
 		g_iMenuPlayers[id][j++] = pl[i];
 	}

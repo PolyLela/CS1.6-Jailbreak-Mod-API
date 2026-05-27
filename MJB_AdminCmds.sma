@@ -5,10 +5,10 @@
 #define PLUGIN "Admin Commands"
 
 public plugin_init() {
-	register_plugin(PLUGIN, VERSION, AUTHOR)
+	register_plugin(PLUGIN, PLUGIN, PLUGIN)
 	
-	register_concmd("mjb_set_team", "Cmd_SetPlayerTeam", ADMIN_BAN);
-	register_concmd("mjb_get_team", "Cmd_GetPlayerTeam", ADMIN_BAN);
+	register_concmd("mjb_set_state", "Cmd_SetPlayerState", ADMIN_BAN);
+	register_concmd("mjb_get_state", "Cmd_GetPlayerState", ADMIN_BAN);
 	/*register_concmd("mjb_set_state", "Cmd_SetPlayerState", ADMIN_BAN);
 	register_concmd("mjb_get_state", "Cmd_GetPlayerState", ADMIN_BAN);
 	register_concmd("mjb_open_cell", "Cmd_OpenCell", ADMIN_BAN);
@@ -16,7 +16,7 @@ public plugin_init() {
 	register_concmd("mjb_close_cell", "Cmd_CloseCell", ADMIN_BAN);*/
 }
 
-public Cmd_SetPlayerTeam(id)
+public Cmd_SetPlayerState(id)
 {
     new arg1[32], arg2[8];
     read_argv(1, arg1, charsmax(arg1));
@@ -24,18 +24,25 @@ public Cmd_SetPlayerTeam(id)
     
     new targetId = cmd_target(id, arg1, CMDTARGET_ALLOW_SELF | CMDTARGET_OBEY_IMMUNITY);
     
-    new iTeam = str_to_num(arg2);
-    mjb_set_team(targetId, iTeam);
+    new iState = str_to_num(arg2);
+    mjb_set_state(targetId, iState);
 }
 
-public Cmd_GetPlayerTeam(id)
+public Cmd_GetPlayerState(id)
 {
     new arg1[32];
     read_argv(1, arg1, charsmax(arg1));
     
     new targetId = cmd_target(id, arg1, CMDTARGET_ALLOW_SELF | CMDTARGET_OBEY_IMMUNITY);
     
-    MJB_Print(id, "team : %d", mjb_get_team(targetId));
+    new szBuffer[64];
+    format(szBuffer, 63, "state : %d", mjb_get_state(targetId));
+    MJB_Print(id, szBuffer);
+    
+}
+
+public mjb_state_changed(id, iOldState, iNewState) {
+	MJB_Print(id, "Your state changed from %d to %d", iOldState, iNewState);
 }
 
 /*public Cmd_SetPlayerState(id)

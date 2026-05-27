@@ -253,7 +253,7 @@ public Handle_VIPMenu(id, iKeys){
 				return PLUGIN_HANDLED;
 			set_pev(id, pev_health, pev(id, pev_health) + 70.0);
 			set_pev(id, pev_armorvalue, pev(id, pev_health) + 30.0);
-			MJB_Print(id, "!gYou got !tHP!g:!t70 !gAnd !tAP!g:!t30");
+			MJB_Print(id, "!gYou got !tHP!g:!t170 !gAnd !tAP!g:!t130");
 			g_iMenuChooseCount[id][COUNT_VIPMENU]++;
 		}
 		case 3:
@@ -343,7 +343,7 @@ public Handle_SVIPMenu(id, iKeys){
 				return PLUGIN_HANDLED;
 			set_pev(id, pev_health, pev(id, pev_health) + 70.0);
 			set_pev(id, pev_armorvalue, pev(id, pev_health) + 30.0);
-			MJB_Print(id, "!gYou got !tHP!g:!t70 !gAnd !tAP!g:!t30");
+			MJB_Print(id, "!gYou got !tHP!g:!t170 !gAnd !tAP!g:!t130");
 			g_iMenuChooseCount[id][COUNT_SVIPMENU]++;
 		}
 		case 2:
