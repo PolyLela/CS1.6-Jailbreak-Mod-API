@@ -1,4 +1,5 @@
 /* TODO
+	Dont apply wanted on first stage of trace attack
 	Restructure FreedayNextday and ChoosePrisonerLast
 	Boxing State
 */
@@ -36,7 +37,7 @@ public plugin_init()
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 
 	/* Hooks */
-	RegisterHookChain(RG_CBasePlayer_TraceAttack, "OnPlayerTraceAttack_Pre", false);
+	RegisterHookChain(RG_CBasePlayer_TakeDamage, "OnPlayerTakeDamagePost", true);
 	RegisterHookChain(RG_CBasePlayer_Killed, "OnPlayerKilled_Post", true);
 	RegisterHookChain(RG_CBasePlayer_Spawn, "OnPlayerSpawn_Post", true);
 
@@ -98,7 +99,7 @@ public OnDayEnd()
 	ResetEveryoneMinigamesTeam();
 }
 
-public OnPlayerTraceAttack_Pre(pevVictim, pevAttacker, Float:flDamage, Float:vecDir[3], tracehandle, bitsDamageType)
+public OnPlayerTakeDamagePost(pevVictim, pevInflictor, pevAttacker, Float:flDamage, bitsDamageType)
 {
 	if (!mjb_is_valid_player(pevAttacker) || pevVictim == pevAttacker)
 		return;
@@ -249,7 +250,7 @@ public SetPlayerWanted(victim, attacker)
 	if (GetPlayerState(attacker) == PRISONER_WANTED || GetPlayerState(attacker) == PRISONER_LAST)
 		return false;
 	
-	if (mjb_get_phase() == PHASE_GAMEDAY_ACTIVE || mjb_get_phase() == PHASE_GAMEDAY_VOTE)
+	if (mjb_get_phase() == PHASE_GAMEDAY_ACTIVE || mjb_get_phase() == PHASE_GAMEDAY_VOTE || mjb_get_phase() == PHASE_DAY_ENDED)
 		return false;
 	
 	SetPlayerState(attacker, PRISONER_WANTED);
