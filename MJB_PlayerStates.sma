@@ -37,7 +37,7 @@ public plugin_init()
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 
 	/* Hooks */
-	RegisterHookChain(RG_CBasePlayer_TakeDamage, "OnPlayerTakeDamagePost", true);
+	RegisterHookChain(RG_CBasePlayer_TakeDamage, "OnPlayerTakeDamagePre", false);
 	RegisterHookChain(RG_CBasePlayer_Killed, "OnPlayerKilled_Post", true);
 	RegisterHookChain(RG_CBasePlayer_Spawn, "OnPlayerSpawn_Post", true);
 
@@ -99,7 +99,7 @@ public OnDayEnd()
 	ResetEveryoneMinigamesTeam();
 }
 
-public OnPlayerTakeDamagePost(pevVictim, pevInflictor, pevAttacker, Float:flDamage, bitsDamageType)
+public OnPlayerTakeDamagePre(pevVictim, pevInflictor, pevAttacker, Float:flDamage, bitsDamageType)
 {
 	if (!mjb_is_valid_player(pevAttacker) || pevVictim == pevAttacker)
 		return;
