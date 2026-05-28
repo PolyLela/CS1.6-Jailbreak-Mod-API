@@ -57,6 +57,9 @@ new g_bIsDead[33];
 new g_iCachedSkin[33];
 new g_bSkinLocked[33];
 
+// ================= FORWARDS =================
+new g_fwGetDesiredSkin;
+
 // ================= PRECACHE =================
 public plugin_precache()
 {
@@ -68,6 +71,7 @@ public plugin_precache()
     precache_and_store(szSimonModel);
     precache_and_store(szSoccerBlueModel);
     precache_and_store(szSoccerRedModel);
+    precache_and_store("ghost");
 }
 
 precache_and_store(const model[])
@@ -91,6 +95,8 @@ public plugin_init()
     register_forward(FM_SetClientKeyValue, "SetClientKeyValue");
 
     register_message(get_user_msgid("ClCorpse"), "Message_ClCorpse");
+    
+    g_fwGetDesiredSkin = CreateMultiForward("MJB_PreGetDesiredSkin", ET_STOP, FP_CELL, FP_ARRAY, FP_CELL, FP_VAL_BYREF, FP_VAL_BYREF);
 }
 
 // ================= CLEANUP =================
@@ -287,6 +293,13 @@ GetDesiredSkin(id, model[], len, &body, &skin)
 	new team  = GetTeam(id);
 	new iState = mjb_get_state(id);
 	new phase = mjb_get_phase();
+	
+	new iReturn;
+	ExecuteForward(g_fwGetDesiredSkin, iReturn, id, PrepareArray(model, len, true), len, body, skin);
+	if (iReturn == PLUGIN_HANDLED) {
+		MJB_Print(0, "%s", model);
+		return;
+	}
 	
 	// ================= GUARD =================
 	if(team == GUARD)

@@ -191,7 +191,7 @@ public IncrementDayModeVoteNum(index) {
 	if (index < 0 || index >= ArraySize(g_DayModes))
 		return;
 	g_iDayModeVotes[index]++;
-	ShowVoteMenuAll();
+	ShowVoteMenuAll(false, true);
 }
 
 /* Events Determining Processes */
@@ -205,12 +205,12 @@ public client_disconnected(id) {
 
 public mjb_timer_ticked(iTimerId, Float:fTimeleft) {
 	if (iTimerId == mjb_get_vote_timer_id())
-		ShowVoteMenuAll();
+		ShowVoteMenuAll(false, true);
 }
 
 public RG_PlayerSpawn_Post(id) {
 	if (mjb_get_phase() == PHASE_GAMEDAY_VOTE) {
-		set_task(0.1, "TaskFreeze", id +9213);
+		set_task(0.2, "TaskFreeze", id +9213);
 	}
 }
 
@@ -329,7 +329,7 @@ public Un_FreezeAndBlindAll() {
 	}
 }
 
-ShowVoteMenuAll(bool:init=false) {
+ShowVoteMenuAll(bool:init=false, bool:UseUserPos=false) {
 	new pl[32], plnum, id;
 	get_players(pl, plnum, "h");
 	for (new i = 0; i < plnum; i++) {
@@ -339,6 +339,7 @@ ShowVoteMenuAll(bool:init=false) {
 			continue;
 		if (init) FreezePlayer(id);
 		if (init) BlindPlayer(id);
-		CmdVoteMenu(id);
+		if (UseUserPos) ShowVoteMenu(id, g_iMenuPosition[id]);
+		else CmdVoteMenu(id);
 	}
 }

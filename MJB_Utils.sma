@@ -310,13 +310,13 @@ public HudMainInfo() {
 		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "Game %s will end in: %d seconds!^n", data[DM_Name], floatround(mjb_get_timer_timeleft(mjb_get_daymode_timer())));
 		iLen += formatex(szMessage[iLen], charsmax(szMessage) - iLen, "^n-During Game: All menus and shops are disabled^n");
 		iColor = {255, 255, 0};
-		if (mjb_dm_get_wait_timerid() != -1) {
-			new iTimeleft = floatround(mjb_get_timer_timeleft(mjb_dm_get_wait_timerid()));
-			set_hudmessage(255, 255, 255, -1.0, 0.6, 1, 0.75, 1.0, 0.1, 0.2, CHANNEL_HUD_WANTED);
+		new iTimeleft = floatround(mjb_get_timer_timeleft(mjb_dm_get_wait_timerid()))
+		if (iTimeleft > 0) {
+			set_hudmessage(255, 234, 101, -1.0, 0.6, 1, 0.75, 1.0, 0.1, 0.2, CHANNEL_HUD_WANTED);
 			for (new i; i <= MAX_PLAYERS; i++) {
 				if (!mjb_is_valid_player(i) || !is_user_alive(i) || !IsFreezed(i))
 					continue;
-				ShowSyncHudMsg(i, g_FreedayHudSync, "** FREEZED **^n<<Release in: %d secondes>>", iTimeleft);
+				ShowSyncHudMsg(i, g_FreedayHudSync, "** FREEZED **^n<<Release in: %d seconds>>", iTimeleft);
 			}
 		}
 	} else if (iPhase == PHASE_SIMON_DISCONNECTED) {
