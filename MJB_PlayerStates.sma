@@ -108,11 +108,27 @@ public OnDayEnd()
 	ResetEveryoneMinigamesTeam();
 }
 
+public bool:CanPlayerAttackEachOther(iPlayer, iPlayer2) {
+	if (GetTeam(iPlayer) != GetTeam(iPlayer2))
+		return true;
+	
+	new iPlayerMG = GetPlayerMinigamesTeam(iPlayer);
+	new iPlayer2MG = GetPlayerMinigamesTeam(iPlayer2);
+	
+	if (GetPlayerState(iPlayer) == PRISONER_BOXING
+	&& GetPlayerState(iPlayer2) == PRISONER_BOXING
+	&& (iPlayerMG != iPlayer2MG || iPlayerMG == 0 || iPlayer2MG == 0))
+	{
+		return true;
+	}
+	
+	return false;
+}
+
 public OnPlayerTraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], trace, damagebits)
 {
-	if (GetTeam(victim) == GetTeam(attacker)) {
-		if (GetPlayerState(victim) != PRISONER_BOXING || GetPlayerState(attacker) != PRISONER_BOXING || GetPlayerMinigamesTeam(victim) == GetPlayerMinigamesTeam(attacker))
-			return HC_SUPERCEDE;
+	if (!CanPlayerAttackEachOther(victim, attacker)) {
+		return HC_BREAK;
 	}
 	return HC_CONTINUE;
 }
@@ -121,13 +137,11 @@ public OnPlayerTakeDamage_Pre(victim, pevInflictor, attacker, Float:flDamage, bi
 {
 	// if they are the same team then we check if they are boxing but if they arent or they has the same mg team we dont apply damage 
 	// but if all checks are passed meaning they are prisoners boxing then continue without "Requesting" wanted state
-	if (GetTeam(victim) == GetTeam(attacker)) {
-		if (GetPlayerState(victim) != PRISONER_BOXING || GetPlayerState(attacker) != PRISONER_BOXING || GetPlayerMinigamesTeam(victim) == GetPlayerMinigamesTeam(attacker)) {
-			SetHookChainArg(4, ATYPE_FLOAT, 0.0);
-			SetHookChainReturn(ATYPE_INTEGER, 0);
-			return HC_SUPERCEDE;
-		}
-		return HC_CONTINUE;
+	// Also HC_BREAK is used here to block all following amxx plugins + the main hook chain
+	if (!CanPlayerAttackEachOther(victim, attacker)) {
+		SetHookChainArg(4, ATYPE_FLOAT, 0.0);
+		SetHookChainReturn(ATYPE_INTEGER, 0);
+		return HC_BREAK;
 	}
 	
 	SetPlayerWanted(victim, attacker);
