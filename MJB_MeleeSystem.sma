@@ -311,20 +311,7 @@ public OnPlayerTraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], tra
 {
 	if (!mjb_is_valid_player(victim) || !mjb_is_valid_player(attacker) || victim == attacker)
 		return HC_CONTINUE;
-	
-		
-	if  (GetTeam(victim) == GUARD &&  GetTeam(attacker) == GUARD) {
-		return HC_SUPERCEDE;
-	} 
-	
-	new bool:bothArePrisoners = (GetTeam(victim) == PRISONER && GetTeam(attacker) == PRISONER);
-	new bool:bothAreBoxing = (mjb_get_state(victim) == PRISONER_BOXING && mjb_get_state(attacker) == PRISONER_BOXING);
-	new bool:sameMGTeam = (mjb_get_user_mg_team(victim) == mjb_get_user_mg_team(attacker));
-	
-	if (bothArePrisoners && (!bothAreBoxing || sameMGTeam)) {
-			return HC_SUPERCEDE;
-	}
-	
+
 	if (g_bFreezed[victim]) 
 	{
 		return HC_SUPERCEDE;
@@ -373,17 +360,16 @@ public OnPlayerTakeDamage_Pre(victim, inflictor, attacker, Float:damage, damageb
 	new meleeType = GetUserMelee(attacker);
 	new vicMeleeType = GetUserMelee(victim);
 	
-	new bool:bothArePrisoners = (GetTeam(victim) == PRISONER && GetTeam(attacker) == PRISONER);
-	new bool:sameMGTeam = (mjb_get_user_mg_team(victim) == mjb_get_user_mg_team(attacker));
-	new bool:bothHasBoxingGloves = (((meleeType == MELEE_BOXING_BLUE || meleeType == MELEE_BOXING_RED) && get_user_weapon(attacker) == CSW_KNIFE) && ((vicMeleeType == MELEE_BOXING_BLUE || vicMeleeType == MELEE_BOXING_RED) && get_user_weapon(victim) == CSW_KNIFE));
-	
 	if (g_bFreezed[victim]) 
 	{
 		SetHookChainReturn(ATYPE_INTEGER, 0);
 		return HC_SUPERCEDE;
 	}
 	
-	if (bothArePrisoners && !sameMGTeam && bothHasBoxingGloves) {
+	if(get_user_weapon(attacker) != CSW_KNIFE)
+		return HC_CONTINUE;
+	
+	if (meleeType == MELEE_BOXING_BLUE || meleeType == MELEE_BOXING_RED) {
 		if (get_member(victim, m_LastHitGroup) == HIT_HEAD)
 		{
 			damage = 22.0;
@@ -393,12 +379,9 @@ public OnPlayerTakeDamage_Pre(victim, inflictor, attacker, Float:damage, damageb
 		}
 		else damage = 15.0;
 		SetHookChainArg(4, ATYPE_FLOAT, damage);
-		
-		return HC_CONTINUE;
 	}
 	
-	if(get_user_weapon(attacker) != CSW_KNIFE)
-		return HC_CONTINUE;
+
 
 	if (meleeType == MELEE_SVIP_COMBAT) 
 	{

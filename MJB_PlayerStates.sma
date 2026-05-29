@@ -1,4 +1,5 @@
 /* TODO
+	Why there is MG_TEAM Data Field and a parallel array
 	Dont apply wanted on first stage of trace attack
 	Restructure FreedayNextday and ChoosePrisonerLast
 	Boxing State
@@ -35,9 +36,17 @@ new bool:g_bNextdayFreeday[MAX_PLAYERS + 1];
 public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
+	/* Cvar Modification */
+	set_cvar_num("mp_tkpunish", 0);
+	set_cvar_num("mp_autokick", 0);
+	set_cvar_num("mp_friendlyfire", 1);
+	set_cvar_float("ff_damage_reduction_bullets", 1.0);
+	set_cvar_float("ff_damage_reduction_grenade", 1.0);
+	set_cvar_float("ff_damage_reduction_other", 1.0);
 
 	/* Hooks */
-	RegisterHookChain(RG_CBasePlayer_TakeDamage, "OnPlayerTakeDamagePre", false);
+	RegisterHookChain(RG_CBasePlayer_TraceAttack, "OnPlayerTraceAttack_Pre", false);
+	RegisterHookChain(RG_CBasePlayer_TakeDamage, "OnPlayerTakeDamage_Pre", false);
 	RegisterHookChain(RG_CBasePlayer_Killed, "OnPlayerKilled_Post", true);
 	RegisterHookChain(RG_CBasePlayer_Spawn, "OnPlayerSpawn_Post", true);
 
@@ -99,12 +108,30 @@ public OnDayEnd()
 	ResetEveryoneMinigamesTeam();
 }
 
-public OnPlayerTakeDamagePre(pevVictim, pevInflictor, pevAttacker, Float:flDamage, bitsDamageType)
+public OnPlayerTraceAttack_Pre(victim, attacker, Float:damage, Float:dir[3], trace, damagebits)
 {
-	if (!mjb_is_valid_player(pevAttacker) || pevVictim == pevAttacker)
-		return;
+	if (GetTeam(victim) == GetTeam(attacker)) {
+		if (GetPlayerState(victim) != PRISONER_BOXING || GetPlayerState(attacker) != PRISONER_BOXING || GetPlayerMinigamesTeam(victim) == GetPlayerMinigamesTeam(attacker))
+			return HC_SUPERCEDE;
+	}
+	return HC_CONTINUE;
+}
 
-	SetPlayerWanted(pevVictim, pevAttacker);
+public OnPlayerTakeDamage_Pre(victim, pevInflictor, attacker, Float:flDamage, bitsDamageType)
+{
+	// if they are the same team then we check if they are boxing but if they arent or they has the same mg team we dont apply damage 
+	// but if all checks are passed meaning they are prisoners boxing then continue without "Requesting" wanted state
+	if (GetTeam(victim) == GetTeam(attacker)) {
+		if (GetPlayerState(victim) != PRISONER_BOXING || GetPlayerState(attacker) != PRISONER_BOXING || GetPlayerMinigamesTeam(victim) == GetPlayerMinigamesTeam(attacker)) {
+			SetHookChainArg(4, ATYPE_FLOAT, 0.0);
+			SetHookChainReturn(ATYPE_INTEGER, 0);
+			return HC_SUPERCEDE;
+		}
+		return HC_CONTINUE;
+	}
+	
+	SetPlayerWanted(victim, attacker);
+	return HC_CONTINUE;
 }
 
 public OnPlayerKilled_Post(pevVictim, pevAttacker, iGib)
