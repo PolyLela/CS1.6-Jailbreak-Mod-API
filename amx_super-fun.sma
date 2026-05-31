@@ -236,7 +236,7 @@ public plugin_init()
 	register_concmd("amx_weaponmenu", 	"Cmd_WeaponMenu", 	RANK_CO_OWNER, "shows the weapon menu");
 	register_concmd("amx_weapon", 		"Cmd_Weapon", 		RANK_CO_OWNER, "<nick, #userid or @team> <weapon #>");
 	register_concmd("amx_drug", 		"Cmd_Drug", 		RANK_GOLD_ADMIN, "<@all, @team, nick, #userid, authid> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
-	register_concmd("amx_godmode", 		"Cmd_Godmode", 		RANK_HEAD_ADMIN, "<nick, #userid, authid or @team> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
+	register_concmd("amx_invinciblemode", 		"Cmd_Invinciblemode", 		RANK_HEAD_ADMIN, "<nick, #userid, authid or @team> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
 	register_concmd("amx_setmoney",		"Cmd_SetMoney",		RANK_ADMINISTRATOR, "<nick, #userid, authid or @team> <amount> - sets specified player's money");
 	register_concmd("amx_money", 		"Cmd_SetMoney", 	RANK_ADMINISTRATOR, "<nick, #userid, authid or @team> <amount> - sets specified player's money");
 	register_concmd("amx_noclip", 		"Cmd_Noclip", 		RANK_DEPUTY_HEAD, "<nick, #userid, authid or @team> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
@@ -1866,7 +1866,7 @@ set_user_drugs(id, x)
 /*	10)		amx_godmode
  *---------------------
 */
-public Cmd_Godmode(id, iLevel, iCid)
+public Cmd_Invinciblemode(id, iLevel, iCid)
 {
 	if(!cmd_access(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
@@ -1883,7 +1883,7 @@ public Cmd_Godmode(id, iLevel, iCid)
 	new szLength[6];
 	read_argv(2, szLength, 2);
 	
-	new iGodmodeFlags = str_to_num(szLength);
+	new iInvinciblemodeFlags = str_to_num(szLength);
 	
 	if(szArg1[0] == '@')
 	{
@@ -1917,20 +1917,20 @@ public Cmd_Godmode(id, iLevel, iCid)
 			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
 				continue;
 
-			if(!iGodmodeFlags)
+			if(!iInvinciblemodeFlags)
 				g_iFlags[iTempid] &= ~PERMGOD;
 				
-			else if(iGodmodeFlags == 2)
+			else if(iInvinciblemodeFlags == 2)
 				g_iFlags[iTempid] |= PERMGOD;
 				
-			set_user_godmode(iTempid, !!iGodmodeFlags);
+			set_user_godmode(iTempid, !!iInvinciblemodeFlags);
 			
 		}
 
-		show_activity_key("AMX_SUPER_GODMODE_TEAM_CASE1", "AMX_SUPER_GODMODE_TEAM_CASE2", szAdminName, iGodmodeFlags, g_szTeamNames[Team]);
+		show_activity_key("AMX_SUPER_GODMODE_TEAM_CASE1", "AMX_SUPER_GODMODE_TEAM_CASE2", szAdminName, iInvinciblemodeFlags, g_szTeamNames[Team]);
 
-		console_print(id, "%L", LANG_PLAYER, "AMX_SUPER_GODMODE_TEAM_MSG", iGodmodeFlags, g_szTeamNames[Team]);
-		log_amx("%L", LANG_SERVER, "AMX_SUPER_GODMODE_TEAM_LOG", szAdminName, szAdminAuthid, iGodmodeFlags, g_szTeamNames[Team]);
+		console_print(id, "%L", LANG_PLAYER, "AMX_SUPER_GODMODE_TEAM_MSG", iInvinciblemodeFlags, g_szTeamNames[Team]);
+		log_amx("%L", LANG_SERVER, "AMX_SUPER_GODMODE_TEAM_LOG", szAdminName, szAdminAuthid, iInvinciblemodeFlags, g_szTeamNames[Team]);
 	}
 	
 	else
@@ -1955,18 +1955,18 @@ public Cmd_Godmode(id, iLevel, iCid)
 
 		get_user_authid(iPlayer, szTargetAuthid, charsmax(szTargetAuthid));
 		
-		set_user_godmode(iPlayer, !!iGodmodeFlags);
+		set_user_godmode(iPlayer, !!iInvinciblemodeFlags);
 		
-		if(!iGodmodeFlags)
+		if(!iInvinciblemodeFlags)
 			g_iFlags[iPlayer] &= ~PERMGOD;
 			
-		else if (iGodmodeFlags == 2)
+		else if (iInvinciblemodeFlags == 2)
 			g_iFlags[iPlayer] |= PERMGOD;
 
-		show_activity_key("AMX_SUPER_GODMODE_PLAYER_CASE1", "AMX_SUPER_GODMODE_PLAYER_CASE2", szAdminName, iGodmodeFlags, szTargetName);
+		show_activity_key("AMX_SUPER_GODMODE_PLAYER_CASE1", "AMX_SUPER_GODMODE_PLAYER_CASE2", szAdminName, iInvinciblemodeFlags, szTargetName);
 
-		console_print(id, "%L", LANG_PLAYER, "AMX_SUPER_GODMODE_PLAYER_MSG", iGodmodeFlags, szTargetName);
-		log_amx("%L", LANG_SERVER, "AMX_SUPER_GODMODE_PLAYER_LOG", szAdminName, szAdminAuthid, iGodmodeFlags, szTargetName, szTargetAuthid);
+		console_print(id, "%L", LANG_PLAYER, "AMX_SUPER_GODMODE_PLAYER_MSG", iInvinciblemodeFlags, szTargetName);
+		log_amx("%L", LANG_SERVER, "AMX_SUPER_GODMODE_PLAYER_LOG", szAdminName, szAdminAuthid, iInvinciblemodeFlags, szTargetName, szTargetAuthid);
 	}
 	
 	return PLUGIN_HANDLED;
