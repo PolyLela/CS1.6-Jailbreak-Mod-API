@@ -119,7 +119,7 @@ new g_pFlashSound;
 // perm checks
 enum (<<=1) 
 {
-	PERMGOD = 1,
+	PERMINVINCIBLE = 1,
 	PERMSPEED,
 	PERMDRUGS,
 	PERMNOCLIP,
@@ -351,7 +351,7 @@ public FwdPlayerSpawnPost(id)
 	if(g_iFlags[id] & PERMDRUGS)
 		set_user_drugs(id, 1);
 		
-	if(g_iFlags[id] & PERMGOD)
+	if(g_iFlags[id] & PERMINVINCIBLE)
 		set_user_godmode(id, 1);
 	
 	if(g_iFlags[id] & PERMNOCLIP)
@@ -1918,19 +1918,19 @@ public Cmd_Invinciblemode(id, iLevel, iCid)
 				continue;
 
 			if(!iInvinciblemodeFlags)
-				g_iFlags[iTempid] &= ~PERMGOD;
+				g_iFlags[iTempid] &= ~PERMINVINCIBLE;
 				
 			else if(iInvinciblemodeFlags == 2)
-				g_iFlags[iTempid] |= PERMGOD;
+				g_iFlags[iTempid] |= PERMINVINCIBLE;
 				
 			set_user_godmode(iTempid, !!iInvinciblemodeFlags);
 			
 		}
 
-		show_activity_key("AMX_SUPER_GODMODE_TEAM_CASE1", "AMX_SUPER_GODMODE_TEAM_CASE2", szAdminName, iInvinciblemodeFlags, g_szTeamNames[Team]);
+		show_activity_key("AMX_SUPER_INVINCIBLEMODE_TEAM_CASE1", "AMX_SUPER_INVINCIBLEMODE_TEAM_CASE2", szAdminName, iInvinciblemodeFlags, g_szTeamNames[Team]);
 
-		console_print(id, "%L", LANG_PLAYER, "AMX_SUPER_GODMODE_TEAM_MSG", iInvinciblemodeFlags, g_szTeamNames[Team]);
-		log_amx("%L", LANG_SERVER, "AMX_SUPER_GODMODE_TEAM_LOG", szAdminName, szAdminAuthid, iInvinciblemodeFlags, g_szTeamNames[Team]);
+		console_print(id, "%L", LANG_PLAYER, "AMX_SUPER_INVINCIBLEMODE_TEAM_MSG", iInvinciblemodeFlags, g_szTeamNames[Team]);
+		log_amx("%L", LANG_SERVER, "AMX_SUPER_INVINCIBLEMODE_TEAM_LOG", szAdminName, szAdminAuthid, iInvinciblemodeFlags, g_szTeamNames[Team]);
 	}
 	
 	else
@@ -1958,15 +1958,15 @@ public Cmd_Invinciblemode(id, iLevel, iCid)
 		set_user_godmode(iPlayer, !!iInvinciblemodeFlags);
 		
 		if(!iInvinciblemodeFlags)
-			g_iFlags[iPlayer] &= ~PERMGOD;
+			g_iFlags[iPlayer] &= ~PERMINVINCIBLE;
 			
 		else if (iInvinciblemodeFlags == 2)
-			g_iFlags[iPlayer] |= PERMGOD;
+			g_iFlags[iPlayer] |= PERMINVINCIBLE;
 
-		show_activity_key("AMX_SUPER_GODMODE_PLAYER_CASE1", "AMX_SUPER_GODMODE_PLAYER_CASE2", szAdminName, iInvinciblemodeFlags, szTargetName);
+		show_activity_key("AMX_SUPER_INVINCIBLEMODE_PLAYER_CASE1", "AMX_SUPER_INVINCIBLEMODE_PLAYER_CASE2", szAdminName, iInvinciblemodeFlags, szTargetName);
 
-		console_print(id, "%L", LANG_PLAYER, "AMX_SUPER_GODMODE_PLAYER_MSG", iInvinciblemodeFlags, szTargetName);
-		log_amx("%L", LANG_SERVER, "AMX_SUPER_GODMODE_PLAYER_LOG", szAdminName, szAdminAuthid, iInvinciblemodeFlags, szTargetName, szTargetAuthid);
+		console_print(id, "%L", LANG_PLAYER, "AMX_SUPER_INVINCIBLEMODE_PLAYER_MSG", iInvinciblemodeFlags, szTargetName);
+		log_amx("%L", LANG_SERVER, "AMX_SUPER_INVINCIBLEMODE_PLAYER_LOG", szAdminName, szAdminAuthid, iInvinciblemodeFlags, szTargetName, szTargetAuthid);
 	}
 	
 	return PLUGIN_HANDLED;
