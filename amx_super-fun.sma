@@ -549,7 +549,12 @@ public Cmd_Armor(id, iLevel, iCid)
 		}
 
 		for(new i = 0; i < iPlayersNum; i++)
+		{
+			if (!mjb_is_valid_player(iPlayers[i]) || !canAffect2(id, iPlayers[i]))
+				continue;
+
 			cs_set_user_armor(iPlayers[i], iArmor, CS_ARMOR_VESTHELM);
+		}
 		
 		show_activity_key("AMX_SUPER_ARMOR_TEAM_CASE1", "AMX_SUPER_ARMOR_TEAM_CASE2", szAdminName, iArmor, g_szTeamNames[Team]);
 		log_amx("%L", LANG_SERVER, "AMX_SUPER_ARMOR_TEAM_LOG", szAdminName, szAdminAuthid, iArmor, g_szTeamNames[Team]);
@@ -561,11 +566,22 @@ public Cmd_Armor(id, iLevel, iCid)
 		
 		if(iTempid)
 		{
+			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+
+			if (!canAffect2(id, iTempid))
+			{
+				new szRank[35];
+				GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+				console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+				return PLUGIN_HANDLED;
+			}
+
 			cs_set_user_armor(iTempid, iArmor, CS_ARMOR_VESTHELM);
 			
 			new szTargetAuthid[35];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
-			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
 			
 			show_activity_key("AMX_SUPER_ARMOR_PLAYER_CASE1", "AMX_SUPER_ARMOR_PLAYER_CASE2", szAdminName, iArmor, szTargetName);
 			log_amx("%L", LANG_SERVER, "AMX_SUPER_ARMOR_PLAYER_LOG", szAdminName, szAdminAuthid, iArmor, szTargetName, szTargetAuthid);
@@ -591,6 +607,19 @@ public Cmd_Teleport(id, iLevel, iCid)
 	
 	if(iTempid)
 	{
+		new szTargetName[35];
+		get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+
+		if (!canAffect2(id, iTempid))
+		{
+			new szRank[35];
+			GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+			console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+			return PLUGIN_HANDLED;
+		}
+
 		new szOrigin1[5], szOrigin2[5], szOrigin3[5];
 		read_argv(2, szOrigin1, charsmax(szOrigin1));
 		read_argv(3, szOrigin2, charsmax(szOrigin2));
@@ -607,8 +636,7 @@ public Cmd_Teleport(id, iLevel, iCid)
 		get_user_name(id, szAdminName, charsmax(szAdminName));
 		get_user_authid(id, szAdminAuthid, charsmax(szAdminAuthid));
 		
-		new szTargetName[35], szTargetAuthid[35];
-		get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+		new szTargetAuthid[35];
 		get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
 		
 		show_activity_key("AMX_SUPER_TELEPORT_PLAYER_CASE1", "AMX_SUPER_TELEPORT_PLAYER_CASE2", szAdminName, szTargetName);
@@ -634,8 +662,19 @@ public Cmd_UserOrigin(id, iLevel, iCid)
 	if(iTempid)
 	{
 		new szTargetName[35];
-		get_user_origin(iTempid, g_iUserOrigin[id]);
 		get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+
+		if (!canAffect2(id, iTempid))
+		{
+			new szRank[35];
+			GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+			console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+			return PLUGIN_HANDLED;
+		}
+
+		get_user_origin(iTempid, g_iUserOrigin[id]);
 
 		console_print(id, "%L", LANG_PLAYER, "AMX_SUPER_TELEPORT_ORIGIN_SAVED", g_iUserOrigin[id][0], g_iUserOrigin[id][1], g_iUserOrigin[id][2], szTargetName);
 	}
@@ -654,10 +693,23 @@ public Cmd_Stack(id, iLevel, iCid)
 	new szArg1[35];
 	read_argv(1, szArg1, charsmax(szArg1));
 
-	new iTempid = cmd_target(id, szArg1, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
+	new iTempid = cmd_target(id, szArg1, CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
 	
 	if(iTempid)
-	{	
+	{
+		new szTargetName[35];
+		get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+
+		if (!canAffect2(id, iTempid))
+		{
+			new szRank[35];
+			GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+			console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+			return PLUGIN_HANDLED;
+		}
+
 		new szType[5];
 		read_argv(2, szType, charsmax(szType));
 		
@@ -678,7 +730,7 @@ public Cmd_Stack(id, iLevel, iCid)
 		{
 			iPlayer = iPlayers[i];
 			
-			if((iPlayer == id) || (get_user_flags(iPlayer) & ADMIN_IMMUNITY) && iPlayer != id) 
+			if((iPlayer == id) || !mjb_is_valid_player(iPlayer) || !canAffect2(id, iPlayer))
 				continue;
 				
 			flOrigin[1] += iYAxis;
@@ -690,8 +742,7 @@ public Cmd_Stack(id, iLevel, iCid)
 		get_user_name(id, szAdminName, charsmax(szAdminName));
 		get_user_authid(id, szAdminAuthid, charsmax(szAdminAuthid));
 		
-		new szTargetName[35], szTargetAuthid[35];
-		get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+		new szTargetAuthid[35];
 		get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
 
 		console_print(id,"%L", LANG_PLAYER, "AMX_SUPER_STACK_PLAYER_MSG", szTargetName);
@@ -794,13 +845,8 @@ public Cmd_UnAmmo(id, iLevel, iCid)
 		{
 			iTempid = iPlayers[i];
 			
-			if((get_user_flags(iTempid) & ADMIN_IMMUNITY) && iTempid != id)
-			{
-				get_user_name(iTempid, szTargetName, charsmax(szTargetName));
-				console_print(id, "%L", "AMX_SUPER_TEAM_IMMUNITY", szTargetName);
-				
+			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
 				continue;
-			}
 			
 			if(iSetting)
 				SetPlayerBit(g_iUnammoBit, iTempid);
@@ -820,7 +866,19 @@ public Cmd_UnAmmo(id, iLevel, iCid)
 		iTempid = cmd_target(id, szArg1, CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
 		
 		if(iTempid)
-		{	
+		{
+			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+
+			if (!canAffect2(id, iTempid))
+			{
+				new szRank[35];
+				GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+				console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+				return PLUGIN_HANDLED;
+			}
+
 			if(iSetting)
 				SetPlayerBit(g_iUnammoBit, iTempid);
 			
@@ -828,7 +886,6 @@ public Cmd_UnAmmo(id, iLevel, iCid)
 				ClearPlayerBit(g_iUnammoBit, iTempid);
 				
 			new szTargetAuthid[35];
-			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
 			
 			console_print(id, "%L", id, "AMX_SUPER_AMMO_PLAYER_MSG", szTargetName, iSetting);
@@ -1133,7 +1190,12 @@ public Cmd_Weapon(id, iLevel, iCid)
 		}
 		
 		for(new i; i < iPlayerNum; i++)
+		{
+			if (!mjb_is_valid_player(iPlayers[i]) || !canAffect2(id, iPlayers[i]))
+				continue;
+
 			give_weapon(iPlayers[i], iWeapon);
+		}
 					
 		show_activity_key("AMX_SUPER_WEAPON_TEAM_CASE1", "AMX_SUPER_WEAPON_TEAM_CASE2", szAdminName, g_szTeamNames[Team]);
 
@@ -1143,14 +1205,24 @@ public Cmd_Weapon(id, iLevel, iCid)
 	
 	else
 	{
-		new iPlayer = cmd_target(id, szArg1, 7);
+		new iPlayer = cmd_target(id, szArg1, CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
 		if(!iPlayer)
 			return PLUGIN_HANDLED;
-			
-		give_weapon(iPlayer, iWeapon);
-		
+
 		new szTargetName[32];
 		get_user_name(iPlayer, szTargetName, 31);
+
+		if (!canAffect2(id, iPlayer))
+		{
+			new szRank[35];
+			GetRankLevelStr(iPlayer, szRank, charsmax(szRank));
+
+			console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+			return PLUGIN_HANDLED;
+		}
+			
+		give_weapon(iPlayer, iWeapon);
 		
 		new szTargetAuthid[36];
 		get_user_authid(iPlayer, szTargetAuthid, 35);
@@ -1308,6 +1380,17 @@ public WeaponHandler(id, iMenu, iItem)
 	
 	if(gTeamChoice[id] == Player)
 	{
+		if (!canAffect2(id, gPlayerId[id]))
+		{
+			new szTargetName[35], szRank[35];
+			get_user_name(gPlayerId[id], szTargetName, charsmax(szTargetName));
+			GetRankLevelStr(gPlayerId[id], szRank, charsmax(szRank));
+
+			console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+			return PLUGIN_HANDLED;
+		}
+
 		switch(iChoice)
 		{
 			case 1..51:
@@ -1339,6 +1422,9 @@ public WeaponHandler(id, iMenu, iItem)
 		
 		for(new i = 0; i < iPlayerNum; i++)
 		{
+			if (!mjb_is_valid_player(iPlayers[i]) || !canAffect2(id, iPlayers[i]))
+				continue;
+
 			switch(iChoice)
 			{
 				case 1..51:
@@ -1731,13 +1817,8 @@ public Cmd_Drug(id, iLevel, iCid)
 		{
 			iPlayer = iPlayers[i];
 			
-			if((get_user_flags(iPlayer) & ADMIN_IMMUNITY) && iPlayer != id)
-			{
-				get_user_name(iPlayer, szArg1, charsmax(szArg1));
-				console_print(id, "%L", "AMX_SUPER_TEAM_IMMUNITY", szArg1);
-				
+			if (!mjb_is_valid_player(iPlayer) || !canAffect2(id, iPlayer))
 				continue;
-			}
 			
 			set_user_drugs(iPlayers[i], str_to_num(szLength));
 		}
@@ -1752,15 +1833,25 @@ public Cmd_Drug(id, iLevel, iCid)
 	
 	else
 	{
-		new iPlayer = cmd_target(id, szArg1, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
+		new iPlayer = cmd_target(id, szArg1, CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
 		
 		if(!iPlayer)
 			return PLUGIN_HANDLED;
 
-		set_user_drugs(iPlayer, str_to_num(szLength));
-		
 		new szTargetName[32], szTargetAuthid[32];
 		get_user_name( iPlayer, szTargetName, 31 );
+
+		if (!canAffect2(id, iPlayer))
+		{
+			new szRank[35];
+			GetRankLevelStr(iPlayer, szRank, charsmax(szRank));
+
+			console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+			return PLUGIN_HANDLED;
+		}
+
+		set_user_drugs(iPlayer, str_to_num(szLength));
 		get_user_authid( iPlayer, szTargetAuthid, 31 );
 
 		show_activity_key("AMX_SUPER_DRUG_PLAYER_CASE1", "AMX_SUPER_DRUG_PLAYER_CASE2", szAdminName, szTargetName);
@@ -1848,6 +1939,9 @@ public Cmd_Godmode(id, iLevel, iCid)
 		{
 			iTempid = iPlayers[i];
 			
+			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
+				continue;
+
 			if(!iGodmodeFlags)
 				g_iFlags[iTempid] &= ~PERMGOD;
 				
@@ -1873,6 +1967,17 @@ public Cmd_Godmode(id, iLevel, iCid)
 
 		new szTargetName[32], szTargetAuthid[35];
 		get_user_name(iPlayer, szTargetName, 31);
+
+		if (!canAffect2(id, iPlayer))
+		{
+			new szRank[35];
+			GetRankLevelStr(iPlayer, szRank, charsmax(szRank));
+
+			console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+			return PLUGIN_HANDLED;
+		}
+
 		get_user_authid(iPlayer, szTargetAuthid, charsmax(szTargetAuthid));
 		
 		set_user_godmode(iPlayer, !!iGodmodeFlags);
@@ -1943,8 +2048,13 @@ public Cmd_SetMoney(id, iLevel, iCid)
 			}
 		}
 		
-		for(new i = 0; i < iPlayerNum; i++)				
+		for(new i = 0; i < iPlayerNum; i++)
+		{
+			if (!mjb_is_valid_player(iPlayers[i]) || !canAffect2(id, iPlayers[i]))
+				continue;
+
 			cs_set_user_money(iPlayers[i], iMoney);
+		}
 	
 		show_activity_key("AMX_SUPER_GIVEMONEY_TEAM_CASE1", "AMX_SUPER_GIVEMONEY_TEAM_CASE2", szAdminName, g_szTeamNames[Team], iMoney);
 		
@@ -1958,10 +2068,20 @@ public Cmd_SetMoney(id, iLevel, iCid)
 		if(!iPlayer)
 			return PLUGIN_HANDLED;
 		
-		cs_set_user_money(iPlayer, iMoney);
-		
 		new szTargetName[32];
 		get_user_name(iPlayer, szTargetName, 31);
+
+		if (!canAffect2(id, iPlayer))
+		{
+			new szRank[35];
+			GetRankLevelStr(iPlayer, szRank, charsmax(szRank));
+
+			console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+			return PLUGIN_HANDLED;
+		}
+
+		cs_set_user_money(iPlayer, iMoney);
 		
 		new szTargetAuthid[36];
 		get_user_authid(iPlayer, szTargetAuthid, 35);
@@ -2025,6 +2145,9 @@ public Cmd_Noclip(id, iLevel, iCid)
 		for(new i = 0; i < iPlayerNum; i++)
 		{
 			iTempid = iPlayers[i];
+
+			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
+				continue;
 						
 			if(!iSetting)
 				g_iFlags[iTempid] &= ~PERMNOCLIP;
@@ -2049,6 +2172,16 @@ public Cmd_Noclip(id, iLevel, iCid)
 
 		new szTargetName[32];
 		get_user_name(iPlayer, szTargetName, 31);
+
+		if (!canAffect2(id, iPlayer))
+		{
+			new szRank[35];
+			GetRankLevelStr(iPlayer, szRank, charsmax(szRank));
+
+			console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+			return PLUGIN_HANDLED;
+		}
 		
 		new szTargetAuthid[36];
 		get_user_authid(iPlayer, szTargetAuthid, 35);
@@ -2131,7 +2264,12 @@ public Cmd_Speed(id, iLevel, iCid)
 		}
 		
 		for(new i = 0; i < iPlayerNum; i++)
+		{
+			if (!mjb_is_valid_player(iPlayers[i]) || !canAffect2(id, iPlayers[i]))
+				continue;
+
 			SetSpeed(iPlayers[i], iSpeedFlag);
+		}
 		
 		show_activity_key("AMX_SUPER_SPEED_TEAM_CASE1", "AMX_SUPER_SPEED_TEAM_CASE2", szAdminName, iSpeedFlag, g_szTeamNames[Team]);
 
@@ -2146,6 +2284,16 @@ public Cmd_Speed(id, iLevel, iCid)
 			
 		new szTargetName[32];
 		get_user_name(iPlayer, szTargetName, 31);
+
+		if (!canAffect2(id, iPlayer))
+		{
+			new szRank[35];
+			GetRankLevelStr(iPlayer, szRank, charsmax(szRank));
+
+			console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+			return PLUGIN_HANDLED;
+		}
 		
 		SetSpeed(iPlayer, iSpeedFlag);
 
@@ -2225,6 +2373,9 @@ public Cmd_Revive(id, iLevel, iCid)
 		for(new i = 0; i < iPlayerNum; i++)
 		{
 			iPlayer = iPlayers[i];
+
+			if (!mjb_is_valid_player(iPlayer) || !canAffect2(id, iPlayer))
+				continue;
 			
 			switch(Team)
 			{
@@ -2259,10 +2410,20 @@ public Cmd_Revive(id, iLevel, iCid)
 		if(!iPlayer || !(CS_TEAM_UNASSIGNED < cs_get_user_team(iPlayer) < CS_TEAM_SPECTATOR))
 			return PLUGIN_HANDLED;
 
-		ExecuteHamB(Ham_CS_RoundRespawn, iPlayer);
-		
 		new szTargetName[34];
 		get_user_name(iPlayer, szTargetName, 33);
+
+		if (!canAffect2(id, iPlayer))
+		{
+			new szRank[35];
+			GetRankLevelStr(iPlayer, szRank, charsmax(szRank));
+
+			console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+			return PLUGIN_HANDLED;
+		}
+
+		ExecuteHamB(Ham_CS_RoundRespawn, iPlayer);
 		
 		new szTargetAuthid[36];
 		get_user_authid(iPlayer, szTargetAuthid, 35);
@@ -2336,13 +2497,8 @@ public Cmd_Bury(id, iLevel, iCid)
 		{
 			iTempid = iPlayers[i];
 			
-			if((get_user_flags(iTempid) & ADMIN_IMMUNITY) && iTempid != id)
-			{
-				get_user_name(iTempid, szTargetName, charsmax(szTargetName));
-				console_print(id, "%L", id, "AMX_SUPER_TEAM_IMMUNITY", szTargetName);
-				
+			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
 				continue;
-			}
 				
 			BuryPlayer(iTempid);
 		}
@@ -2354,14 +2510,23 @@ public Cmd_Bury(id, iLevel, iCid)
 	
 	else
 	{
-		iTempid = cmd_target(id, szArg1, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
+		iTempid = cmd_target(id, szArg1, CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
 		
 		if(iTempid)
 		{
-			BuryPlayer(iTempid);
-			
 			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
-			
+
+			if (!canAffect2(id, iTempid))
+			{
+				new szRank[35];
+				GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+				console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+				return PLUGIN_HANDLED;
+			}
+
+			BuryPlayer(iTempid);
 			
 			new szTargetAuthid[25];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
@@ -2460,13 +2625,8 @@ public Cmd_Unbury(id, iLevel, iCid)
 		{			
 			iTempid = iPlayers[i];
 			
-			if((get_user_flags(iTempid) & ADMIN_IMMUNITY) && iTempid != id)
-			{
-				get_user_name(iTempid, szTargetName, charsmax(szTargetName));
-				console_print(id, "%L", id, "AMX_SUPER_TEAM_IMMUNITY", szTargetName);
-				
+			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
 				continue;
-			}
 			
 			UnburyPlayer(iTempid);
 		}
@@ -2477,15 +2637,23 @@ public Cmd_Unbury(id, iLevel, iCid)
 	
 	else
 	{
-		iTempid = cmd_target(id, szArg1, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
+		iTempid = cmd_target(id, szArg1, CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
 		
 		if(iTempid)
 		{
-			UnburyPlayer(iTempid);
-			
 			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
-			
-			
+
+			if (!canAffect2(id, iTempid))
+			{
+				new szRank[35];
+				GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+				console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+				return PLUGIN_HANDLED;
+			}
+
+			UnburyPlayer(iTempid);
 			
 			new szTargetAuthid[25];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
@@ -2571,13 +2739,8 @@ public Cmd_Disarm(id, iLevel, iCid)
 		{
 			iTempid = iPlayers[i];
 			
-			if((get_user_flags(iTempid) & ADMIN_IMMUNITY) && iTempid != id)
-			{
-				get_user_name(iTempid, szTargetName, charsmax(szTargetName));
-				console_print(id, "%L", id, "AMX_SUPER_TEAM_IMMUNITY", szTargetName);
-				
+			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
 				continue;
-			}
 			
 			rg_remove_all_items(iTempid);
 			give_item(iTempid, "weapon_knife");
@@ -2589,16 +2752,27 @@ public Cmd_Disarm(id, iLevel, iCid)
 	
 	else
 	{
-		iTempid = cmd_target(id, szArg1, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
+		iTempid = cmd_target(id, szArg1, CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
 		
 		if(iTempid)
 		{
+			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+
+			if (!canAffect2(id, iTempid))
+			{
+				new szRank[35];
+				GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+				console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+				return PLUGIN_HANDLED;
+			}
+
 			rg_remove_all_items(iTempid);
 			give_item(iTempid, "weapon_knife");
 			
 			new szTargetAuthid[25];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
-			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
 
 			log_amx("%L", LANG_SERVER, "AMX_SUPER_DISARM_PLAYER_LOG", szAdminName, szAdminAuthid, szTargetName, szTargetAuthid);
 			show_activity_key("AMX_SUPER_DISARM_PLAYER_CASE1", "AMX_SUPER_DISARM_PLAYER_CASE2", szAdminName, szTargetName);
@@ -2670,13 +2844,8 @@ public Cmd_Slay2(id, iLevel, iCid)
 		{
 			iTempid = iPlayers[i];
 			
-			if((get_user_flags(iTempid) & ADMIN_IMMUNITY) && iTempid != id)
-			{
-				get_user_name(iTempid, szTargetName, charsmax(szTargetName));
-				console_print(id, "%L", id, "AMX_SUPER_TEAM_IMMUNITY", szTargetName);
-				
+			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
 				continue;
-			}
 			
 			slay_player(iTempid, str_to_num(szSetting));
 		}
@@ -2687,14 +2856,23 @@ public Cmd_Slay2(id, iLevel, iCid)
 	
 	else
 	{
-		iTempid = cmd_target(id, szArg1, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
+		iTempid = cmd_target(id, szArg1, CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
 		
 		if(iTempid)
 		{
-			slay_player(iTempid, str_to_num(szSetting));
-			
 			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
-			
+
+			if (!canAffect2(id, iTempid))
+			{
+				new szRank[35];
+				GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+				console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+				return PLUGIN_HANDLED;
+			}
+
+			slay_player(iTempid, str_to_num(szSetting));
 			
 			new szTargetAuthid[25];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
@@ -2900,14 +3078,8 @@ public Cmd_Rocket(id, iLevel, iCid)
 		{
 			iTempid = iPlayers[i];
 			
-			if((get_user_flags(iTempid) & ADMIN_IMMUNITY) && id != iTempid)
-			{	
-				get_user_name(iTempid, szTargetName, charsmax(szTargetName));
-				
-				console_print(id, "%L", id, "AMX_SUPER_TEAM_IMMUNITY", szTargetName);
-				
+			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
 				continue;
-			}
 			
 			emit_sound(iTempid, CHAN_WEAPON , "weapons/rocketfire1.wav", 1.0, ATTN_NORM, 0, PITCH_NORM);
 			set_user_maxspeed(iTempid,0.01);
@@ -2923,10 +3095,22 @@ public Cmd_Rocket(id, iLevel, iCid)
 	
 	else
 	{
-		iTempid = cmd_target(id, szArg1, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
+		iTempid = cmd_target(id, szArg1, CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
 		
 		if(iTempid)
 		{
+			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+
+			if (!canAffect2(id, iTempid))
+			{
+				new szRank[35];
+				GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+				console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+				return PLUGIN_HANDLED;
+			}
+
 			emit_sound(iTempid, CHAN_WEAPON, "weapons/rocketfire1.wav", 1.0, ATTN_NORM, 0, PITCH_NORM);
 			set_user_maxspeed(iTempid, 0.01);
 			
@@ -2934,7 +3118,6 @@ public Cmd_Rocket(id, iLevel, iCid)
 			
 			new szTargetAuthid[35];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
-			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
 						
 			show_activity_key("AMX_SUPER_ROCKET_PLAYER_CASE1", "AMX_SUPER_ROCKET_PLAYER_CASE2", szAdminName, szTargetName);
 			log_amx("%L", LANG_SERVER, "AMX_SUPER_ROCKET_PLAYER_LOG", szAdminName, szAdminAuthid, szTargetName, szTargetAuthid);
@@ -3130,14 +3313,8 @@ public Cmd_Fire(id, iLevel, iCid)
 		{
 			iTempid = iPlayers[i];
 			
-			if((get_user_flags(iTempid) & ADMIN_IMMUNITY) && id != iTempid)
-			{
-				get_user_name(iTempid, szTargetName, charsmax(szTargetName));
-				
-				console_print(id, "%L", id, "AMX_SUPER_TEAM_IMMUNITY", szTargetName);
-				
+			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
 				continue;
-			}
 		
 			SetPlayerBit(g_iOnFireBit, iTempid);
 			
@@ -3151,13 +3328,24 @@ public Cmd_Fire(id, iLevel, iCid)
 	
 	else
 	{
-		iTempid = cmd_target(id, szArg1, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
+		iTempid = cmd_target(id, szArg1, CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
 		
 		if(iTempid)
 		{
+			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+
+			if (!canAffect2(id, iTempid))
+			{
+				new szRank[35];
+				GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+				console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+				return PLUGIN_HANDLED;
+			}
+
 			new szTargetAuthid[35];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
-			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
 			
 			SetPlayerBit(g_iOnFireBit, iTempid);
 			
@@ -3337,14 +3525,8 @@ public Cmd_Flash(id, iLevel, iCid)
 		{
 			iTempid = iPlayers[i];
 			
-			if((get_user_flags(iTempid) & ADMIN_IMMUNITY) && id != iTempid)
-			{
-				get_user_name(iTempid, szTargetName, charsmax(szTargetName));
-				
-				console_print(id, "%L", id, "AMX_SUPER_TEAM_IMMUNITY", szTargetName);
-				
+			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
 				continue;
-			}
 			
 			Flash_Player(iTempid);
 		}
@@ -3357,15 +3539,26 @@ public Cmd_Flash(id, iLevel, iCid)
 	
 	else
 	{
-		iTempid = cmd_target(id, szArg1, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
+		iTempid = cmd_target(id, szArg1, CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
 		
 		if(iTempid)
 		{
+			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+
+			if (!canAffect2(id, iTempid))
+			{
+				new szRank[35];
+				GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+				console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+				return PLUGIN_HANDLED;
+			}
+
 			Flash_Player(iTempid);
 			
 			new szTargetAuthid[35];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
-			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
 			
 			console_print(id, "%L", id, "AMX_SUPER_FLASH_PLAYER_MSG", szTargetName);
 			
@@ -3452,14 +3645,8 @@ public Cmd_UberSlap(id, iLevel, iCid)
 		{
 			iTempid = iPlayers[i];
 			
-			if((get_user_flags(iTempid) & ADMIN_IMMUNITY) && id != iTempid)
-			{	
-				get_user_name(iTempid, szTargetName, charsmax(szTargetName));
-				
-				console_print(id, "%L", id, "AMX_SUPER_TEAM_IMMUNITY", szTargetName);
-				
+			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
 				continue;
-			}
 			
 			set_task(0.1, "Slap_Player", iTempid, _, _, "a", 100);
 		}
@@ -3470,11 +3657,21 @@ public Cmd_UberSlap(id, iLevel, iCid)
 	
 	else
 	{
-		iTempid = cmd_target(id, szArg1, CMDTARGET_OBEY_IMMUNITY | CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
+		iTempid = cmd_target(id, szArg1, CMDTARGET_ALLOW_SELF | CMDTARGET_ONLY_ALIVE);
 		
 		if(iTempid)
 		{
 			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+
+			if (!canAffect2(id, iTempid))
+			{
+				new szRank[35];
+				GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+				console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+				return PLUGIN_HANDLED;
+			}
 			
 			new szTargetAuthid[35];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
@@ -3595,6 +3792,9 @@ public Cmd_Glow(id, iLevel, iCid)
 		{
 			iTempid = iPlayers[i];
 			
+			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
+				continue;
+			
 			if(bGlow2)
 			{
 				g_iGlowColors[iTempid][0] = iRed;
@@ -3631,6 +3831,19 @@ public Cmd_Glow(id, iLevel, iCid)
 		
 		if(!iTempid)
 			return PLUGIN_HANDLED;
+
+		new szTargetName[35];
+		get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+
+		if (!canAffect2(id, iTempid))
+		{
+			new szRank[35];
+			GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+
+			console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+
+			return PLUGIN_HANDLED;
+		}
 			
 		if(bGlow2)
 		{
@@ -3649,9 +3862,6 @@ public Cmd_Glow(id, iLevel, iCid)
 		}
 		
 		set_user_rendering(iTempid, kRenderFxGlowShell, iRed, iGreen, iBlueNum, kRenderTransAlpha, iAlpha);
-		
-		new szTargetName[35];
-		get_user_name(iTempid, szTargetName, charsmax(szTargetName));
 		
 		if(bOff)
 			show_activity_key("AMX_SUPER_GLOW_PLAYER_OFF_CASE1", "AMX_SUPER_GLOW_PLAYER_OFF_CASE2", szAdminName, szTargetName);
@@ -3682,6 +3892,3 @@ public Cmd_GlowColors(id, iLevel, iCid)
 	
 	return PLUGIN_HANDLED;
 }
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
-*/
