@@ -49,32 +49,31 @@
 /*
  *	Nr 		COMMAND				CALLBACK FUNCTION			ADMIN LEVEL
  *	
- *	1)		amx_heal			Cmd_Heal					RANK_ADMINISTRATOR	
- *	2)		amx_armor			Cmd_Armor					RANK_GOLD_ADMIN
- *	3)		amx_teleport			Cmd_Teleport					RANK_OWNER
- *	4)		amx_userorigin			Cmd_UserOrigin					RANK_OWNER
- *	5)		amx_stack			Cmd_Stack					RANK_OWNER
- *	6)		amx_gravity			Cmd_Gravity					RANK_CO_OWNER
- *	7)		amx_unammo			Cmd_UnAmmo					RANK_HEAD_ADMIN
- *	8)		amx_weapon(menu)		Cmd_Weapon(Menu)				RANK_CO_OWNER
- *	9)		amx_drug			Cmd_Drug					RANK_GOLD_ADMIN
- *	10)		amx_immunitymode		Cmd_ImmunityMode				RANK_HEAD_ADMIN
- *	11)		amx_setmoney			Cmd_SetMoney					RANK_ADMINISTRATOR
- *	12)		amx_noclip			Cmd_Noclip					RANK_DEPUTY_HEAD
- *	13)		amx_speed			Cmd_Speed					RANK_HEAD_ADMIN
- *	14)		amx_revive			Cmd_Revive					RANK_ADMINISTRATOR
- *	15)		amx_bury			Cmd_Bury					RANK_ADMIN	
- *	16)		amx_unbury			Cmd_Unbury					RANK_ADMIN
- *	17)		amx_disarm			Cmd_Disarm					RANK_DEPUTY_HEAD
- *	18)		amx_slay2			Cmd_Slay2					RANK_HEAD_ADMIN
- *	19)		amx_rocket			Cmd_Rocket					RANK_HEAD_ADMIN
- *	20)		amx_fire			Cmd_Fire					RANK_ADMINISTRATOR
- *	21)		amx_flash			Cmd_Flash					RANK_ADMINISTRATOR
- *	22)		amx_uberslap			Cmd_UberSlap					RANK_ADMINISTRATOR
- *	23)		amx_glow(2)			Cmd_Glow					RANK_CO_OWNER
- *	24)		amx_glowcolors			Cmd_GlowColors					RANK_CO_OWNER
+*	1)		amx_heal			Cmd_Heal						RANK_ADMINISTRATOR	
+*	2)		amx_armor			Cmd_Armor						RANK_GOLD_ADMIN
+*	3)		amx_teleport			Cmd_Teleport				RANK_OWNER
+*	4)		amx_userorigin			Cmd_UserOrigin				RANK_OWNER
+*	5)		amx_stack			Cmd_Stack						RANK_OWNER
+*	6)		amx_gravity			Cmd_Gravity						RANK_CO_OWNER
+*	7)		amx_unammo			Cmd_UnAmmo						RANK_HEAD_ADMIN
+*	8)		amx_weapon(menu)		Cmd_Weapon(Menu)			RANK_CO_OWNER
+*	9)		amx_drug			Cmd_Drug						RANK_GOLD_ADMIN
+*	10)		amx_immunitymode		Cmd_ImmunityMode			RANK_HEAD_ADMIN
+*	11)		amx_setmoney			Cmd_SetMoney				RANK_ADMINISTRATOR
+*	12)		amx_noclip			Cmd_Noclip						RANK_DEPUTY_HEAD
+*	13)		amx_speed			Cmd_Speed						RANK_HEAD_ADMIN
+*	14)		amx_revive			Cmd_Revive						RANK_ADMINISTRATOR
+*	15)		amx_bury			Cmd_Bury						RANK_ADMIN	
+*	16)		amx_unbury			Cmd_Unbury						RANK_ADMIN
+*	17)		amx_disarm			Cmd_Disarm						RANK_DEPUTY_HEAD
+*	18)		amx_slay2			Cmd_Slay2						RANK_HEAD_ADMIN
+*	19)		amx_rocket			Cmd_Rocket						RANK_HEAD_ADMIN
+*	20)		amx_fire			Cmd_Fire						RANK_ADMINISTRATOR
+*	21)		amx_flash			Cmd_Flash						RANK_ADMINISTRATOR
+*	22)		amx_uberslap			Cmd_UberSlap				RANK_ADMINISTRATOR
+*	23)		amx_glow(2)			Cmd_Glow						RANK_CO_OWNER
+*	24)		amx_glowcolors			Cmd_GlowColors				RANK_CO_OWNER
 */ 
-
 
 #include <amxmodx>
 #include <amxmisc>
@@ -90,9 +89,6 @@
 #define SetPlayerBit(%1,%2)      (%1 |= (1<<(%2&31)))
 #define ClearPlayerBit(%1,%2)    (%1 &= ~(1 <<(%2&31)))
 #define CheckPlayerBit(%1,%2)    (%1 & (1<<(%2&31))) 
-
-// amx_disarm
-#define OFFSET_PRIMARYWEAPON        116 
 
 // amx_glow & amx_glow2
 #define MAX_COLORS 	30
@@ -230,33 +226,33 @@ public plugin_init()
 	register_plugin("Amx Super Fun", "5.0.2", "SuperCentral.co");
 	register_dictionary("amx_super.txt");
 	
-	register_concmd("amx_heal", 		"Cmd_Heal", 		ADMIN_LEVEL_A, "<nick, #userid, authid or @team> <HP to give>");
-	register_concmd("amx_armor", 		"Cmd_Armor", 		ADMIN_LEVEL_A, "<nick, #userid, authid or @team> <armor to give>");
-	register_concmd("amx_teleport", 	"Cmd_Teleport", 	ADMIN_LEVEL_A, "<nick, #userid or authid> [x] [y] [z]");
-	register_concmd("amx_userorigin", 	"Cmd_UserOrigin", 	ADMIN_LEVEL_A, "<nick, #userid or authid>");
-	register_concmd("amx_stack", 		"Cmd_Stack", 		ADMIN_LEVEL_A, "<nick, #userid or authid> [0|1|2]");
-	register_concmd("amx_gravity", 		"Cmd_Gravity", 		ADMIN_LEVEL_A, "<gravity #>");
-	register_concmd("amx_unammo", 		"Cmd_UnAmmo", 		ADMIN_LEVEL_A, "<nick, #userid or @team> [0|1] - 0=OFF 1=ON");
-	register_concmd("amx_weaponmenu", 	"Cmd_WeaponMenu", 	ADMIN_LEVEL_C, "shows the weapon menu");
-	register_concmd("amx_weapon", 		"Cmd_Weapon", 		ADMIN_LEVEL_C, "<nick, #userid or @team> <weapon #>");
-	register_concmd("amx_drug", 		"Cmd_Drug", 		ADMIN_LEVEL_C, "<@all, @team, nick, #userid, authid> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
-	register_concmd("amx_godmode", 		"Cmd_Godmode", 		ADMIN_LEVEL_C, "<nick, #userid, authid or @team> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
-	register_concmd("amx_setmoney",		"Cmd_SetMoney",		ADMIN_LEVEL_C, "<nick, #userid, authid or @team> <amount> - sets specified player's money");
-	register_concmd("amx_money", 		"Cmd_SetMoney", 	ADMIN_LEVEL_C, "<nick, #userid, authid or @team> <amount> - sets specified player's money");
-	register_concmd("amx_noclip", 		"Cmd_Noclip", 		ADMIN_LEVEL_C, "<nick, #userid, authid or @team> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
-	register_concmd("amx_speed", 		"Cmd_Speed", 		ADMIN_LEVEL_C, "<nick, #userid, authid or @team> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
-	register_concmd("amx_revive", 		"Cmd_Revive", 		ADMIN_LEVEL_C, "<nick, #userid, authid or @team>");
-	register_concmd("amx_bury", 		"Cmd_Bury", 		ADMIN_LEVEL_B, "<nick, #userid, authid or @team>");
-	register_concmd("amx_unbury", 		"Cmd_Unbury",		ADMIN_LEVEL_B, "<nick, #userid, authid or @team>");
-	register_concmd("amx_disarm",		"Cmd_Disarm", 		ADMIN_LEVEL_B, "<nick, #userid, authid or @team>");
-	register_concmd("amx_slay2", 		"Cmd_Slay2",		ADMIN_LEVEL_B, "<nick, #userid, authid or @team> [1-Lightning|2-Blood|3-Explode]");
-	register_concmd("amx_rocket", 		"Cmd_Rocket", 		ADMIN_LEVEL_B, "<nick, #userid, authid or @team>");
-	register_concmd("amx_fire", 		"Cmd_Fire", 		ADMIN_LEVEL_B, "<nick, #userid, authid or @team>");
-	register_concmd("amx_flash", 		"Cmd_Flash", 		ADMIN_LEVEL_B, "<nick, #userid, authid or @team");
-	register_concmd("amx_uberslap", 	"Cmd_UberSlap", 	ADMIN_LEVEL_B, "<nick, #userid or authid");
-	register_concmd("amx_glow", 		"Cmd_Glow", 		ADMIN_LEVEL_D, "<nick, #userid, authid, or @team/@all> <color> (or) <rrr> <ggg> <bbb> <aaa> -- lasts 1 round");
-	register_concmd("amx_glow2", 		"Cmd_Glow", 		ADMIN_LEVEL_D, "<nick, #userid, authid, or @team/@all> <color> (or) <rrr> <ggg> <bbb> <aaa> -- lasts forever");
-	register_concmd("amx_glowcolors", 	"Cmd_GlowColors", 	ADMIN_LEVEL_D, "shows a list of colors for amx_glow and amx_glow2");
+	register_concmd("amx_heal", 		"Cmd_Heal", 		RANK_ADMINISTRATOR, "<nick, #userid, authid or @team> <HP to give>");
+	register_concmd("amx_armor", 		"Cmd_Armor", 		RANK_GOLD_ADMIN, "<nick, #userid, authid or @team> <armor to give>");
+	register_concmd("amx_teleport", 	"Cmd_Teleport", 	RANK_OWNER, "<nick, #userid or authid> [x] [y] [z]");
+	register_concmd("amx_userorigin", 	"Cmd_UserOrigin", 	RANK_OWNER, "<nick, #userid or authid>");
+	register_concmd("amx_stack", 		"Cmd_Stack", 		RANK_OWNER, "<nick, #userid or authid> [0|1|2]");
+	register_concmd("amx_gravity", 		"Cmd_Gravity", 		RANK_CO_OWNER, "<gravity #>");
+	register_concmd("amx_unammo", 		"Cmd_UnAmmo", 		RANK_HEAD_ADMIN, "<nick, #userid or @team> [0|1] - 0=OFF 1=ON");
+	register_concmd("amx_weaponmenu", 	"Cmd_WeaponMenu", 	RANK_CO_OWNER, "shows the weapon menu");
+	register_concmd("amx_weapon", 		"Cmd_Weapon", 		RANK_CO_OWNER, "<nick, #userid or @team> <weapon #>");
+	register_concmd("amx_drug", 		"Cmd_Drug", 		RANK_GOLD_ADMIN, "<@all, @team, nick, #userid, authid> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
+	register_concmd("amx_godmode", 		"Cmd_Godmode", 		RANK_HEAD_ADMIN, "<nick, #userid, authid or @team> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
+	register_concmd("amx_setmoney",		"Cmd_SetMoney",		RANK_ADMINISTRATOR, "<nick, #userid, authid or @team> <amount> - sets specified player's money");
+	register_concmd("amx_money", 		"Cmd_SetMoney", 	RANK_ADMINISTRATOR, "<nick, #userid, authid or @team> <amount> - sets specified player's money");
+	register_concmd("amx_noclip", 		"Cmd_Noclip", 		RANK_DEPUTY_HEAD, "<nick, #userid, authid or @team> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
+	register_concmd("amx_speed", 		"Cmd_Speed", 		RANK_HEAD_ADMIN, "<nick, #userid, authid or @team> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
+	register_concmd("amx_revive", 		"Cmd_Revive", 		RANK_ADMINISTRATOR, "<nick, #userid, authid or @team>");
+	register_concmd("amx_bury", 		"Cmd_Bury", 		RANK_ADMIN, "<nick, #userid, authid or @team>");
+	register_concmd("amx_unbury", 		"Cmd_Unbury",		RANK_ADMIN, "<nick, #userid, authid or @team>");
+	register_concmd("amx_disarm",		"Cmd_Disarm", 		RANK_DEPUTY_HEAD, "<nick, #userid, authid or @team>");
+	register_concmd("amx_slay2", 		"Cmd_Slay2",		RANK_HEAD_ADMIN, "<nick, #userid, authid or @team> [1-Lightning|2-Blood|3-Explode]");
+	register_concmd("amx_rocket", 		"Cmd_Rocket", 		RANK_HEAD_ADMIN, "<nick, #userid, authid or @team>");
+	register_concmd("amx_fire", 		"Cmd_Fire", 		RANK_ADMINISTRATOR, "<nick, #userid, authid or @team>");
+	register_concmd("amx_flash", 		"Cmd_Flash", 		RANK_ADMINISTRATOR, "<nick, #userid, authid or @team");
+	register_concmd("amx_uberslap", 	"Cmd_UberSlap", 	RANK_ADMINISTRATOR, "<nick, #userid or authid");
+	register_concmd("amx_glow", 		"Cmd_Glow", 		RANK_CO_OWNER, "<nick, #userid, authid, or @team/@all> <color> (or) <rrr> <ggg> <bbb> <aaa> -- lasts 1 round");
+	register_concmd("amx_glow2", 		"Cmd_Glow", 		RANK_CO_OWNER, "<nick, #userid, authid, or @team/@all> <color> (or) <rrr> <ggg> <bbb> <aaa> -- lasts forever");
+	register_concmd("amx_glowcolors", 	"Cmd_GlowColors", 	RANK_CO_OWNER, "shows a list of colors for amx_glow and amx_glow2");
 	
 	// Register new cvars and get existing cvar pointers:
 	g_pGravity 			= get_cvar_pointer("sv_gravity");
@@ -453,8 +449,11 @@ public Cmd_Heal(id, iLevel, iCid)
 			return PLUGIN_HANDLED;
 		}
 
-		for(new i = 0; i < iPlayersNum; i++)
+		for(new i = 0; i < iPlayersNum; i++) {
+			if (!mjb_is_valid_player(iPlayers[i]) || !canAffect2(id, iPlayers[i]))
+				continue;
 			set_user_health(iPlayers[i], iHealth);
+		}
 		
 		show_activity_key("AMX_SUPER_HEAL_TEAM_CASE1", "AMX_SUPER_HEAL_TEAM_CASE2", szAdminName, iHealth, g_szTeamNames[Team]);
 		log_amx("%L", LANG_SERVER, "AMX_SUPER_HEAL_TEAM_LOG", szAdminName, szAdminAuthid, iHealth, g_szTeamNames[Team]);
@@ -466,12 +465,18 @@ public Cmd_Heal(id, iLevel, iCid)
 		
 		if(iTempid)
 		{
+			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
+			if (!canAffect2(id, iTempid)) {
+				new szRank[35];
+				GetRankLevelStr(iTempid, szRank, charsmax(szRank));
+				console_print(id, "%L", id, "AMX_SUPER_CANT_AFFECT", szTargetName, szRank);
+				return PLUGIN_HANDLED;
+			}
 			set_user_health(iTempid, iHealth);
 			
 			new szTargetAuthid[35];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
-			get_user_name(iTempid, szTargetName, charsmax(szTargetName));
-			
+
 			show_activity_key("AMX_SUPER_HEAL_PLAYER_CASE1", "AMX_SUPER_HEAL_PLAYER_CASE2", szAdminName, iHealth, szTargetName);
 			log_amx("%L", LANG_SERVER, "AMX_SUPER_HEAL_PLAYER_LOG", szAdminName, szAdminAuthid, iHealth, szTargetName, szTargetAuthid);
 		}
@@ -2574,8 +2579,7 @@ public Cmd_Disarm(id, iLevel, iCid)
 				continue;
 			}
 			
-			strip_user_weapons(iTempid);
-			set_pdata_int(iTempid, OFFSET_PRIMARYWEAPON, 0);		// Bugfix.
+			rg_remove_all_items(iTempid);
 			give_item(iTempid, "weapon_knife");
 		}
 			
@@ -2589,9 +2593,8 @@ public Cmd_Disarm(id, iLevel, iCid)
 		
 		if(iTempid)
 		{
-			strip_user_weapons(id);
-			set_pdata_int(id, OFFSET_PRIMARYWEAPON, 0);
-			give_item(id, "weapon_knife");
+			rg_remove_all_items(iTempid);
+			give_item(iTempid, "weapon_knife");
 			
 			new szTargetAuthid[25];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
