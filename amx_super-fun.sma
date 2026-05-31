@@ -236,7 +236,7 @@ public plugin_init()
 	register_concmd("amx_weaponmenu", 	"Cmd_WeaponMenu", 	RANK_CO_OWNER, "shows the weapon menu");
 	register_concmd("amx_weapon", 		"Cmd_Weapon", 		RANK_CO_OWNER, "<nick, #userid or @team> <weapon #>");
 	register_concmd("amx_drug", 		"Cmd_Drug", 		RANK_GOLD_ADMIN, "<@all, @team, nick, #userid, authid> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
-	register_concmd("amx_invinciblemode", 		"Cmd_Invinciblemode", 		RANK_HEAD_ADMIN, "<nick, #userid, authid or @team> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
+	register_concmd("amx_invinciblemode","Cmd_Invinciblemode",RANK_HEAD_ADMIN, "<nick, #userid, authid or @team> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
 	register_concmd("amx_setmoney",		"Cmd_SetMoney",		RANK_ADMINISTRATOR, "<nick, #userid, authid or @team> <amount> - sets specified player's money");
 	register_concmd("amx_money", 		"Cmd_SetMoney", 	RANK_ADMINISTRATOR, "<nick, #userid, authid or @team> <amount> - sets specified player's money");
 	register_concmd("amx_noclip", 		"Cmd_Noclip", 		RANK_DEPUTY_HEAD, "<nick, #userid, authid or @team> [0|1|2] - 0=OFF 1=ON 2=ON + ON EACH ROUND");
@@ -393,7 +393,7 @@ public client_disconnected(id)
 */
 public Cmd_Heal(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 3))
+	if(!hasCmdAccess(id, iLevel, iCid, 3))
 		return PLUGIN_HANDLED;
 	
 	new szArg[35], szHealth[10];
@@ -492,7 +492,7 @@ public Cmd_Heal(id, iLevel, iCid)
 */
 public Cmd_Armor(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 3))
+	if(!hasCmdAccess(id, iLevel, iCid, 3))
 		return PLUGIN_HANDLED;
 	
 	new szArg[35], szArmor[10];
@@ -598,7 +598,7 @@ public Cmd_Armor(id, iLevel, iCid)
 */
 public Cmd_Teleport(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 5))
+	if(!hasCmdAccess(id, iLevel, iCid, 5))
 		return PLUGIN_HANDLED;
 	
 	new szArg1[35];
@@ -652,7 +652,7 @@ public Cmd_Teleport(id, iLevel, iCid)
 */
 public Cmd_UserOrigin(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2)) 
+	if(!hasCmdAccess(id, iLevel, iCid, 2)) 
 		return PLUGIN_HANDLED;
 
 	new szArg1[35];
@@ -688,7 +688,7 @@ public Cmd_UserOrigin(id, iLevel, iCid)
 */
 public Cmd_Stack(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 
 	new szArg1[35];
@@ -760,7 +760,7 @@ public Cmd_Stack(id, iLevel, iCid)
 */
 public Cmd_Gravity(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 1))	
+	if(!hasCmdAccess(id, iLevel, iCid, 1))	
 		return PLUGIN_HANDLED;
 	
 	if(read_argc() < 2)
@@ -791,7 +791,7 @@ public Cmd_Gravity(id, iLevel, iCid)
 */
 public Cmd_UnAmmo(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 		
 	new szArg1[35], szArg2[5];
@@ -1126,7 +1126,7 @@ new g_szWeaponNames[][] =
 
 public Cmd_Weapon(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 3))
+	if(!hasCmdAccess(id, iLevel, iCid, 3))
 		return PLUGIN_HANDLED;
 	
 	new szAdminName[32];
@@ -1234,7 +1234,7 @@ new gTeamChoice[33]
 
 public Cmd_WeaponMenu(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 1))
+	if(!hasCmdAccess(id, iLevel, iCid, 1))
 		return PLUGIN_HANDLED;
 
 	menu_display(id, g_iTeamMenu);
@@ -1750,7 +1750,7 @@ stock give_weapon_x(id, const szWeapon[])
 */
 public Cmd_Drug(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 	
 	new szArg1[24];
@@ -1868,7 +1868,7 @@ set_user_drugs(id, x)
 */
 public Cmd_Invinciblemode(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 	
 	new szAdminName[32];
@@ -1979,7 +1979,7 @@ public Cmd_Invinciblemode(id, iLevel, iCid)
 // TODO: UPDATE ALL NON-EN ML STRINGS
 public Cmd_SetMoney(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 3))
+	if(!hasCmdAccess(id, iLevel, iCid, 3))
 		return PLUGIN_HANDLED;
 	
 	new szAdminAuthid[36];
@@ -2075,7 +2075,7 @@ public Cmd_SetMoney(id, iLevel, iCid)
 */
 public Cmd_Noclip(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 		
 	new szAdminName[32];
@@ -2196,7 +2196,7 @@ public FwdPlayerSpeedPost(id)
 		
 public Cmd_Speed(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 	
 	new szAdminName[32];
@@ -2320,7 +2320,7 @@ SetSpeed(id, iSetting)
 */
 public Cmd_Revive(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 	
 	new szArg1[24];
@@ -2417,7 +2417,7 @@ public Cmd_Revive(id, iLevel, iCid)
 */
 public Cmd_Bury(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 	
 	new szArg1[32];
@@ -2545,7 +2545,7 @@ BuryPlayer(iTempid)
 */
 public Cmd_Unbury(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 		
 	new szArg1[32];
@@ -2661,7 +2661,7 @@ UnburyPlayer(iTempid)
 */
 public Cmd_Disarm(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 1))
+	if(!hasCmdAccess(id, iLevel, iCid, 1))
 		return PLUGIN_HANDLED;
 
 	new szArg1[35];
@@ -2764,7 +2764,7 @@ public Cmd_Disarm(id, iLevel, iCid)
 */
 public Cmd_Slay2(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 		
 	new szArg1[35], szSetting[2];
@@ -3002,7 +3002,7 @@ new g_iRocketZAxis[33];
 
 public Cmd_Rocket(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 1))
+	if(!hasCmdAccess(id, iLevel, iCid, 1))
 		return PLUGIN_HANDLED;
 		
 	new szArg1[35];
@@ -3236,7 +3236,7 @@ public rocket_explode(iVictim)
 */
 public Cmd_Fire(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 1))
+	if(!hasCmdAccess(id, iLevel, iCid, 1))
 		return PLUGIN_HANDLED;
 		
 	new szAdminName[35], szAdminAuthid[35], szTargetName[35];
@@ -3448,7 +3448,7 @@ public ignite_player(id)
 */
 public Cmd_Flash(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 		
 	new szArg1[35], szTargetName[35];
@@ -3567,7 +3567,7 @@ Flash_Player(id)
 */
 public Cmd_UberSlap(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 		
 	new szArg1[35];
@@ -3677,7 +3677,7 @@ public Slap_Player(id)
 */
 public Cmd_Glow(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 3))
+	if(!hasCmdAccess(id, iLevel, iCid, 3))
 		return PLUGIN_HANDLED;
 		
 	new szArg0[20], szArg1[35], szColor[20], szGreen[3], szBlue[3], szAlpha[3];
@@ -3855,7 +3855,7 @@ public Cmd_Glow(id, iLevel, iCid)
 */
 public Cmd_GlowColors(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 1))
+	if(!hasCmdAccess(id, iLevel, iCid, 1))
 		return PLUGIN_HANDLED;
 	
 	console_print(id, "Colors:");

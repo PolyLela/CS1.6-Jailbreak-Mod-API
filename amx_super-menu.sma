@@ -228,7 +228,7 @@ public plugin_init()
 
 public CmdReloadCmds(id, iLevel, iCid)
 {
-	if(!g_bCommandManagerEnabled || (id && !cmd_access(id, iLevel, iCid, 1)))
+	if(!g_bCommandManagerEnabled || (id && !hasCmdAccess(id, iLevel, iCid, 1)))
 		return PLUGIN_HANDLED;
 	
 	new szDisabledCmdFile[64], iFile;

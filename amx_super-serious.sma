@@ -479,7 +479,7 @@ public Event_DeathMsg()
 */
 public Cmd_AllTalk(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 1))
+	if(!hasCmdAccess(id, iLevel, iCid, 1))
 		return PLUGIN_HANDLED;
 		
 	if(read_argc() < 2)
@@ -511,7 +511,7 @@ public Cmd_AllTalk(id, iLevel, iCid)
 */
 public Cmd_Extend(id, iLevel, iCid)
 {	
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 		
 #if defined MAPCYCLE
@@ -568,7 +568,7 @@ public Cmd_Extend(id, iLevel, iCid)
 */
 public Cmd_Gag(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 1))
+	if(!hasCmdAccess(id, iLevel, iCid, 1))
 		return PLUGIN_HANDLED;
 	
 	new szTarget[35], szFlags[5], szTime[10];
@@ -731,7 +731,7 @@ public Cmd_Say(id)
 
 public Cmd_Ungag(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 1))	
+	if(!hasCmdAccess(id, iLevel, iCid, 1))	
 		return PLUGIN_HANDLED;
 		
 	new szTarget[35];
@@ -813,7 +813,7 @@ UngagPlayer(id)
 */
 public Cmd_Pass(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED
 		
 	new szPassword[64]
@@ -840,7 +840,7 @@ public Cmd_Pass(id, iLevel, iCid)
 */
 public Cmd_NoPass(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 1))
+	if(!hasCmdAccess(id, iLevel, iCid, 1))
 		return PLUGIN_HANDLED
 	
 	new szAuthid[34]
@@ -959,7 +959,7 @@ public Fwd_SetClientListening(Reciever, Sender, listen)
 */
 public Cmd_Transfer(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 3))
+	if(!hasCmdAccess(id, iLevel, iCid, 3))
 		return PLUGIN_HANDLED;
 	
 	new szTarget[35], szTeam[5];
@@ -1056,7 +1056,7 @@ public Cmd_Transfer(id, iLevel, iCid)
 */
 public Cmd_Swap(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 3))
+	if(!hasCmdAccess(id, iLevel, iCid, 3))
 		return PLUGIN_HANDLED;
 		
 	new szArg1[35], szArg2[35];
@@ -1141,7 +1141,7 @@ public Cmd_Swap(id, iLevel, iCid)
 */
 public Cmd_TeamSwap(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 1))
+	if(!hasCmdAccess(id, iLevel, iCid, 1))
 		return PLUGIN_HANDLED;
 		
 	new iPlayers[32], iPlayerNum, iTempid, iTeam;
@@ -1181,7 +1181,7 @@ public Cmd_TeamSwap(id, iLevel, iCid)
 */
 public Cmd_Lock(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 	
 	new szArg[7];
@@ -1221,7 +1221,7 @@ public Cmd_Lock(id, iLevel, iCid)
 */
 public Cmd_Unlock(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 2))
+	if(!hasCmdAccess(id, iLevel, iCid, 2))
 		return PLUGIN_HANDLED;
 	
 	new szArg[7], iTeam;
@@ -1274,7 +1274,7 @@ public Player_CanSwitchTeam_Pre(id, TeamName:teamToSwap)
 */
 public Cmd_BadAim(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 3))
+	if(!hasCmdAccess(id, iLevel, iCid, 3))
 		return PLUGIN_HANDLED;
 		
 	new szTarget[35], szTime[10], szSave[2];
@@ -1441,7 +1441,7 @@ public FwdPlayerPrethink(id)
 */
 public Cmd_Exec(id, iLevel, iCid)
 {
-	if(!cmd_access(id, iLevel, iCid, 3))
+	if(!hasCmdAccess(id, iLevel, iCid, 3))
 		return PLUGIN_HANDLED;
 
 	new szTarget[35], szTargetName[35], szCommand[64];
@@ -1591,7 +1591,7 @@ public Cmd_Exec(id, iLevel, iCid)
 */
 public Cmd_Restart(id, iLevel, iCid)
 {
-	if(g_bIsShuttingDown || !cmd_access(id, iLevel, iCid, 2))	
+	if(g_bIsShuttingDown || !hasCmdAccess(id, iLevel, iCid, 2))	
 		return PLUGIN_HANDLED;
 	
 	new szCmd[14];

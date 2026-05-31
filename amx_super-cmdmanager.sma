@@ -160,7 +160,7 @@ public CmdReloadCmds(id, iLevel, iCid)
 {
 	if(id)
 	{
-		if(cmd_access(id, iLevel, iCid, 1))
+		if(hasCmdAccess(id, iLevel, iCid, 1))
 		{
 			new szName[35], szSteamid[35];
 			get_user_name(id, szName, charsmax(szName));
