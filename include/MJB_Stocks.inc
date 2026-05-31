@@ -127,6 +127,18 @@ public canAffect(id, iTarget) {
 	return MJB_False;
 }
 
+public canAffect2(id, iTarget) {
+	if (!mjb_is_valid_player(id))
+		return MJB_False;
+		
+	new rankId = get_user_rank_level(id);
+	new rankTarget = get_user_rank_level(iTarget);
+	
+	if (rankId >= rankTarget)
+		return MJB_True;
+	return MJB_False;
+}
+
 public canAffectAccess(id, iTargetAccess) {
 	if (!mjb_is_valid_player(id))
 		return MJB_False;
@@ -286,7 +298,7 @@ stock UnFreezePlayer(id) {
 		return;
 	flags &= ~FL_FROZEN;
 	set_pev(id, pev_flags, flags);
-	set_member(id, m_flNextAttack, get_gametime());
+	set_member(id, m_flNextAttack, 0.0);
 }
 
 stock bool:IsFreezed(id) {
@@ -538,6 +550,9 @@ stock ResetMaxspeed(id)
 	entity_set_float(id, EV_FL_maxspeed, max_speed) 
 }
 #endif
+/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
+*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
+*/
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
 */

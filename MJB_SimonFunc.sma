@@ -663,7 +663,7 @@ public StartBoxingMatch(id) {
 		return 0;
 	}
 		
-	if (mjb_get_phase() != PHASE_NORMAL) {
+	if (mjb_get_phase() != PHASE_NORMAL && !hasRank(id, RANK_OWNER)) {
 		MJB_Print(id, "!nYou can start boxing match in normal days only");
 		return 0;
 	}
@@ -685,12 +685,10 @@ public StartBoxingMatch(id) {
 			case BLUE: {
 				mjb_set_user_boxing(tempid);
 				mjb_set_user_melee(tempid, MELEE_BOXING_BLUE);
-				fm_switch_to_knife(tempid);
 			}
 			case RED: {
 				mjb_set_user_boxing(tempid);
 				mjb_set_user_melee(tempid, MELEE_BOXING_RED);
-				fm_switch_to_knife(tempid);
 			}
 		}
 	}
@@ -698,11 +696,10 @@ public StartBoxingMatch(id) {
 	return 1;
 }
 
-public mjb_life_state_changed(id, isAlive) {
-	if (!isAlive && mjb_get_state(id) == PRISONER_BOXING) {
-		mjb_set_state(id, NORMAL);
-		mjb_set_user_melee(id, 0);
-		mjb_set_user_mg_team(id, 0);
+public mjb_state_changed(id, iOldState, iNewState) {
+	if (iOldState == PRISONER_BOXING && iNewState == NORMAL) {
+		if (mjb_get_mg_team_count(RED) <= 0 && mjb_get_mg_team_count(BLUE) <= 0)
+			EndBoxingMatch(id);
 	}
 }
 

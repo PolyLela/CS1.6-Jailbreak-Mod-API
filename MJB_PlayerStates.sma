@@ -27,8 +27,6 @@ new g_PlayerData[MAX_PLAYERS + 1][DATA_NUM];
 /* Forwards */
 new g_fwStateChanged;
 new g_fwMinigamesTeamChanged;
-
-new g_iPlayerMinigamesTeam[MAX_PLAYERS + 1];
 new bool:g_bNextdayFreeday[MAX_PLAYERS + 1];
 /* =========================
    PLUGIN INIT
@@ -358,14 +356,14 @@ public SetPlayerSoccer(id)
 
 public SetPlayerMinigamesTeam(id, iMinigamesTeam)
 {
-	g_iPlayerMinigamesTeam[id] = iMinigamesTeam;
+	g_PlayerData[id][DATA_MG_TEAM] = iMinigamesTeam;
 	Forward_MinigamesTeamChanged(id);
 	return true;
 }
 
 public GetPlayerMinigamesTeam(id)
 {
-	return g_iPlayerMinigamesTeam[id];
+	return g_PlayerData[id][DATA_MG_TEAM];
 }
 
 public GetMinigamesTeamCount(iMinigamesTeam)
@@ -373,7 +371,7 @@ public GetMinigamesTeamCount(iMinigamesTeam)
 	new iCount = 0;
 	for (new i = 1; i <= MAX_PLAYERS; i++)
 	{
-		if (g_iPlayerMinigamesTeam[i] != iMinigamesTeam)
+		if (GetPlayerMinigamesTeam(i) != iMinigamesTeam)
 			continue;
 		iCount++;
 	}
@@ -408,7 +406,7 @@ public Forward_StateChanged(id, OldState)
 public Forward_MinigamesTeamChanged(id)
 {
 	new ret;
-	ExecuteForward(g_fwMinigamesTeamChanged, ret, id, g_iPlayerMinigamesTeam[id]);
+	ExecuteForward(g_fwMinigamesTeamChanged, ret, id, GetPlayerMinigamesTeam(id));
 }
 
 /* =========================
@@ -513,3 +511,6 @@ public native_set_all_state()
 	new iState = get_param(1);
 	SetAllState(iState);
 }
+/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
+*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
+*/

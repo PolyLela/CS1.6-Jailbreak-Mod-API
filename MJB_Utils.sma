@@ -16,7 +16,7 @@
 
 #define CHANNEL_HUD_GENERAL_INFO 1
 #define CHANNEL_HUD_MAIN_INFO 2
-#define CHANNEL_HUD_FD 3
+#define CHANNEL_HUD_FD 3 
 #define CHANNEL_HUD_WANTED 4
 
 stock fm_set_entity_visibility(index, visible = 1) set_pev(index, pev_effects, visible == 1 ? pev(index, pev_effects) & ~EF_NODRAW : pev(index, pev_effects) | EF_NODRAW)
