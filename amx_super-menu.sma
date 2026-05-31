@@ -166,7 +166,7 @@ new g_szCommands[][64] =
 	"amx_bury",
 	"amx_unbury",
 	"amx_slay2",
-	"amx_godmode",
+	"amx_invinciblemode",
 	"amx_noclip",
 	"amx_speed",
 	"amx_unammo",
@@ -820,18 +820,21 @@ DisplayPlayer1Menu(id, iPos, iMenu)
 			}
 		else
 			get_user_name(i, szName, 31);
-		
-		if (i < 33 && i != id && access(i, ADMIN_IMMUNITY))
-		{
-			++b;
-			iLen += format(szMenuBody[iLen], 1023-iLen, "\d\r%d. \w%s^n\w", b, szName);
-		} else {
-			iKeys |= (1<<b);
-				
-			if (i < 33 && is_user_admin(i))
-				iLen += format(szMenuBody[iLen], 1023-iLen, "\r%d. \w%s \r*^n\w", ++b, szName);
-			else
-				iLen += format(szMenuBody[iLen], 1023-iLen, "\r%d. \w%s^n", ++b, szName);
+
+		new bool:bCanAffect = canAffect2(id, i);
+
+		if (!bCanAffect) {
+			if (strlen(szName) > 20) {
+				szName[18] = '.';
+				szName[19] = '.';
+				szName[20] = 0;
+			}
+			new szRank[64];
+			GetRankLevelStr(i, szRank, 63)
+			iLen += format(szMenuBody[iLen], 1023 - iLen, "\d%d. %-20s       \r%s^n\w", ++b, szName, szRank);
+		}
+		else {
+			iLen += format(szMenuBody[iLen], 1023 - iLen, "\r%d\d. \w%s^n\w", ++b, szName);
 		}
 	}
 
@@ -936,17 +939,20 @@ DisplayPlayer2Menu(id, iPos, iMenu)
 			default: get_user_name(i, szName, 31);
 		}
 		
-		if (i < 33 && i != id && access(i, ADMIN_IMMUNITY))
-		{
-			++b;
-			iLen += format(szMenuBody[iLen], 1023-iLen, "\d\r%d. \w%s^n\w", b, szName);
-		} else {
-			iKeys |= (1<<b);
-				
-			if (i < 33 && is_user_admin(i))
-				iLen += format(szMenuBody[iLen], 1023-iLen, "\r%d. \w%s \r*^n\w", ++b, szName);
-			else
-				iLen += format(szMenuBody[iLen], 1023-iLen, "\r%d. \w%s^n", ++b, szName);
+		new bool:bCanAffect = canAffect2(id, i);
+
+		if (!bCanAffect) {
+			if (strlen(szName) > 20) {
+				szName[18] = '.';
+				szName[19] = '.';
+				szName[20] = 0;
+			}
+			new szRank[64];
+			GetRankLevelStr(i, szRank, 63)
+			iLen += format(szMenuBody[iLen], 1023 - iLen, "\d%d. %-20s       \r%s^n\w", ++b, szName, szRank);
+		}
+		else {
+			iLen += format(szMenuBody[iLen], 1023 - iLen, "\r%d\d. \w%s^n\w", ++b, szName);
 		}
 	}
 	
@@ -1100,17 +1106,20 @@ DisplayGagMenu(id, iPos)
 		}
 		*/
 		
-		if (i < 33 && i != id && access(i, ADMIN_IMMUNITY))
-		{
-			++b;
-			iLen += format(szMenuBody[iLen], 1023-iLen, "\d\r%d. \w%s^n\w", b, szName);
-		} else {
-			iKeys |= (1<<b);
-				
-			if (i < 33 && is_user_admin(i))
-				iLen += format(szMenuBody[iLen], 1023-iLen, "\r%d. \w%s \r*^n\w", ++b, szName);
-			else
-				iLen += format(szMenuBody[iLen], 1023-iLen, "\r%d. \w%s^n", ++b, szName);
+		new bool:bCanAffect = canAffect2(id, i);
+
+		if (!bCanAffect) {
+			if (strlen(szName) > 20) {
+				szName[18] = '.';
+				szName[19] = '.';
+				szName[20] = 0;
+			}
+			new szRank[64];
+			GetRankLevelStr(i, szRank, 63)
+			iLen += format(szMenuBody[iLen], 1023 - iLen, "\d%d. %-20s       \r%s^n\w", ++b, szName, szRank);
+		}
+		else {
+			iLen += format(szMenuBody[iLen], 1023 - iLen, "\r%d\d. \w%s^n\w", ++b, szName);
 		}
 	}
 	
