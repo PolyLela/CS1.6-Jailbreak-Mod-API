@@ -515,7 +515,7 @@ public CmdBan(client, level, cid)
 		new szRank[35], szTargetName[35];
 		GetRankLevelStr(target, szRank, charsmax(szRank));
 		get_user_name(target, szTargetName, 34);
-		console_print(id, "you can't affect '%s' he is %s", szTargetName, szRank);
+		console_print(client, "you can't affect '%s' he is %s", szTargetName, szRank);
 		return PLUGIN_HANDLED;
 	}
 
@@ -605,7 +605,7 @@ public CmdBanIp(client, level, cid)
 		new szRank[35], szTargetName[35];
 		GetRankLevelStr(target, szRank, charsmax(szRank));
 		get_user_name(target, szTargetName, 34);
-		console_print(id, "you can't affect '%s' he is %s", szTargetName, szRank);
+		console_print(client, "you can't affect '%s' he is %s", szTargetName, szRank);
 		return PLUGIN_HANDLED;
 	}
 
@@ -1799,6 +1799,3 @@ Log(const message_fmt[], any:...)
 	log_amx("%s", message);
 	log_to_file(filename, "%s", message);
 }
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
-*/

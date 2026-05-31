@@ -1,0 +1,24 @@
+[en]
+ABF_BAN_INFORMATION = FK Information
+ABF_NAME = Name
+ABF_IP = IP
+ABF_STEAMID = SteamID
+ABF_REASON = Reason
+ABF_BAN_LENGTH = FK Length
+ABF_UNBAN_TIME = Unban Time
+ABF_ADMIN_NAME = Admin Name
+ABF_ADMIN_STEAMID = Admin SteamID
+ABF_WEBSITE = If you think you were banned unfairly, report this information to our website:
+ABF_NOT_AUTHORIZED = Target has not authorized with the server! Unable to ban!
+ABF_ALREADY_BANNED_STEAMID = This player's SteamID is already in fk list!
+ABF_ALREADY_BANNED_IP = This player's IP is already banned!
+ABF_PERMANENT_BAN = Permanent Ban From Guards
+ABF_INVALID_STEAMID = Invalid SteamID!
+ABF_VALID_STEAMID_FORMAT = Correct format: STEAM_0:X:XXXXXXX
+ABF_INVALID_IP = Invalid IP!
+ABF_NOT_IN_BAN_LIST = Could not find %s in the fk list!
+ABF_NO_BANS = There isn't anyone in fk list at this time.
+ABF_BAN_LIST_NUM = Listing banned players %i - %i.
+ABF_BAN_LIST_NEXT = Use amx_fklist %i for the next people in the list.
+ABF_MAX_BAN_TIME = The max fk time allowed is %i.
+

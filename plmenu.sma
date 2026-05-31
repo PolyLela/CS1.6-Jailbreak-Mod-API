@@ -12,13 +12,14 @@
 //
 
 #include <amxmodx>
+#include <fakemeta>
 #include <amxmisc>
 #include <MJB_Core>
 
 /** skip autoloading since it's optional */
 #define AMXMODX_NOAUTOLOAD
 #include <cstrike>
-#include <fakemeta>
+
 
 new g_menuPosition[MAX_PLAYERS + 1];
 new g_menuPlayers[MAX_PLAYERS + 1][MAX_PLAYERS];
@@ -42,6 +43,7 @@ new bool:g_fakemeta = false;
 
 new Array:g_bantimes;
 new Array:g_slapsettings;
+new g_ban_player[33];
 
 new const g_CSTeamNames[3][] = {
 	"TERRORIST",
@@ -208,7 +210,7 @@ public native_filter(const name[], index, trap)
 
 /* Ban menu */
 
-public client_disconnect(id)
+public client_disconnected(id)
 {
 	g_ban_player[id] = 0;
 }
@@ -360,7 +362,7 @@ displayBanMenu(id, pos)
 		i = g_menuPlayers[id][a]
 		get_user_name(i, name, 31)
 
-		if (is_user_bot(i) || (!canAffect(id, i)) && i != id))
+		if (is_user_bot(i) || (!canAffect(id, i)) && i != id)
 		{
 			++b
 			
@@ -1042,7 +1044,7 @@ public cmdTeamMenu(id, level, cid)
 	console_print(id, "Sorry. Team Menu is under maintainence")
 	return PLUGIN_HANDLED;
 
-	if (!cmd_access(id, level, cid, 1))
+	/*if (!cmd_access(id, level, cid, 1))
 	{
 		return PLUGIN_HANDLED;
 	}
@@ -1051,7 +1053,7 @@ public cmdTeamMenu(id, level, cid)
 
 	displayTeamMenu(id, g_menuPosition[id] = 0);
 
-	return PLUGIN_HANDLED;
+	return PLUGIN_HANDLED;*/
 }
 
 /* Client cmds menu */
