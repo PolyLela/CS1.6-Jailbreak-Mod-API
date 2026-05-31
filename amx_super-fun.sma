@@ -2362,7 +2362,7 @@ public Cmd_Revive(id, iLevel, iCid)
 				
 				case CT:
 				{
-					if(GetTeam(iPlayer) == Guard)
+					if(GetTeam(iPlayer) == GUARD)
 						rg_round_respawn(iPlayer);
 				}
 				
