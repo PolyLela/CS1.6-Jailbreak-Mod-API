@@ -154,7 +154,7 @@ public canAffectAccess(id, iTargetAccess) {
 	return MJB_False;
 }
 
-stock hasCmdAccess(id, requiredRank, iCommandId, iMinimumArgCount) {
+stock hasCmdAccess(id, requiredRank, iCommandId, iMinimumArgCount, bool:PrintNoACC=false) {
 	new has_access = 0;
 	if (id == (is_dedicated_server() ? 0 : 1))
 	{
@@ -167,17 +167,17 @@ stock hasCmdAccess(id, requiredRank, iCommandId, iMinimumArgCount) {
 
 	if (has_access == 0)
 	{
-		if (!accesssilent)
+		if (!PrintNoACC)
 		{
 			console_print(id, "%L", id, "NO_ACC_COM");
 		}
 		return 0;
 	}
 	
-	if (read_argc() < num)
+	if (read_argc() < iMinimumArgCount)
 	{
 		new hcmd[32], hinfo[128], hflag, bool:info_ml;
-		get_concmd(cid, hcmd, charsmax(hcmd), hflag, hinfo, charsmax(hinfo), level, _, info_ml);
+		get_concmd(iCommandId, hcmd, charsmax(hcmd), hflag, hinfo, charsmax(hinfo), requiredRank, _, info_ml);
 
 		if (info_ml)
 		{

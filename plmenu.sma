@@ -64,9 +64,6 @@ new g_transferingAdmin;
 
 new allow_spectators, mp_limitteams;
 
-new p_amx_tempban_maxtime;
-new Trie:g_tempBans;
-
 new g_silent[MAX_PLAYERS + 1];
 
 public plugin_natives()
@@ -87,6 +84,7 @@ public plugin_init()
 	register_clcmd("amx_slapmenu", "cmdSlapMenu", RANK_ADMIN, "- displays slap/slay menu");
 	register_clcmd("amx_teammenu", "cmdTeamMenu", RANK_ADMIN, "- displays team menu");
 	register_clcmd("amx_clcmdmenu", "cmdClcmdMenu", RANK_ADMIN, "- displays client cmds menu");
+	register_clcmd("amx_banreason", "CmdBanReason", RANK_FULL_ADMIN, "<reason>");
 
 	register_menucmd(register_menuid("Ban Menu"), 1023, "actionBanMenu");
 	register_menucmd(register_menuid("Kick Menu"), 1023, "actionKickMenu");
@@ -141,23 +139,6 @@ public plugin_init()
 	allow_spectators = get_cvar_pointer("allow_spectators");
 	mp_limitteams = get_cvar_pointer("mp_limitteams");
 }
-
-public plugin_cfg()
-{
-	new x = get_xvar_id("g_tempBans");
-	if (x)
-	{
-		g_tempBans = Trie:get_xvar_num(x);
-	}
-	new amx_tempban_maxtime[] = "amx_tempban_maxtime";
-	p_amx_tempban_maxtime = get_cvar_pointer(amx_tempban_maxtime);
-	if (!p_amx_tempban_maxtime)
-	{
-		p_amx_tempban_maxtime = register_cvar(amx_tempban_maxtime, "4320", FCVAR_PROTECTED);
-		server_cmd("amx_cvar add %s", amx_tempban_maxtime);
-	}
-}
-
 public plmenu_setbantimes()
 {
 	new buff[32];
@@ -227,6 +208,50 @@ public native_filter(const name[], index, trap)
 
 /* Ban menu */
 
+public client_disconnect(id)
+{
+	g_ban_player[id] = 0;
+}
+
+public CmdBanReason(id)
+{
+	new player = g_ban_player[id];
+	
+	if( !player ) return PLUGIN_HANDLED;
+	
+	new reason[128];
+	read_args(reason, sizeof(reason) - 1);
+	remove_quotes(reason);
+	
+	new name[32], name2[32], authid[32], authid2[32]
+
+	get_user_name(player, name2, 31)
+	get_user_authid(id, authid, 31)
+	get_user_authid(player, authid2, 31)
+	get_user_name(id, name, 31)
+	
+	new userid2 = get_user_userid(player)
+
+	log_amx("Ban: ^"%s<%d><%s><>^" ban and kick ^"%s<%d><%s><>^" (minutes ^"%d^") (reason ^"%s^")", name, get_user_userid(id), authid, name2, userid2, authid2, g_menuSettings[id], reason)
+
+	if ( !equal("STEAM_0:", authid2, 8))
+	{
+		client_cmd(id, "amx_banip #%i %i ^"%s^"", userid2, g_menuSettings[id], reason);
+	}
+	else
+	{
+		client_cmd(id, "amx_ban #%i %i ^"%s^"", userid2, g_menuSettings[id], reason);
+	}
+
+	server_exec()
+	
+	g_ban_player[id] = 0;
+
+	displayBanMenu(id, g_menuPosition[id])
+	
+	return PLUGIN_HANDLED;
+}
+
 public actionBanMenu(id, key)
 {
 	switch (key)
@@ -234,46 +259,40 @@ public actionBanMenu(id, key)
 		case 7:
 		{
 			/* BEGIN OF CHANGES BY MISTAGEE ADDED A FEW MORE OPTIONS */
-
-			++g_menuOption[id];
+			
+			++g_menuOption[id]
 			g_menuOption[id] %= ArraySize(g_bantimes);
 
 			g_menuSettings[id] = ArrayGetCell(g_bantimes, g_menuOption[id]);
 
-			displayBanMenu(id, g_menuPosition[id]);
+			displayBanMenu(id, g_menuPosition[id])
 		}
-		case 8:
-		{
-			displayBanMenu(id, ++g_menuPosition[id]);
-		}
-		case 9:
-		{
-			displayBanMenu(id, --g_menuPosition[id]);
-		}
+		case 8: displayBanMenu(id, ++g_menuPosition[id])
+		case 9: displayBanMenu(id, --g_menuPosition[id])
 		default:
 		{
-			new banTime = g_menuSettings[id];
-			if (~get_user_flags(id) & (ADMIN_BAN | ADMIN_RCON) && (banTime <= 0 || banTime > get_pcvar_num(p_amx_tempban_maxtime)))
+			g_ban_player[id] = g_menuPlayers[id][g_menuPosition[id] * 7 + key]
+			
+			client_cmd(id, "messagemode amx_banreason");
+			
+			client_print(id, print_chat, "[AMXX] Type in the reason for banning this player.");
+			
+			
+			/*new name[32], name2[32], authid[32], authid2[32]
+		
+			get_user_name(player, name2, 31)
+			get_user_authid(id, authid, 31)
+			get_user_authid(player, authid2, 31)
+			get_user_name(id, name, 31)
+			
+			new userid2 = get_user_userid(player)
+
+			log_amx("Ban: ^"%s<%d><%s><>^" ban and kick ^"%s<%d><%s><>^" (minutes ^"%d^")", name, get_user_userid(id), authid, name2, userid2, authid2, g_menuSettings[id])
+
+			if (g_menuSettings[id]==0) // permanent
 			{
-				console_print(id, "%L", id, "NO_ACC_COM");
-				displayBanMenu(id, g_menuPosition[id]);
-				return PLUGIN_HANDLED;
-			}
-			new player = g_menuPlayers[id][g_menuPosition[id] * 7 + key];
-			new name[MAX_NAME_LENGTH], name2[MAX_NAME_LENGTH], authid[32], authid2[32];
-
-			get_user_name(player, name2, charsmax(name2));
-			get_user_authid(id, authid, charsmax(authid));
-			get_user_authid(player, authid2, charsmax(authid2));
-			get_user_name(id, name, charsmax(name));
-
-			new userid2 = get_user_userid(player);
-
-			log_amx("Ban: ^"%s<%d><%s><>^" ban and kick ^"%s<%d><%s><>^" (minutes ^"%d^")", name, get_user_userid(id), authid, name2, userid2, authid2, banTime);
-
-			if (!banTime) // permanent
-			{
-				for (new i = 1; i <= MaxClients; i++)
+				new maxpl = get_maxplayers();
+				for (new i = 1; i <= maxpl; i++)
 				{
 					show_activity_id(i, id, name, "%L %s %L", i, "BAN", name2, i, "PERM");
 				}
@@ -281,141 +300,135 @@ public actionBanMenu(id, key)
 			else
 			{
 				new tempTime[32];
-				num_to_str(banTime, tempTime, charsmax(tempTime));
-				for (new i = 1; i <= MaxClients; i++)
+				formatex(tempTime,sizeof(tempTime)-1,"%d",g_menuSettings[id]);
+				new maxpl = get_maxplayers();
+				for (new i = 1; i <= maxpl; i++)
 				{
 					show_activity_id(i, id, name, "%L %s %L", i, "BAN", name2, i, "FOR_MIN", tempTime);
 				}
 			}
-			/* ---------- check for Steam ID added by MistaGee -------------------- 
-			IF AUTHID == 4294967295 OR VALVE_ID_LAN OR HLTV, BAN PER IP TO NOT BAN EVERYONE */
-
+			// ---------- check for Steam ID added by MistaGee -------------------- 
+			// IF AUTHID == 4294967295 OR VALVE_ID_LAN OR HLTV, BAN PER IP TO NOT BAN EVERYONE
+			
 			if (equal("4294967295", authid2)
 				|| equal("HLTV", authid2)
 				|| equal("STEAM_ID_LAN", authid2)
 				|| equali("VALVE_ID_LAN", authid2))
 			{
-				/* END OF MODIFICATIONS BY MISTAGEE */
-				new ipa[32];
-				get_user_ip(player, ipa, charsmax(ipa), 1);
-
-				server_cmd("addip %d %s;writeip", banTime, ipa);
-				if (g_tempBans)
-				{
-					TrieSetString(g_tempBans, ipa, authid);
-				}
+				// END OF MODIFICATIONS BY MISTAGEE 
+				server_cmd("amx_banip #%i %i ^"Banned From Menu^"", userid2, g_menuSettings[id]);
 			}
 			else
 			{
-				server_cmd("banid %d #%d kick;writeid", banTime, userid2);
-				if (g_tempBans)
-				{
-					TrieSetString(g_tempBans, authid2, authid);
-				}
+				server_cmd("amx_ban #%i %i ^"Banned From Menu^"", userid2, g_menuSettings[id]);
 			}
 
-			server_exec();
+			server_exec()
 
-			displayBanMenu(id, g_menuPosition[id]);
+			displayBanMenu(id, g_menuPosition[id])*/
 		}
 	}
-
-	return PLUGIN_HANDLED;
+	
+	return PLUGIN_HANDLED
 }
 
 displayBanMenu(id, pos)
 {
 	if (pos < 0)
-	{
-		return;
-	}
+		return
 
-	get_players(g_menuPlayers[id], g_menuPlayersNum[id]);
+	get_players(g_menuPlayers[id], g_menuPlayersNum[id])
 
-	new menuBody[512];
-	new b = 0;
-	new i;
-	new name[MAX_NAME_LENGTH];
-	new start = pos * 7;
+	new menuBody[512]
+	new b = 0
+	new i
+	new name[32]
+	new start = pos * 7
 
 	if (start >= g_menuPlayersNum[id])
-	{
-		start = pos = g_menuPosition[id] = 0;
-	}
+		start = pos = g_menuPosition[id] = 0
 
-	new len = formatex(menuBody, charsmax(menuBody), g_coloredMenus ? "\y%L\R%d/%d^n\w^n" : "%L %d/%d^n^n", id, "BAN_MENU", pos + 1, (g_menuPlayersNum[id] / 7 + ((g_menuPlayersNum[id] % 7) ? 1 : 0)));
-	new end = start + 7;
-	new keys = MENU_KEY_0|MENU_KEY_8;
+	new len = format(menuBody, 511, g_coloredMenus ? "\y%L\R%d/%d^n\w^n" : "%L %d/%d^n^n", id, "BAN_MENU", pos + 1, (g_menuPlayersNum[id] / 7 + ((g_menuPlayersNum[id] % 7) ? 1 : 0)))
+	new end = start + 7
+	new keys = MENU_KEY_0|MENU_KEY_8
 
 	if (end > g_menuPlayersNum[id])
-	{
-		end = g_menuPlayersNum[id];
-	}
+		end = g_menuPlayersNum[id]
 
 	for (new a = start; a < end; ++a)
 	{
-		i = g_menuPlayers[id][a];
-		get_user_name(i, name, charsmax(name));
+		i = g_menuPlayers[id][a]
+		get_user_name(i, name, 31)
 
-		if (is_user_bot(i) || !canAffect(id, i) && id != i)
+		if (is_user_bot(i) || (!canAffect(id, i)) && i != id))
 		{
-			++b;
-
+			++b
+			
 			if (g_coloredMenus)
-			{
-				len += formatex(menuBody[len], charsmax(menuBody) - len, "\d%d. %s^n\w", b, name);
-			}
+				len += format(menuBody[len], 511-len, "\d%d. %s^n\w", b, name)
 			else
-			{
-				len += formatex(menuBody[len], charsmax(menuBody) - len, "#. %s^n", name);
-			}
-		}
-		else
-		{
-			keys |= (1<<b);
-
+				len += format(menuBody[len], 511-len, "#. %s^n", name)
+		} else {
+			keys |= (1<<b)
+				
 			if (is_user_admin(i))
-			{
-				len += formatex(menuBody[len], charsmax(menuBody) - len, g_coloredMenus ? "%d. %s \r*^n\w" : "%d. %s *^n", ++b, name);
-			}
+				len += format(menuBody[len], 511-len, g_coloredMenus ? "%d. %s \r*^n\w" : "%d. %s *^n", ++b, name)
 			else
-			{
-				len += formatex(menuBody[len], charsmax(menuBody) - len, "%d. %s^n", ++b, name);
-			}
+				len += format(menuBody[len], 511-len, "%d. %s^n", ++b, name)
 		}
 	}
 
 	if (g_menuSettings[id])
 	{
-		len += formatex(menuBody[len], charsmax(menuBody) - len, "^n8. %L^n", id, "BAN_FOR_MIN", g_menuSettings[id]);
+		new banLength[32]
+		if (timeToString(g_menuSettings[id], banLength, 31))
+			len += format(menuBody[len], 511-len, "^n8. Ban for %s^n", banLength)
+		else
+			len += format(menuBody[len], 511-len, "^n8. %L^n", id, "BAN_FOR_MIN", g_menuSettings[id])
 	}
 	else
-	{
-		len += formatex(menuBody[len], charsmax(menuBody) - len, "^n8. %L^n", id, "BAN_PERM");
-	}
+		len += format(menuBody[len], 511-len, "^n8. %L^n", id, "BAN_PERM")
 
 	if (end != g_menuPlayersNum[id])
 	{
-		formatex(menuBody[len], charsmax(menuBody) - len, "^n9. %L...^n0. %L", id, "MORE", id, pos ? "BACK" : "EXIT");
-		keys |= MENU_KEY_9;
+		format(menuBody[len], 511-len, "^n9. %L...^n0. %L", id, "MORE", id, pos ? "BACK" : "EXIT")
+		keys |= MENU_KEY_9
 	}
 	else
-	{
-		formatex(menuBody[len], charsmax(menuBody) - len, "^n0. %L", id, pos ? "BACK" : "EXIT");
-	}
+		format(menuBody[len], 511-len, "^n0. %L", id, pos ? "BACK" : "EXIT")
 
-	show_menu(id, keys, menuBody, -1, "Ban Menu");
+	show_menu(id, keys, menuBody, -1, "Ban Menu")
+}
+
+timeToString(minutes, output[], len)
+{
+	new hours = minutes / 60;
+	minutes %= 60;
+	
+	new days = hours / 24;
+	hours %= 24;
+	
+	new ret
+	
+	if (days)
+		ret += formatex(output[ret], len-ret, "%s%d day%s", ret ? ", " : "", days, (days == 1) ? "" : "s")
+	
+	if (hours)
+		ret += formatex(output[ret], len-ret, "%s%d hour%s", ret ? ", " : "", hours, (hours == 1) ? "" : "s")
+	
+	if (minutes)
+		ret += formatex(output[ret], len-ret, "%s%d minute%s", ret ? ", " : "", minutes, (minutes == 1) ? "" : "s")
+	
+	return ret
 }
 
 public cmdBanMenu(id, level, cid)
 {
 	if (!cmd_access(id, level, cid, 1))
-	{
-		return PLUGIN_HANDLED;
-	}
+		return PLUGIN_HANDLED
 
-	g_menuOption[id] = 0;
-
+	g_menuOption[id] = 0
+	
 	if (ArraySize(g_bantimes) > 0)
 	{
 		g_menuSettings[id] = ArrayGetCell(g_bantimes, g_menuOption[id]);
@@ -423,11 +436,11 @@ public cmdBanMenu(id, level, cid)
 	else
 	{
 		// should never happen, but failsafe
-		g_menuSettings[id] = 0;
+		g_menuSettings[id] = 0
 	}
-	displayBanMenu(id, g_menuPosition[id] = 0);
+	displayBanMenu(id, g_menuPosition[id] = 0)
 
-	return PLUGIN_HANDLED;
+	return PLUGIN_HANDLED
 }
 
 /* Slap/Slay */
@@ -1026,6 +1039,9 @@ displayTeamMenu(id, pos)
 
 public cmdTeamMenu(id, level, cid)
 {
+	console_print(id, "Sorry. Team Menu is under maintainence")
+	return PLUGIN_HANDLED;
+
 	if (!cmd_access(id, level, cid, 1))
 	{
 		return PLUGIN_HANDLED;

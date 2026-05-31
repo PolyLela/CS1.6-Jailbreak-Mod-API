@@ -53,10 +53,9 @@
 
 #include <amxmodx>
 #include <amxmisc>
+#include <MJB_Stocks>
 
 #define PLUGIN  "AMX_Super Menu"
-#define AUTHOR  "SuperCentral.co"
-#define VERSION "5.0.2"
 
 enum 
 {
@@ -552,7 +551,7 @@ public MenuCallback(id, hMenu, iItem)
 	if(TrieKeyExists(g_tDisabledCmds, g_szCommands[iNum]))
 		return ITEM_DISABLED;
 		
-	if (get_user_flags(id) & g_iAccessLevel[iNum])
+	if (hasRank(id, g_iAccessLevel[iNum]))
 		return ITEM_ENABLED;
 		
 	return ITEM_DISABLED;
@@ -821,7 +820,7 @@ DisplayPlayer1Menu(id, iPos, iMenu)
 		else
 			get_user_name(i, szName, 31);
 
-		new bool:bCanAffect = canAffect2(id, i);
+		new bool:bCanAffect = bool:canAffect2(id, i);
 
 		if (!bCanAffect) {
 			if (strlen(szName) > 20) {
@@ -830,10 +829,11 @@ DisplayPlayer1Menu(id, iPos, iMenu)
 				szName[20] = 0;
 			}
 			new szRank[64];
-			GetRankLevelStr(i, szRank, 63)
+			GetRankLevelStr(i, szRank, 63);
 			iLen += format(szMenuBody[iLen], 1023 - iLen, "\d%d. %-20s       \r%s^n\w", ++b, szName, szRank);
 		}
 		else {
+			iKeys |= (1<<b);
 			iLen += format(szMenuBody[iLen], 1023 - iLen, "\r%d\d. \w%s^n\w", ++b, szName);
 		}
 	}
@@ -915,7 +915,7 @@ DisplayPlayer2Menu(id, iPos, iMenu)
 	if (iStart >= g_iMenuPlayersNum[id])
 		iStart = iPos = g_iMenuPosition[id] = 0;
 	
-	new szKey[20];
+	new szKey[22];
 	if (iMenu == BURY || iMenu == UNBURY)
 		format(szKey, charsmax(szKey), "AMXSUPER_%s", (g_iMenuProperties[id]) ? "UNBURY" : "BURY");
 	else
@@ -939,7 +939,7 @@ DisplayPlayer2Menu(id, iPos, iMenu)
 			default: get_user_name(i, szName, 31);
 		}
 		
-		new bool:bCanAffect = canAffect2(id, i);
+		new bool:bCanAffect = bool:canAffect2(id, i);
 
 		if (!bCanAffect) {
 			if (strlen(szName) > 20) {
@@ -948,10 +948,11 @@ DisplayPlayer2Menu(id, iPos, iMenu)
 				szName[20] = 0;
 			}
 			new szRank[64];
-			GetRankLevelStr(i, szRank, 63)
+			GetRankLevelStr(i, szRank, 63);
 			iLen += format(szMenuBody[iLen], 1023 - iLen, "\d%d. %-20s       \r%s^n\w", ++b, szName, szRank);
 		}
 		else {
+			iKeys |= (1<<b);
 			iLen += format(szMenuBody[iLen], 1023 - iLen, "\r%d\d. \w%s^n\w", ++b, szName);
 		}
 	}
@@ -1106,7 +1107,7 @@ DisplayGagMenu(id, iPos)
 		}
 		*/
 		
-		new bool:bCanAffect = canAffect2(id, i);
+		new bool:bCanAffect = bool:canAffect2(id, i);
 
 		if (!bCanAffect) {
 			if (strlen(szName) > 20) {
@@ -1115,10 +1116,11 @@ DisplayGagMenu(id, iPos)
 				szName[20] = 0;
 			}
 			new szRank[64];
-			GetRankLevelStr(i, szRank, 63)
+			GetRankLevelStr(i, szRank, 63);
 			iLen += format(szMenuBody[iLen], 1023 - iLen, "\d%d. %-20s       \r%s^n\w", ++b, szName, szRank);
 		}
 		else {
+			iKeys |= (1<<b);
 			iLen += format(szMenuBody[iLen], 1023 - iLen, "\r%d\d. \w%s^n\w", ++b, szName);
 		}
 	}
@@ -1149,6 +1151,3 @@ DisplayGagMenu(id, iPos)
 
 	show_menu(id, iKeys, szMenuBody, -1, "Gag Menu");
 }
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
-*/

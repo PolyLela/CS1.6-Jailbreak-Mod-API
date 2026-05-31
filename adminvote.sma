@@ -29,6 +29,9 @@ new g_execLen
 new bool:g_execResult
 new Float:g_voteRatio
 
+new g_ban_player;
+new g_ban_reason[128];
+
 public plugin_init()
 {
 	register_plugin("Admin Votes", AMXX_VERSION_STR, "AMXX Dev Team")
@@ -46,6 +49,7 @@ public plugin_init()
 	register_concmd("amx_voteban", "cmdVoteKickBan", ADMIN_VOTE, "<name or #userid>")
 	register_concmd("amx_vote", "cmdVote", ADMIN_VOTE, "<question> <answer#1> <answer#2>")
 	register_concmd("amx_cancelvote", "cmdCancelVote", ADMIN_VOTE, "- cancels last vote")
+	register_clcmd("amx_votebanreason", "CmdBanReason", RANK_FULL_ADMIN, "<reason>");
 	
 	g_coloredMenus = colored_menus()
 }
@@ -188,8 +192,19 @@ public checkVotes()
 	
 	format(lVotingSuccess, charsmax(lVotingSuccess), "%L", "en", "VOTING_SUCCESS")
 	log_amx("Vote: %s (got ^"%d^") (needed ^"%d^") (result ^"%s^")", lVotingSuccess, iResult, iRatio, g_Execute)
-	
+		
+	g_ban_reason[0] = 0;
+
 	return PLUGIN_CONTINUE
+}
+
+public CmdBanReason(id, level, cid)
+{
+	read_args(g_ban_reason, sizeof(g_ban_reason) - 1);
+	
+	client_cmd(id, "amx_voteban #%i", get_user_userid(g_ban_player));
+	
+	return PLUGIN_HANDLED;
 }
 
 public voteCount(id, key)
@@ -462,6 +477,16 @@ public cmdVoteKickBan(id, level, cid)
 		console_print(id, "%L", id, "ACTION_PERFORMED", imname)
 		return PLUGIN_HANDLED
 	}
+	
+	if( voteban && !g_ban_reason[0] )
+	{
+		g_ban_player = player;
+		
+		client_cmd(id, "messagemode amx_votebanreason");
+		client_print(id, print_chat, "[AMXX] Type in the reason for the vote ban.");
+		
+		return PLUGIN_HANDLED;
+	}
 
 	new keys = MENU_KEY_1|MENU_KEY_2
 	new menu_msg[256], lYes[16], lNo[16], lKickBan[16]
@@ -531,13 +556,14 @@ public cmdVoteKickBan(id, level, cid)
 	{
 		if (ipban==true)
 		{
-			g_Answer = "addip 30.0 %s";
+			g_Answer = "amx_banip %s 30 ";
 		}
 		else
 		{
-			g_Answer = "banid 30.0 %s kick";
-
+			g_Answer = "amx_ban %s 30 ";
 		}
+
+		add(g_Answer, sizeof(g_Answer) - 1, g_ban_reason);
 	}
 	else
 	{
