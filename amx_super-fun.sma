@@ -553,7 +553,7 @@ public Cmd_Armor(id, iLevel, iCid)
 			if (!mjb_is_valid_player(iPlayers[i]) || !canAffect2(id, iPlayers[i]))
 				continue;
 
-			cs_set_user_armor(iPlayers[i], iArmor, CS_ARMOR_VESTHELM);
+			rg_set_user_armor(iPlayers[i], iArmor, ARMOR_VESTHELM);
 		}
 		
 		show_activity_key("AMX_SUPER_ARMOR_TEAM_CASE1", "AMX_SUPER_ARMOR_TEAM_CASE2", szAdminName, iArmor, g_szTeamNames[Team]);
@@ -578,7 +578,7 @@ public Cmd_Armor(id, iLevel, iCid)
 				return PLUGIN_HANDLED;
 			}
 
-			cs_set_user_armor(iTempid, iArmor, CS_ARMOR_VESTHELM);
+			rg_set_user_armor(iTempid, iArmor, ARMOR_VESTHELM);
 			
 			new szTargetAuthid[35];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
@@ -961,7 +961,7 @@ getMaxClipAmmo(iWeaponid)
 	}
 	
 	return iClip;
-}		
+}
 
 /* 8a)	amx_weapon
  *----------------
@@ -1131,16 +1131,16 @@ new g_szWeaponNames[][] =
 	"G3SG1",
 	"",
 	"M249",
-	"Kevlar and Helmit", //82
+	"Kevlar and Helmet", //82
 	"HE Grenade",
 	"Flashbang",
 	"Smoke Grenade",
-	"Defuse Kit",
+	"",
 	"Shield",
 	"",
 	"",
 	"",
-	"C4",
+	"",
 	"Night Vision"
 };
 
@@ -1451,7 +1451,7 @@ give_weapon(id,iWeapon)
 		//Pistols
 		case 1:
 		{
-			give_item(id,g_szWeapons[WEAPON_KNIFE]);
+			rg_give_item(id,g_szWeapons[WEAPON_KNIFE]);
 		}
 		
 		case 11:
@@ -1593,58 +1593,58 @@ give_weapon(id,iWeapon)
 		//Shield combos
 		case 60:
 		{
-			give_item(id, g_szWeapons[WEAPON_SHIELD]);
+			rg_give_item(id, g_szWeapons[WEAPON_SHIELD]);
 			give_weapon_x(id, g_szWeapons[WEAPON_GLOCK18]);
 			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
 			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
-			give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
 		}
 		
 		case 61:
 		{
-			give_item(id, g_szWeapons[WEAPON_SHIELD]);
+			rg_give_item(id, g_szWeapons[WEAPON_SHIELD]);
 			give_weapon_x(id, g_szWeapons[WEAPON_USP]);
 			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
 			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
-			give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
 		}
 		
 		case 62:
 		{
-			give_item(id, g_szWeapons[WEAPON_SHIELD]);
+			rg_give_item(id, g_szWeapons[WEAPON_SHIELD]);
 			give_weapon_x(id, g_szWeapons[WEAPON_P228]);
 			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
 			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
-			give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
 		}
 		
 		case 63:
 		{
-			give_item(id, g_szWeapons[WEAPON_SHIELD]);
+			rg_give_item(id, g_szWeapons[WEAPON_SHIELD]);
 			give_weapon_x(id, g_szWeapons[WEAPON_DEAGLE]);
 			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
 			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
-			give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
 		}
 		
 		case 64:
 		{
-			give_item(id, g_szWeapons[WEAPON_SHIELD]);
+			rg_give_item(id, g_szWeapons[WEAPON_SHIELD]);
 			give_weapon_x(id, g_szWeapons[WEAPON_FIVESEVEN]);
 			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
 			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
-			give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
 		}
 		
 		//Equipment 
 		case 81:
 		{
-			give_item(id, g_szWeapons[ITEM_KEVLAR]);
+			rg_give_item(id, g_szWeapons[ITEM_KEVLAR]);
 		}
 		
 		case 82:
 		{
-			give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
 		}
 		
 		case 83:
@@ -1664,12 +1664,12 @@ give_weapon(id,iWeapon)
 		
 		case 86:
 		{
-			give_item(id, g_szWeapons[ITEM_THIGHPACK]);
+			//rg_give_item(id, g_szWeapons[ITEM_THIGHPACK]);
 		}
 		
 		case 87:
 		{
-			give_item(id, g_szWeapons[WEAPON_SHIELD]);
+			rg_give_item(id, g_szWeapons[WEAPON_SHIELD]);
 		}
 		
 		//All ammo
@@ -1679,8 +1679,7 @@ give_weapon(id,iWeapon)
 
 			get_user_weapons(id, iWeapons, WeaponNum);
 			for(new i; i < WeaponNum; i++) 
-				cs_set_user_bpammo(id, iWeapons[i], bpammo[iWeapons[i]]);
-
+				rg_set_user_bpammo(id, iWeapons[i], bpammo[iWeapons[i]]);
 		}
 		
 		//All grenades
@@ -1691,16 +1690,9 @@ give_weapon(id,iWeapon)
 			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
 		}
 		
-		//C4
-		case 91:
-		{
-			give_item(id, g_szWeapons[WEAPON_C4]);
-			cs_set_user_plant(id, 1, 1);
-		}
-		
 		case 92:
 		{
-			cs_set_user_nvg(id, 1);
+			set_member(id, m_bNightVisionOn, true);
 		}
 		
 		//AWP Combo.
@@ -1711,13 +1703,13 @@ give_weapon(id,iWeapon)
 			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
 			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
 			give_weapon_x(id, g_szWeapons[WEAPON_SMOKEGRENADE]);
-			give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
 		}
 		
 		//Money case.
  		case 160:
 		{
-			cs_set_user_money(id, 16000, 1);
+			rg_add_account(id, 16000, AS_SET, true);
 		}
 		
 		//AllWeapons
@@ -1761,12 +1753,12 @@ give_weapon(id,iWeapon)
 
 stock give_weapon_x(id, const szWeapon[])
 {
-	give_item(id, szWeapon);
+	rg_give_item(id, szWeapon);
 	
 	new iWeaponid = get_weaponid(szWeapon);
 	
 	if(iWeaponid)
-		cs_set_user_bpammo(id, iWeaponid, bpammo[iWeaponid]);
+		rg_set_user_bpammo(id, iWeaponid, bpammo[iWeaponid]);
 }
 
 
@@ -2053,7 +2045,7 @@ public Cmd_SetMoney(id, iLevel, iCid)
 			if (!mjb_is_valid_player(iPlayers[i]) || !canAffect2(id, iPlayers[i]))
 				continue;
 
-			cs_set_user_money(iPlayers[i], iMoney);
+			rg_add_account(iPlayers[i], iMoney, AS_SET, true);
 		}
 	
 		show_activity_key("AMX_SUPER_GIVEMONEY_TEAM_CASE1", "AMX_SUPER_GIVEMONEY_TEAM_CASE2", szAdminName, g_szTeamNames[Team], iMoney);
@@ -2081,7 +2073,7 @@ public Cmd_SetMoney(id, iLevel, iCid)
 			return PLUGIN_HANDLED;
 		}
 
-		cs_set_user_money(iPlayer, iMoney);
+		rg_add_account(iPlayer, iMoney, AS_SET, true);
 		
 		new szTargetAuthid[36];
 		get_user_authid(iPlayer, szTargetAuthid, 35);
@@ -2381,20 +2373,20 @@ public Cmd_Revive(id, iLevel, iCid)
 			{
 				case T:
 				{
-					if(cs_get_user_team(iPlayer) == CS_TEAM_T)
-						ExecuteHamB(Ham_CS_RoundRespawn, iPlayer);
+					if(GetTeam(iPlayer) == PRISONER)
+						rg_round_respawn(iPlayer);
 				}
 				
 				case CT:
 				{
-					if(cs_get_user_team(iPlayer) == CS_TEAM_CT)
-						ExecuteHamB(Ham_CS_RoundRespawn, iPlayer);
+					if(GetTeam(iPlayer) == Guard)
+						rg_round_respawn(iPlayer);
 				}
 				
 				case ALL:
 				{
-					if(CS_TEAM_UNASSIGNED < cs_get_user_team(iPlayer) < CS_TEAM_SPECTATOR)
-						ExecuteHamB(Ham_CS_RoundRespawn, iPlayer);
+					if(UNASSIGNED < GetTeam(iPlayer) < SPECTATOR)
+						rg_round_respawn(iPlayer);
 				}
 			}
 		}
@@ -2407,7 +2399,7 @@ public Cmd_Revive(id, iLevel, iCid)
 	else
 	{
 		new iPlayer = cmd_target(id, szArg1, CMDTARGET_ALLOW_SELF);
-		if(!iPlayer || !(CS_TEAM_UNASSIGNED < cs_get_user_team(iPlayer) < CS_TEAM_SPECTATOR))
+		if(!iPlayer || !(UNASSIGNED < GetTeam(iPlayer) < SPECTATOR))
 			return PLUGIN_HANDLED;
 
 		new szTargetName[34];
@@ -2423,7 +2415,7 @@ public Cmd_Revive(id, iLevel, iCid)
 			return PLUGIN_HANDLED;
 		}
 
-		ExecuteHamB(Ham_CS_RoundRespawn, iPlayer);
+		rg_round_respawn(iPlayer);
 		
 		new szTargetAuthid[36];
 		get_user_authid(iPlayer, szTargetAuthid, 35);
@@ -2743,7 +2735,7 @@ public Cmd_Disarm(id, iLevel, iCid)
 				continue;
 			
 			rg_remove_all_items(iTempid);
-			give_item(iTempid, "weapon_knife");
+			rg_give_item(iTempid, "weapon_knife");
 		}
 			
 		show_activity_key("AMX_SUPER_DISARM_TEAM_CASE1", "AMX_SUPER_DISARM_TEAM_CASE2", szAdminName, g_szTeamNames[team]);
@@ -2769,7 +2761,7 @@ public Cmd_Disarm(id, iLevel, iCid)
 			}
 
 			rg_remove_all_items(iTempid);
-			give_item(iTempid, "weapon_knife");
+			rg_give_item(iTempid, "weapon_knife");
 			
 			new szTargetAuthid[25];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
