@@ -135,14 +135,14 @@ new g_iTeamMenu, g_iPlayerMenu;
 // amx_speed
 new bool: g_bIsFreezeTime;
 
+// amx_unammo
+new bool: g_bUnAmmo[33];
+
 // amx_fire
 new g_iOnFireBit;
 
 // amx_userorigin
 new g_iUserOrigin[33][3];
-
-// amx_unammo
-new g_iUnammoBit, Float: g_iReloadTime[33];
 
 // amx_glow, amx_glow2, amx_glowcolors
 new const g_iColorValues[MAX_COLORS][3] = 
@@ -382,7 +382,8 @@ public client_disconnected(id)
 {
 	if(CheckPlayerBit(g_iOnFireBit, id))
 		ClearPlayerBit(g_iOnFireBit, id);
-		
+
+	g_bUnAmmo[id] = false;
 	g_iFlags[id] = 0;
 }
 
@@ -847,12 +848,8 @@ public Cmd_UnAmmo(id, iLevel, iCid)
 			
 			if (!mjb_is_valid_player(iTempid) || !canAffect2(id, iTempid))
 				continue;
-			
-			if(iSetting)
-				SetPlayerBit(g_iUnammoBit, iTempid);
-			
-			else
-				ClearPlayerBit(g_iUnammoBit, iTempid);
+
+			apply_unammo(iTempid, iSetting);
 		}
 		
 		console_print(id, "%L", id, "AMX_SUPER_AMMO_TEAM_MSG", g_szTeamNames[Team], iSetting);
@@ -879,12 +876,8 @@ public Cmd_UnAmmo(id, iLevel, iCid)
 				return PLUGIN_HANDLED;
 			}
 
-			if(iSetting)
-				SetPlayerBit(g_iUnammoBit, iTempid);
-			
-			else
-				ClearPlayerBit(g_iUnammoBit, iTempid);
-				
+			apply_unammo(iTempid, iSetting);
+
 			new szTargetAuthid[35];
 			get_user_authid(iTempid, szTargetAuthid, charsmax(szTargetAuthid));
 			
@@ -898,116 +891,103 @@ public Cmd_UnAmmo(id, iLevel, iCid)
 	return PLUGIN_HANDLED;
 }
 
-public Event_CurWeapon(id)
-{
-	if(CheckPlayerBit(g_iUnammoBit, id))
-	{
-		new iWeaponid = read_data(2);
-		new iClip = read_data(3);
-	
-		if(iWeaponid == CSW_C4 
-		|| iWeaponid == CSW_KNIFE
-		|| iWeaponid == CSW_HEGRENADE
-		|| iWeaponid == CSW_SMOKEGRENADE
-		|| iWeaponid == CSW_FLASHBANG) {
-			return PLUGIN_CONTINUE;
-		}
-		
-		if(!iClip)
-		{
-			new iSystime = get_systime();
-			
-			if(g_iReloadTime[id] >= iSystime - 1)
-				return PLUGIN_CONTINUE;
-			
-			new szWeaponName[20];
-			get_weaponname(iWeaponid, szWeaponName, charsmax(szWeaponName));
-			
-			new EntId = -1;
-			while((EntId = engfunc(EngFunc_FindEntityByString, EntId, "classname", szWeaponName)) != 0)
-			{	
-				if(pev_valid(EntId) && pev(EntId, pev_owner) == id)
-				{
-					cs_set_weapon_ammo(EntId, getMaxClipAmmo(iWeaponid));
-					
-					break;
-				}
-			}
-		}
-	}
-	
-	return PLUGIN_CONTINUE;
-}
-
 getMaxClipAmmo(iWeaponid)
 {
 	new iClip = -1;
-	
+
 	switch(iWeaponid)
 	{
-		case CSW_P228: iClip = 13;
-		case CSW_SCOUT, CSW_AWP: iClip = 10;
-		case CSW_HEGRENADE, CSW_C4, CSW_SMOKEGRENADE, CSW_FLASHBANG, CSW_KNIFE: iClip = 0;
-		case CSW_XM1014, CSW_DEAGLE: iClip = 7;
-		case CSW_MAC10, CSW_AUG, CSW_SG550, CSW_MP5NAVY, CSW_M4A1, CSW_SG552, CSW_AK47: iClip = 30;
-		case CSW_ELITE: iClip = 15;
-		case CSW_FIVESEVEN, CSW_GLOCK18, CSW_G3SG1: iClip = 20;
-		case CSW_UMP45, CSW_FAMAS: iClip = 25;
-		case CSW_GALI: iClip = 35;
-		case CSW_USP: iClip = 12;
-		case CSW_M249: iClip = 100;
-		case CSW_M3: iClip = 8;
-		case CSW_P90: iClip = 50;
+		case WEAPON_P228: iClip = 13;
+		case WEAPON_SCOUT, WEAPON_AWP: iClip = 10;
+		case WEAPON_HEGRENADE, WEAPON_C4, WEAPON_SMOKEGRENADE, WEAPON_FLASHBANG, WEAPON_KNIFE: iClip = 0;
+		case WEAPON_XM1014, WEAPON_DEAGLE: iClip = 7;
+		case WEAPON_MAC10, WEAPON_AUG, WEAPON_SG550, WEAPON_MP5N, WEAPON_M4A1, WEAPON_SG552, WEAPON_AK47, WEAPON_TMP: iClip = 30;
+		case WEAPON_ELITE: iClip = 15;
+		case WEAPON_FIVESEVEN, WEAPON_GLOCK, WEAPON_GLOCK18, WEAPON_G3SG1: iClip = 20;
+		case WEAPON_UMP45, WEAPON_FAMAS: iClip = 25;
+		case WEAPON_GALIL: iClip = 35;
+		case WEAPON_USP: iClip = 12;
+		case WEAPON_M249: iClip = 100;
+		case WEAPON_M3: iClip = 8;
+		case WEAPON_P90: iClip = 50;
 	}
-	
+
 	return iClip;
+}
+
+stock apply_unammo(id, iSetting)
+{
+	if(iSetting)
+	{
+		g_bUnAmmo[id] = true;
+
+		new iWeapon = get_user_weapon(id);
+		new iClip = getMaxClipAmmo(iWeapon);
+		if(iClip > 0)
+			rg_set_user_ammo(id, WeaponIdType:iWeapon, iClip);
+	}
+	else
+		g_bUnAmmo[id] = false;
+}
+
+public Event_CurWeapon(id)
+{
+	if(!g_bUnAmmo[id])
+		return;
+
+	new iWeapon = read_data(2);
+	new iClip = getMaxClipAmmo(iWeapon);
+	if(iClip > 0)
+		rg_set_user_ammo(id, WeaponIdType:iWeapon, iClip);
 }
 
 /* 8a)	amx_weapon
  *----------------
 */
-enum
+// Indices for g_szWeapons[] only â€” do not use ReAPI WeaponIdType values here.
+enum _:WpnGiveIdx
 {
-	WEAPON_USP,
-	WEAPON_GLOCK18,
-	WEAPON_DEAGLE,
-	WEAPON_P228,
-	WEAPON_ELITE,
-	WEAPON_FIVESEVEN,
-	WEAPON_M3,
-	WEAPON_XM1014,
-	WEAPON_TMP,
-	WEAPON_MAC10,
-	WEAPON_MP5NAVY,
-	WEAPON_P90,
-	WEAPON_UMP45,
-	WEAPON_FAMAS,
-	WEAPON_GALIL,
-	WEAPON_AK47,
-	WEAPON_M4A1,
-	WEAPON_SG552,
-	WEAPON_AUG,
-	WEAPON_SCOUT,
-	WEAPON_SG550,
-	WEAPON_AWP,
-	WEAPON_G3SG1,
-	WEAPON_M249,
-	WEAPON_HEGRENADE,
-	WEAPON_SMOKEGRENADE,
-	WEAPON_FLASHBANG,
-	WEAPON_SHIELD,
-	WEAPON_C4,
-	WEAPON_KNIFE,
-	ITEM_KEVLAR,
-	ITEM_ASSAULTSUIT,
-	ITEM_THIGHPACK
+	WPN_GI_USP,
+	WPN_GI_GLOCK18,
+	WPN_GI_DEAGLE,
+	WPN_GI_P228,
+	WPN_GI_ELITE,
+	WPN_GI_FIVESEVEN,
+	WPN_GI_M3,
+	WPN_GI_XM1014,
+	WPN_GI_TMP,
+	WPN_GI_MAC10,
+	WPN_GI_MP5N,
+	WPN_GI_P90,
+	WPN_GI_UMP45,
+	WPN_GI_FAMAS,
+	WPN_GI_GALIL,
+	WPN_GI_AK47,
+	WPN_GI_M4A1,
+	WPN_GI_SG552,
+	WPN_GI_AUG,
+	WPN_GI_SCOUT,
+	WPN_GI_SG550,
+	WPN_GI_AWP,
+	WPN_GI_G3SG1,
+	WPN_GI_M249,
+	WPN_GI_HEGRENADE,
+	WPN_GI_SMOKEGRENADE,
+	WPN_GI_FLASHBANG,
+	WPN_GI_SHIELD,
+	WPN_GI_C4,
+	WPN_GI_KNIFE,
+	WPN_GI_ARMOR_KEVLAR,
+	WPN_GI_ASSAULTSUIT,
+	WPN_GI_THIGHPACK
 };
 
-new bpammo[] =  // 0 denotes a blank weapon id
+// Backup ammo by ReGameDLL WeaponIdType index (0..30).
+new bpammo[] =
 {
 	0,
 	52,
-	0,
+	120,
 	90,
 	1,
 	32,
@@ -1451,37 +1431,37 @@ give_weapon(id,iWeapon)
 		//Pistols
 		case 1:
 		{
-			rg_give_item(id,g_szWeapons[WEAPON_KNIFE]);
+			rg_give_item(id,g_szWeapons[WPN_GI_KNIFE]);
 		}
 		
 		case 11:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_GLOCK18]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_GLOCK18]);
 		}
 		
 		case 12:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_USP]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_USP]);
 		}
 		
 		case 13:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_P228]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_P228]);
 		}
 		
 		case 14:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_DEAGLE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_DEAGLE]);
 		}
 		
 		case 15:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_FIVESEVEN]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FIVESEVEN]);
 		}
 		
 		case 16:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_ELITE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_ELITE]);
 		}
 		
 		case 17:
@@ -1499,177 +1479,177 @@ give_weapon(id,iWeapon)
 		//Shotguns
 		case 21:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_M3]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_M3]);
 		}
 		
 		case 22:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_XM1014]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_XM1014]);
 		}
 		
 		//SMGs
 		case 31:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_TMP]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_TMP]);
 		}
 		
 		case 32:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_MAC10]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_MAC10]);
 		}
 		
 		case 33:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_MP5NAVY]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_MP5N]);
 		}
 		
 		case 34:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_P90]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_P90]);
 		}
 		
 		case 35:
 		{ 
-			give_weapon_x(id, g_szWeapons[WEAPON_UMP45]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_UMP45]);
 		}
 		
 		//Rifles 
 		case 40:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_FAMAS]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FAMAS]);
 		}
 		
 		case 41:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_GALIL]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_GALIL]);
 		}
 		
 		case 42:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_AK47]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_AK47]);
 		}
 		
 		case 43:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_M4A1]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_M4A1]);
 		}
 		
 		case 44:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_SG552]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_SG552]);
 		}
 		
 		case 45:
 		{
-			give_weapon_x(id,g_szWeapons[WEAPON_AUG]);
+			give_weapon_x(id,g_szWeapons[WPN_GI_AUG]);
 		}
 		
 		case 46:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_SCOUT]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_SCOUT]);
 		}
 		
 		case 47:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_SG550]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_SG550]);
 		}
 		
 		case 48:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_AWP]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_AWP]);
 		}
 		
 		case 49:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_G3SG1]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_G3SG1]);
 		}
 		
 		//Machine gun (M249 Para)
 		case 51:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_M249]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_M249]);
 		}
 		
 		//Shield combos
 		case 60:
 		{
-			rg_give_item(id, g_szWeapons[WEAPON_SHIELD]);
-			give_weapon_x(id, g_szWeapons[WEAPON_GLOCK18]);
-			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
-			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			rg_give_item(id, g_szWeapons[WPN_GI_SHIELD]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_GLOCK18]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_HEGRENADE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FLASHBANG]);
+			rg_give_item(id, g_szWeapons[WPN_GI_ASSAULTSUIT]);
 		}
 		
 		case 61:
 		{
-			rg_give_item(id, g_szWeapons[WEAPON_SHIELD]);
-			give_weapon_x(id, g_szWeapons[WEAPON_USP]);
-			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
-			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			rg_give_item(id, g_szWeapons[WPN_GI_SHIELD]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_USP]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_HEGRENADE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FLASHBANG]);
+			rg_give_item(id, g_szWeapons[WPN_GI_ASSAULTSUIT]);
 		}
 		
 		case 62:
 		{
-			rg_give_item(id, g_szWeapons[WEAPON_SHIELD]);
-			give_weapon_x(id, g_szWeapons[WEAPON_P228]);
-			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
-			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			rg_give_item(id, g_szWeapons[WPN_GI_SHIELD]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_P228]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_HEGRENADE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FLASHBANG]);
+			rg_give_item(id, g_szWeapons[WPN_GI_ASSAULTSUIT]);
 		}
 		
 		case 63:
 		{
-			rg_give_item(id, g_szWeapons[WEAPON_SHIELD]);
-			give_weapon_x(id, g_szWeapons[WEAPON_DEAGLE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
-			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			rg_give_item(id, g_szWeapons[WPN_GI_SHIELD]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_DEAGLE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_HEGRENADE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FLASHBANG]);
+			rg_give_item(id, g_szWeapons[WPN_GI_ASSAULTSUIT]);
 		}
 		
 		case 64:
 		{
-			rg_give_item(id, g_szWeapons[WEAPON_SHIELD]);
-			give_weapon_x(id, g_szWeapons[WEAPON_FIVESEVEN]);
-			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
-			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			rg_give_item(id, g_szWeapons[WPN_GI_SHIELD]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FIVESEVEN]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_HEGRENADE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FLASHBANG]);
+			rg_give_item(id, g_szWeapons[WPN_GI_ASSAULTSUIT]);
 		}
 		
 		//Equipment 
 		case 81:
 		{
-			rg_give_item(id, g_szWeapons[ITEM_KEVLAR]);
+			rg_give_item(id, g_szWeapons[WPN_GI_ARMOR_KEVLAR]);
 		}
 		
 		case 82:
 		{
-			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			rg_give_item(id, g_szWeapons[WPN_GI_ASSAULTSUIT]);
 		}
 		
 		case 83:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_HEGRENADE]);
 		}
 		
 		case 84:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FLASHBANG]);
 		}
 		
 		case 85:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_SMOKEGRENADE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_SMOKEGRENADE]);
 		}
 		
 		case 86:
 		{
-			//rg_give_item(id, g_szWeapons[ITEM_THIGHPACK]);
+			//rg_give_item(id, g_szWeapons[WPN_GI_THIGHPACK]);
 		}
 		
 		case 87:
 		{
-			rg_give_item(id, g_szWeapons[WEAPON_SHIELD]);
+			rg_give_item(id, g_szWeapons[WPN_GI_SHIELD]);
 		}
 		
 		//All ammo
@@ -1678,16 +1658,19 @@ give_weapon(id,iWeapon)
 			new iWeapons[32], WeaponNum;
 
 			get_user_weapons(id, iWeapons, WeaponNum);
-			for(new i; i < WeaponNum; i++) 
-				rg_set_user_bpammo(id, iWeapons[i], bpammo[iWeapons[i]]);
+			for(new i; i < WeaponNum; i++)
+			{
+				if(iWeapons[i] > 0 && iWeapons[i] < sizeof bpammo)
+					rg_set_user_bpammo(id, WeaponIdType:iWeapons[i], bpammo[iWeapons[i]]);
+			}
 		}
 		
 		//All grenades
 		case 89:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_SMOKEGRENADE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_HEGRENADE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_SMOKEGRENADE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FLASHBANG]);
 		}
 		
 		case 92:
@@ -1698,12 +1681,12 @@ give_weapon(id,iWeapon)
 		//AWP Combo.
 		case 100:
 		{
-			give_weapon_x(id, g_szWeapons[WEAPON_AWP]);
-			give_weapon_x(id, g_szWeapons[WEAPON_DEAGLE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
-			give_weapon_x(id, g_szWeapons[WEAPON_SMOKEGRENADE]);
-			rg_give_item(id, g_szWeapons[ITEM_ASSAULTSUIT]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_AWP]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_DEAGLE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_HEGRENADE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FLASHBANG]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_SMOKEGRENADE]);
+			rg_give_item(id, g_szWeapons[WPN_GI_ASSAULTSUIT]);
 		}
 		
 		//Money case.
@@ -1716,33 +1699,33 @@ give_weapon(id,iWeapon)
 		case 200:
 		{
 			//all up to wpnindex 51 are given.. replace w loop
-			give_weapon_x(id, g_szWeapons[WEAPON_USP]);
-			give_weapon_x(id, g_szWeapons[WEAPON_GLOCK18]);
-			give_weapon_x(id, g_szWeapons[WEAPON_DEAGLE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_P228]);
-			give_weapon_x(id, g_szWeapons[WEAPON_ELITE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_FIVESEVEN]);
-			give_weapon_x(id, g_szWeapons[WEAPON_M3]);
-			give_weapon_x(id, g_szWeapons[WEAPON_XM1014]);
-			give_weapon_x(id, g_szWeapons[WEAPON_TMP]);
-			give_weapon_x(id, g_szWeapons[WEAPON_MAC10]);
-			give_weapon_x(id, g_szWeapons[WEAPON_MP5NAVY]);
-			give_weapon_x(id, g_szWeapons[WEAPON_P90]);
-			give_weapon_x(id, g_szWeapons[WEAPON_UMP45]);
-			give_weapon_x(id, g_szWeapons[WEAPON_FAMAS]);
-			give_weapon_x(id, g_szWeapons[WEAPON_GALIL]);
-			give_weapon_x(id, g_szWeapons[WEAPON_AK47]);
-			give_weapon_x(id, g_szWeapons[WEAPON_M4A1]);
-			give_weapon_x(id, g_szWeapons[WEAPON_SG552]);
-			give_weapon_x(id, g_szWeapons[WEAPON_AUG]);
-			give_weapon_x(id, g_szWeapons[WEAPON_SCOUT]);
-			give_weapon_x(id, g_szWeapons[WEAPON_SG550]);
-			give_weapon_x(id, g_szWeapons[WEAPON_AWP]);
- 			give_weapon_x(id, g_szWeapons[WEAPON_G3SG1]);
-			give_weapon_x(id, g_szWeapons[WEAPON_M249]);
-			give_weapon_x(id, g_szWeapons[WEAPON_HEGRENADE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_SMOKEGRENADE]);
-			give_weapon_x(id, g_szWeapons[WEAPON_FLASHBANG]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_USP]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_GLOCK18]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_DEAGLE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_P228]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_ELITE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FIVESEVEN]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_M3]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_XM1014]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_TMP]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_MAC10]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_MP5N]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_P90]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_UMP45]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FAMAS]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_GALIL]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_AK47]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_M4A1]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_SG552]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_AUG]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_SCOUT]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_SG550]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_AWP]);
+ 			give_weapon_x(id, g_szWeapons[WPN_GI_G3SG1]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_M249]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_HEGRENADE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_SMOKEGRENADE]);
+			give_weapon_x(id, g_szWeapons[WPN_GI_FLASHBANG]);
 		}
 		
 		default: return false;
@@ -1754,11 +1737,11 @@ give_weapon(id,iWeapon)
 stock give_weapon_x(id, const szWeapon[])
 {
 	rg_give_item(id, szWeapon);
-	
+
 	new iWeaponid = get_weaponid(szWeapon);
-	
-	if(iWeaponid)
-		rg_set_user_bpammo(id, iWeaponid, bpammo[iWeaponid]);
+
+	if(iWeaponid > 0 && iWeaponid < sizeof bpammo)
+		rg_set_user_bpammo(id, WeaponIdType:iWeaponid, bpammo[iWeaponid]);
 }
 
 
@@ -2307,14 +2290,14 @@ SetSpeed(id, iSetting)
 		
 		switch ( get_user_weapon(id) )
 		{
-			case CSW_SG550, CSW_AWP, CSW_G3SG1 : flMaxSpeed = 210.0;
-			case CSW_M249 : flMaxSpeed = 220.0;
-			case CSW_AK47 : flMaxSpeed = 221.0;
-			case CSW_M3, CSW_M4A1 : flMaxSpeed = 230.0;
-			case CSW_SG552 : flMaxSpeed = 235.0;
-			case CSW_XM1014, CSW_AUG, CSW_GALIL, CSW_FAMAS : flMaxSpeed = 240.0;
-			case CSW_P90 : flMaxSpeed = 245.0;
-			case CSW_SCOUT : flMaxSpeed = 260.0;
+			case WEAPON_SG550, WEAPON_AWP, WEAPON_G3SG1 : flMaxSpeed = 210.0;
+			case WEAPON_M249 : flMaxSpeed = 220.0;
+			case WEAPON_AK47 : flMaxSpeed = 221.0;
+			case WEAPON_M3, WEAPON_M4A1 : flMaxSpeed = 230.0;
+			case WEAPON_SG552 : flMaxSpeed = 235.0;
+			case WEAPON_XM1014, WEAPON_AUG, WEAPON_GALIL, WEAPON_FAMAS : flMaxSpeed = 240.0;
+			case WEAPON_P90 : flMaxSpeed = 245.0;
+			case WEAPON_SCOUT : flMaxSpeed = 260.0;
 			default : flMaxSpeed = 250.0;
 		}
 		set_user_maxspeed(id, flMaxSpeed);
