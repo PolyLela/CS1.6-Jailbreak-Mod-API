@@ -1,3 +1,7 @@
+/* TODO 
+ * Add Check if there is simon before forwarding simon cleared to not misinform
+*/
+
 #include <amxmodx>
 #include <reapi>
 #include <MJB_Core>
@@ -74,7 +78,7 @@ public OnPlayerKilled_Post(id, pevAttacker, iGib) {
 }
 
 public SetSimon(id) {
-	if (GetTeam(id) != TEAM_CT|| SimonExists() || !mjb_is_valid_player(id))
+	if (GetTeam(id) != TEAM_CT|| SimonExists() || !mjb_is_valid_player(id) || !is_user_alive(id))
 		return;
 	g_iSimon = id;
 	new ret;
@@ -82,7 +86,7 @@ public SetSimon(id) {
 }
 
 public ForceSetSimon(id) {
-	if (GetTeam(id) != TEAM_CT || !mjb_is_valid_player(id))
+	if (GetTeam(id) != TEAM_CT || !mjb_is_valid_player(id) || !is_user_alive(id))
 		return;
 
 	ClearSimon();
