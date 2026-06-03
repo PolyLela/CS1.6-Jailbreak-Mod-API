@@ -8,6 +8,7 @@
 
 #define PLUGIN "Simon State"
 
+new bool:g_bBlockedFromSimon[MAX_PLAYERS + 1];
 new g_iSimon = 0;
 new g_fwSimonSet, g_fwSimonCleared, g_fwSimonDied, g_fwSimonDisconnected;
 public plugin_init() {
@@ -21,6 +22,7 @@ public plugin_init() {
 
 public plugin_natives() {
 	register_library("MJB_Core");
+	register_native("mjb_block_from_simoni", "native_block_from_simoni");
 	register_native("mjb_set_simon",	"native_set_simon");
 	register_native("mjb_force_set_simon",	"native_force_set_simon");
 	register_native("mjb_get_simon",	"native_get_simon");
@@ -29,12 +31,22 @@ public plugin_natives() {
 	register_native("mjb_simon_exists",	"native_simon_exists");
 }
 
-public native_set_simon() {
-	SetSimon(get_param(1));
+public native_block_from_simoni() {
+	new id = get_param(1);
+	if (1 > id || id > 32)
+		return;
+
+	new bool:bToggle = bool:get_param(2);
+
+	g_bBlockedFromSimon[id] = bToggle;
 }
 
-public native_force_set_simon() {
-	ForceSetSimon(get_param(1));
+public bool:native_set_simon() {
+	return SetSimon(get_param(1));
+}
+
+public bool:native_force_set_simon() {
+	return ForceSetSimon(get_param(1));
 }
 
 public native_get_simon() {
@@ -77,20 +89,23 @@ public OnPlayerKilled_Post(id, pevAttacker, iGib) {
 	ExecuteForward(g_fwSimonDied, ret, id);
 }
 
-public SetSimon(id) {
-	if (GetTeam(id) != TEAM_CT|| SimonExists() || !mjb_is_valid_player(id) || !is_user_alive(id))
-		return;
+public bool:SetSimon(id) {
+	if (GetTeam(id) != GUARD || SimonExists() || !mjb_is_valid_player(id) || !is_user_alive(id) || g_bBlockedFromSimon[id])
+		return false;
+		
 	g_iSimon = id;
 	new ret;
 	ExecuteForward(g_fwSimonSet, ret, id);
+	return true;
 }
 
-public ForceSetSimon(id) {
-	if (GetTeam(id) != TEAM_CT || !mjb_is_valid_player(id) || !is_user_alive(id))
-		return;
+public bool:ForceSetSimon(id) {
+	if (GetTeam(id) != GUARD || !mjb_is_valid_player(id) || !is_user_alive(id) || g_bBlockedFromSimon[id])
+		return false;
 
 	ClearSimon();
 	SetSimon(id);
+	return true;
 }
 
 public ClearSimon() {
@@ -115,3 +130,6 @@ public SimonExists() {
 		return MJB_True;
 	return MJB_False;
 }
+/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
+*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
+*/

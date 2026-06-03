@@ -99,6 +99,13 @@ new const DayNames[][] = {
    ENUMS
 ========================= */
 
+enum _:CellLockType {
+	CELL_SERVER = 0, // cell is locked from server (code and core)
+	CELL_ALL = MAX_PLAYERS + 1, // cell is locked from all
+	CELL_PLAYERS, // cell is locked from all players like simon and so
+	CELL_ADMINS // cell is locked from admins by commands
+};
+
 /* Dynamic Daymodes Registration */
 enum _:DayModeData {
 	DM_Name[32],
@@ -191,6 +198,9 @@ enum _:PlayerState {
 	PRISONER_LAST,
 	STATES_NUM
 };
+/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
+*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
+*/
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
 */

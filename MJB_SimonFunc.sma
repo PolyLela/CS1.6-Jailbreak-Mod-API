@@ -307,13 +307,15 @@ public Handle_SimonMenu(id, iKeys){
 	{
 		case 0:
 		{
-			if(!mjb_is_cell_opened()) {
-				mjb_open_cell(); 
+			if(!mjb_is_cell_opened() && mjb_open_cell()) {
 				emit_sound(0, CHAN_AUTO, "MOON_JB/simon_open_cell.wav", VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
 			}
-			else {
-				mjb_close_cell();
+			else if (mjb_close_cell()) {
+				
 				emit_sound(0, CHAN_AUTO, "MOON_JB/simon_close_cell.wav", VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+			}
+			else {
+				MJB_Print(id, "!nDoors are locked by the CO-Owner currently.");
 			}
 		}
 		case 1:

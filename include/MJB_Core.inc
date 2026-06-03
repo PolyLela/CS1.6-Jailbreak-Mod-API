@@ -14,7 +14,6 @@
  * ============================================================
  */
 
-native mjb_get_door_state();
 /**
  * Blocks default game behaviour in some functions.
  *
@@ -176,13 +175,23 @@ native mjb_block_simon_menu(id = 0);
 native mjb_show_simon_menu(id);
 
 /**
+ * Blocks/Unblocks a player from being simon until next map.
+ *
+ * @param id        			Player index.
+ * @param bool:bToggle        	bToggle.
+ *
+ * @noreturn
+ */
+native mjb_block_from_simoni(id, bool:bToggle);
+
+/**
  * Sets a player to simon if there is no simon and if there is a simon it doesnt do anything.
  *
  * @param id        Player index.
  *
- * @noreturn
+ * @return			If player isnt from Guards or he is invalid or he is non-alive or there is a simon or he is blocked It Doesnt Set and Return false.
  */
-native mjb_set_simon(id);
+native bool:mjb_set_simon(id);
 
 /**
  * Forces setting a player to simon.
@@ -191,9 +200,9 @@ native mjb_set_simon(id);
  *
  * Unlike "mjb_set_simon" it gives simon to player even if there is another simon.
  *
- * @noreturn
+ * @return			If player isnt from Guards or he is invalid or he is non-alive or he is blocked It Doesnt Set and Return false.
  */
-native mjb_force_set_simon(id);
+native bool:mjb_force_set_simon(id);
 
 /**
  * Clears Simon.
@@ -228,16 +237,20 @@ native mjb_simon_exists();
 /**
  * Opens Cell.
  *
- * @noreturn
+ * @param iCaller	Caller index (See CellLockType enum).	
+ *
+ * @return			true if successed false if not
  */
-native mjb_open_cell();
+native bool:mjb_open_cell(iCaller);
 
 /**
  * Closes Cell.
  *
- * @noreturn
+ * @param iCaller	Caller index (See CellLockType enum).	
+ *
+ * @return			true if successed false if not
  */
-native mjb_close_cell();
+native bool:mjb_close_cell(iCaller);
 
 /**
  * Checks if cell is opened.
@@ -254,6 +267,25 @@ native mjb_is_cell_opened();
  * @return		1 for true 0 for false
  */
 native mjb_is_a_cell(entity);
+
+/**
+ * Locks/Unlocks Cell From/For Specified entity/player index.
+ *
+ * @param bool:bToggle		Toggles The Locker State.
+ * @param iLockedFromId		0 for server 1->32 for a player 33 for all 34 for all players 35 for all admins (See CellLockType enum).
+ *
+ * @noreturn
+ */
+native mjb_lock_cell(bool:bToggle, iLockedFromId);
+
+/**
+ * Check if Cell is locked From/For Specified entity/player index.
+ *
+ * @param iLockedFromId		0 for server 1->32 for a player 33 for all 34 for all players 35 for all admins (See CellLockType enum).
+ *
+ * @return					true if locked for THIS id false if not.
+ */
+native bool:mjb_is_cell_locked(iLockedFromId);
 
 /**
  * Starts Freeday PHASE if day type isnt freeday and one freeday happened in the round.
@@ -382,6 +414,16 @@ native mjb_extend_timer(iTimerId, Float:fDuration);
  * @noreturn
  */
 native mjb_stop_all_timers();
+
+/**
+ * Sets Additional Multijumps Which adds to Base multjumps for a client.
+ *
+ * @param id			Client Id (1 <= id <= 32)
+ * @param iValue		Value.
+ *
+ * @noreturn
+ */
+native mjb_add_multijumps(id, iValue);
 
 /**
  * Sets a player's Jailbreak state.

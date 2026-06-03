@@ -13,6 +13,7 @@
 new Array:g_aDoorsList, g_iDoorsSize, Trie:g_tButtonsMap;
 new g_isDoorOpen = MJB_False;
 new g_iFakeMetaKV_Handler;
+new bool:g_bCellLockedPlayer[CellLockType];
 
 /* Forwards */
 new g_fwCellOpened, g_fwCellClosed;
@@ -126,27 +127,35 @@ public Ham_Door_Blocked(iBlocked, iBlocker) {
 public plugin_natives() {
 	register_library("MJB_Core");
 	
-	register_native("mjb_open_cell", "MJB_OpenCell");
-	register_native("mjb_close_cell", "MJB_CloseCell");
+	register_native("mjb_open_cell", "MJB_OpenCell", 1);
+	register_native("mjb_close_cell", "MJB_CloseCell", 1);
 	register_native("mjb_is_cell_opened", "MJB_IsCellOpened");
+	register_native("mjb_lock_cell", "MJB_LockCell", 1);
+	register_native("mjb_is_cell_locked", "MJB_IsCellLocked", 1);
 	register_native("mjb_is_a_cell", "MJB_IsACell");
 }
 
 
-public MJB_OpenCell() {
+public bool:MJB_OpenCell() {
+	if (MJB_IsCellLocked())
+		return false;
 	for (new i = 0; i < g_iDoorsSize; i++) {
 		new ent = ArrayGetCell(g_aDoorsList, i);
 		dllfunc(DLLFunc_Use, ent, 0);
 	}
 	MJB_SetDoorState(MJB_True);
+	return true
 }
 
-public MJB_CloseCell() {
+public bool:MJB_CloseCell() {
+	if (MJB_IsCellLocked())
+		return false;
 	for (new i = 0; i < g_iDoorsSize; i++) {
 		new ent = ArrayGetCell(g_aDoorsList, i);
 		dllfunc(DLLFunc_Think, ent, 0);
 	}
 	MJB_SetDoorState(MJB_False);
+	return true;
 }
 
 public MJB_SetDoorState(iState) {
@@ -164,6 +173,13 @@ public MJB_IsCellOpened() {
 	return g_isDoorOpen;
 }
 
+public MJB_LockCell(bool:bToggle, iLockedFromId) {
+	g_bCellLockedPlayer[iLockedFromId] = bToggle;
+}
+
+public bool:MJB_IsCellLocked(iLockedFromId) {
+	return g_bCellLockedPlayer[iLockedFromId];
+}
 
 public MJB_IsACell(entity) {
 	if (!pev_valid(entity))
@@ -175,6 +191,9 @@ public MJB_IsACell(entity) {
 		return 1;
 	return 0;
 }
+/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
+*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
+*/
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
 */

@@ -10,7 +10,18 @@ new g_iJumpNum[MAX_PLAYERS + 1];
 new g_iShouldJump[MAX_PLAYERS + 1];
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
-	
+
+}
+
+public plugin_natives() {
+	register_library("MJB_Core");
+	register_native("mjb_add_multijumps", "native_add_multijumps");
+}
+
+public native_add_multijumps() {
+	new id = get_param(1);
+	new iValue = get_param(2);
+	g_iAddJumps[id] = iValue;
 }
 
 public client_putinserver(id) {

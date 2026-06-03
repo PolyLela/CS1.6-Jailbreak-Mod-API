@@ -118,7 +118,10 @@ stock GetPhaseStr(iPhase) {
 public canAffect(id, iTarget) {
 	if (!mjb_is_valid_player(id))
 		return MJB_False;
-		
+	
+	if (is_user_hltv(id) || id == iTarget)
+		return MJB_True;
+
 	new rankId = get_user_rank_level(id);
 	new rankTarget = get_user_rank_level(iTarget);
 	
@@ -130,7 +133,10 @@ public canAffect(id, iTarget) {
 public canAffect2(id, iTarget) {
 	if (!mjb_is_valid_player(id))
 		return MJB_False;
-		
+	
+	if (is_user_hltv(id) || id == iTarget)
+		return MJB_True;
+
 	new rankId = get_user_rank_level(id);
 	new rankTarget = get_user_rank_level(iTarget);
 	
@@ -143,7 +149,7 @@ public canAffectAccess(id, iTargetAccess) {
 	if (!mjb_is_valid_player(id))
 		return MJB_False;
 	
-	if (hasRank(id, RANK_OWNER))
+	if (hasRank(id, RANK_OWNER) || is_user_hltv(id))
 		return MJB_True;
 
 	new rankId = get_user_rank_level(id);
@@ -206,6 +212,19 @@ stock GetMGTStr(iMinigamesTeam, output[], len) {
 		case BLUE : copy(output, len, "Blue");
 		case RED : copy(output, len, "Red");
 		default: copy(output, len, "Nul");
+	}
+}
+
+stock GetMeleeTypeStr(iMeleeType, output[], len) {
+	switch(iMeleeType) {
+	case MELEE_FISTS, MELEE_BATON : copy(output, len, "Default");
+    case MELEE_SVIP_AXE : copy(output, len, "Axe");
+    case MELEE_SVIP_COMBAT : copy(output, len, "Combat Knife");
+    case MELEE_SVIP_HAMMER : copy(output, len, "Hammer");
+    case MELEE_SVIP_KATANA : copy(output, len, "Katana");
+    case MELEE_SVIP_STAP : copy(output, len, "Stap");
+    case MELEE_BOXING_RED : copy(output, len, "Red Gloves");
+    case MELEE_BOXING_BLUE : copy(output, len, "Blue Gloves");
 	}
 }
 
